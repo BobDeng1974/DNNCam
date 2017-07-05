@@ -111,6 +111,7 @@ int run(int argc, char** argv)
     camera.reset(new Imx377Camera(ctx));
     camera->init();
     camera->start_capture();
+    data_source.reset(new DataSourceCamera(camera, verbose, frame_proc));
         
     frame_proc->start_workers();
     

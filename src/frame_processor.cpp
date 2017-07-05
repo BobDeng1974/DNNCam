@@ -45,6 +45,7 @@ FrameProcessor::FrameProcessor(const int w, const int h)
     }
 
     _streamer.reset(new Stream(_frame_width, _frame_height));
+    _streamer->start();
 }
 
 FrameProcessor::~FrameProcessor()
@@ -171,7 +172,6 @@ void FrameProcessor::process_frame_task(FramePtr src, const int frame_num, const
     cv::Mat source_frame; 
     source_frame = src->to_mat();
     do_stream(source_frame, frame_num, n_dropped_before);
-
 }
 
 void touch(const std::string& pathname)
