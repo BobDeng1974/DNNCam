@@ -1,0 +1,5 @@
+#!/bin/bash
+
+chmod 664 /etc/systemd/system/camerastreamer.service
+systemctl enable camerastreamer.service
+systemctl start camerastreamer.service

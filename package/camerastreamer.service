@@ -1,0 +1,11 @@
+[Unit]
+Description=CameraStreamer
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/camerastreamer -n -s
+
+[Install]
+WantedBy=multi-user.target
