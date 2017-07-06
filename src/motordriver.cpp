@@ -3,7 +3,6 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 #include <chrono>
 #include <thread>
@@ -18,10 +17,13 @@ int MotorDriver::addr1 = 0x20;
 int MotorDriver::addr2 = 0x21;
 
 #define STEPPER_SLEEP_TIME_MS 1
+#define HOMING_STEP_SIZE 5
 
+#define ZOOM_LIMIT      0x01
 #define ZOOM_DIR        0x02
 #define ZOOM_ENABLE     0x04
 #define ZOOM_STEP       0x08
+#define FOCUS_LIMIT     0x01
 #define FOCUS_DIR       0x02
 #define FOCUS_ENABLE    0x04
 #define FOCUS_STEP      0x08
@@ -51,9 +53,9 @@ int MotorDriver::addr2 = 0x21;
 #define REG_IODIRB_EXP2 0x00 // all outputs
 #define REG_GPPUA_VAL 0xFF // enable all pull-ups
 #define REG_GPPUB_VAL 0xFF
-#define REG_GPIOA_EXP1 0x90
-#define REG_GPIOB_EXP1 0x90
-#define REG_GPIOA_EXP2 0x90
+#define REG_GPIOA_EXP1 0x94 //sleep, reset and enable active low
+#define REG_GPIOB_EXP1 0x94
+#define REG_GPIOA_EXP2 0x94
 #define REG_GPIOB_EXP2 0x00
 
 #define DO_WRITE(addr,reg,data)   \
@@ -89,7 +91,7 @@ bool MotorDriver::init()
     return initExpanders();
 }
 
-bool MotorDriver::writeReg(uint8_t addr, uint8_t regaddr, char data)
+bool MotorDriver::writeReg(uint8_t addr, uint8_t regaddr, uint8_t data)
 {
     if (ioctl(fd_, I2C_SLAVE, addr) < 0) {
         cout << "Unable to access slave: " << addr << endl;
@@ -105,10 +107,47 @@ bool MotorDriver::writeReg(uint8_t addr, uint8_t regaddr, char data)
     return true;
 }
 
+bool MotorDriver::readReg(uint8_t addr, uint8_t regaddr, uint8_t& res)
+{
+    if (ioctl(fd_, I2C_SLAVE, addr) < 0) {
+        cout << "Unable to access slave: " << addr << endl;
+        return false;
+    }
+    res = i2c_smbus_read_byte_data(fd_, regaddr);
+    return true;
+}
+
+bool MotorDriver::printReg(uint8_t addr, uint8_t regaddr)
+{
+    uint8_t res = 0x00;
+    bool ret = readReg(addr, regaddr, res);
+    cout << std::hex << "0x" << res << std::dec << std::endl;
+    return ret;
+}
+
+bool MotorDriver::printZoom()
+{
+    return printReg(addr1, REG_GPIOA);
+}
+
+bool MotorDriver::printFocus()
+{
+    return printReg(addr1, REG_GPIOB);
+}
+
+bool MotorDriver::printIris()
+{
+    return printReg(addr2, REG_GPIOA);
+}
+
+bool MotorDriver::printPower()
+{
+    return printReg(addr2, REG_GPIOB);
+}
+
 bool MotorDriver::initExpanders()
 {
     cout << "IN initExpanders" << endl;
-    printf("TEST\n");
     char buf[10] = {0};
     if (-1 == fd_) {
         cerr << "i2c device not initialized" << endl;
@@ -150,32 +189,83 @@ bool MotorDriver::enablePowerLines()
 
 bool MotorDriver::enableZoom()
 {
-    exp1_gpioa |= ZOOM_ENABLE;
+    exp1_gpioa &= ~ZOOM_ENABLE;
     DO_WRITE(addr1, REG_GPIOA, exp1_gpioa);
     return true;
 }
 
 bool MotorDriver::disableZoom()
 {
-    exp1_gpioa &= ~ZOOM_ENABLE;
+    exp1_gpioa |= ZOOM_ENABLE;
     DO_WRITE(addr1, REG_GPIOA, exp1_gpioa);
     return true;
 }
 
+bool MotorDriver::zoomDir(int dir, int steps)
+{
+    if (0 == dir) {
+        exp1_gpioa &= ~ZOOM_DIR;
+        exp1_gpioa &= ~ZOOM_ENABLE;
+    } else {
+        exp1_gpioa |= ZOOM_DIR;
+        exp1_gpioa &= ~ZOOM_ENABLE;
+    }
+    DO_WRITE(addr1, REG_GPIOA, exp1_gpioa);
+    zoom(steps);
+    disableZoom();
+}
+
 bool MotorDriver::zoomIn(int steps)
 {
+    enableZoom();
     // assuming pin high is zoom in
     exp1_gpioa |= ZOOM_DIR;
     DO_WRITE(addr1, REG_GPIOA, exp1_gpioa);
     zoom(steps);
+    disableZoom();
 }
 
 bool MotorDriver::zoomOut(int steps)
 {
+    enableZoom();
     // assuming pin low is zoom out
     exp1_gpioa &= ~ZOOM_DIR;
     DO_WRITE(addr1, REG_GPIOA, exp1_gpioa);
     zoom(steps);
+    disableZoom();
+}
+
+bool MotorDriver::zoomHome(int dir, int steps)
+{
+    bool ret = false;
+    if (0 == dir) {
+        exp1_gpioa &= ~ZOOM_DIR;
+        exp1_gpioa &= ~ZOOM_ENABLE;
+    } else {
+        exp1_gpioa |= ZOOM_DIR;
+        exp1_gpioa &= ~ZOOM_ENABLE;
+    }
+    DO_WRITE(addr1, REG_GPIOA, exp1_gpioa);
+    int counter = 0;
+    while (!zoomLimit() && counter < steps) {
+        zoom(HOMING_STEP_SIZE);
+	counter += HOMING_STEP_SIZE;
+    }
+    if (counter <= steps) {
+        std::cout << "Reached step limit" << std::endl;
+    } else {
+        std::cout << "Found zoom limit" << std::endl;
+        ret = true;
+    }
+    disableFocus();
+    return ret;
+}
+
+bool MotorDriver::zoomLimit()
+{
+    uint8_t res = 0x00;
+    bool ret = readReg(addr1, REG_GPIOA, res);
+    return (res & ZOOM_LIMIT);
 }
 
 bool MotorDriver::zoom(int steps)
@@ -194,32 +284,83 @@ bool MotorDriver::zoom(int steps)
 
 bool MotorDriver::enableFocus()
 {
-    exp1_gpiob |= FOCUS_ENABLE;
+    exp1_gpiob &= ~FOCUS_ENABLE;
     DO_WRITE(addr1, REG_GPIOB, exp1_gpiob);
     return true;
 }
 
 bool MotorDriver::disableFocus()
 {
-    exp1_gpiob &= ~FOCUS_ENABLE;
+    exp1_gpiob |= FOCUS_ENABLE;
     DO_WRITE(addr1, REG_GPIOB, exp1_gpiob);
     return true;
 }
 
+bool MotorDriver::focusDir(int dir, int steps)
+{
+    if (0 == dir) {
+        exp1_gpiob &= ~FOCUS_DIR;
+        exp1_gpiob &= ~FOCUS_ENABLE;
+    } else {
+        exp1_gpiob |= FOCUS_DIR;
+        exp1_gpiob &= ~FOCUS_ENABLE;
+    }
+    DO_WRITE(addr1, REG_GPIOB, exp1_gpiob);
+    focus(steps);
+    disableFocus();
+}
+
 bool MotorDriver::focusIn(int steps)
 {
+    enableFocus();
     // assuming pin high is focus in
     exp1_gpiob |= FOCUS_DIR;
     DO_WRITE(addr1, REG_GPIOB, exp1_gpiob);
     focus(steps);
+    disableFocus();
 }
 
 bool MotorDriver::focusOut(int steps)
 {
+    enableFocus();
     // assuming pin low is focus out
     exp1_gpiob &= ~FOCUS_DIR;
     DO_WRITE(addr1, REG_GPIOB, exp1_gpiob);
     focus(steps);
+    disableFocus();
+}
+
+bool MotorDriver::focusHome(int dir, int steps)
+{
+    bool ret = false;
+    if (0 == dir) {
+        exp1_gpiob &= ~FOCUS_DIR;
+        exp1_gpiob &= ~FOCUS_ENABLE;
+    } else {
+        exp1_gpiob |= FOCUS_DIR;
+        exp1_gpiob &= ~FOCUS_ENABLE;
+    }
+    DO_WRITE(addr1, REG_GPIOB, exp1_gpiob);
+    int counter = 0;
+    while (!focusLimit() && counter < steps) {
+        focus(HOMING_STEP_SIZE);
+	counter += HOMING_STEP_SIZE;
+    }
+    if (counter <= steps) {
+        std::cout << "Reached step limit" << std::endl;
+    } else {
+        std::cout << "Found focus limit" << std::endl;
+        ret = true;
+    }
+    disableFocus();
+    return ret;
+}
+
+bool MotorDriver::focusLimit()
+{
+    uint8_t res = 0x00;
+    bool ret = readReg(addr1, REG_GPIOB, res);
+    return (res & FOCUS_LIMIT);
 }
 
 bool MotorDriver::focus(int steps)
@@ -238,32 +379,50 @@ bool MotorDriver::focus(int steps)
 
 bool MotorDriver::enableIris()
 {
-    exp2_gpioa |= IRIS_ENABLE;
+    exp2_gpioa &= ~IRIS_ENABLE;
     DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
     return true;
 }
 
 bool MotorDriver::disableIris()
 {
-    exp2_gpioa &= ~IRIS_ENABLE;
+    exp2_gpioa |= IRIS_ENABLE;
     DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
     return true;
 }
 
+bool MotorDriver::irisDir(int dir, int steps)
+{
+    if (0 == dir) {
+        exp2_gpioa &= ~IRIS_DIR;
+        exp2_gpioa &= ~IRIS_ENABLE;
+    } else {
+        exp2_gpioa |= IRIS_DIR;
+        exp2_gpioa &= ~IRIS_ENABLE;
+    }
+    DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
+    iris(steps);
+    disableIris();
+}
+
 bool MotorDriver::irisIn(int steps)
 {
+    enableIris();
     // assuming pin high is iris in
     exp2_gpioa |= IRIS_DIR;
     DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
     iris(steps);
+    disableIris();
 }
 
 bool MotorDriver::irisOut(int steps)
 {
+    enableIris();
     // assuming pin low is zoom out
     exp2_gpioa &= ~IRIS_DIR;
     DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
     iris(steps);
+    disableIris();
 }
 
 bool MotorDriver::iris(int steps)

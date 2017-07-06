@@ -18,6 +18,7 @@ const char *convert_to_cstr(const std::string & s)
 int main()
 {
     char c;
+    int num_steps = 1;
     MotorDriver m;
     std::cout << "Type --help for commands. Note that the -- (two dashes) are required for all the commands. Type quit or --quit to exit." << std::endl;
     po::options_description desc("Options");
@@ -25,17 +26,20 @@ int main()
         ("help", "print help message")
         ("quit", "leave this program")
         ("init", "initialize motor")
+        ("printpower", "prints the power registers")
         ("enablepowerlines", "enable the power lines")
-        ("enablezoom", "enables the zoom")
-        ("disablezoom", "disables the zoom")
+        ("printzoom", "prints the zoom registers")
         ("zoomin", po::value<int>(), "zoom in number of steps")
         ("zoomout", po::value<int>(), "zoom out number of steps")
-        ("enablefocus", "enables the focus")
-        ("disablefocus", "disables the focus")
+        ("zoomdir", po::value<int>(), "zoom to direction(0 sets ZOOM_DIR to low, else to high), takes --steps arg")
+        ("zoomhome", po::value<int>(), "tries to home to direction, takes --steps arg as max number of steps it will try")
+        ("steps", po::value<int>(&num_steps), "number of steps")
+        ("printfocus", "prints the focus registers")
         ("focusin", po::value<int>(), "focus in number of steps")
         ("focusout", po::value<int>(), "focus out number of steps")
-        ("enableiris", "enables the iris")
-        ("disableiris", "disables the iris")
+        ("focusdir", po::value<int>(), "focus to direction(0 sets FOCUS_DIR to low, else to high), takes --steps arg")
+        ("focushome", po::value<int>(), "tries to home to direction, takes --steps arg as max number of steps it will try")
+        ("printiris", "prints the iris registers")
         ("irisin", po::value<int>(), "iris in number of steps")
         ("irisout", po::value<int>(), "iris out number of steps")
     ;
@@ -81,14 +85,14 @@ int main()
         if (vm.count("init")) {
             DO_CMD(m.init());
         }
+        if (vm.count("printpower")) {
+            DO_CMD(m.printPower());
+        }
         if (vm.count("enablepowerlines")) {
             DO_CMD(m.enablePowerLines());
         }
-        if (vm.count("enablezoom")) {
-            DO_CMD(m.enableZoom());
-        }
-        if (vm.count("disablezoom")) {
-            DO_CMD(m.disableZoom());
+        if (vm.count("printzoom")) {
+            DO_CMD(m.printZoom());
         }
         if (vm.count("zoomin")) {
             DO_CMD(m.zoomIn(vm["zoomin"].as<int>()));
@@ -96,11 +100,14 @@ int main()
         if (vm.count("zoomout")) {
             DO_CMD(m.zoomOut(vm["zoomout"].as<int>()));
         }
-        if (vm.count("enablefocus")) {
-            DO_CMD(m.enableFocus());
+        if (vm.count("zoomdir")) {
+            DO_CMD(m.zoomDir(vm["zoomdir"].as<int>(), num_steps));
         }
-        if (vm.count("disablefocus")) {
-            DO_CMD(m.disableFocus());
+        if (vm.count("zoomhome")) {
+            DO_CMD(m.zoomHome(vm["zoomhome"].as<int>(), num_steps));
+        }
+        if (vm.count("printfocus")) {
+            DO_CMD(m.printFocus());
         }
         if (vm.count("focusin")) {
             DO_CMD(m.focusIn(vm["focusin"].as<int>()));
@@ -108,11 +115,14 @@ int main()
         if (vm.count("focusout")) {
             DO_CMD(m.focusOut(vm["focusout"].as<int>()));
         }
-        if (vm.count("enableiris")) {
-            DO_CMD(m.enableIris());
+        if (vm.count("focusdir")) {
+            DO_CMD(m.focusDir(vm["focusdir"].as<int>(), num_steps));
         }
-        if (vm.count("disableiris")) {
-            DO_CMD(m.disableIris());
+        if (vm.count("focushome")) {
+            DO_CMD(m.focusHome(vm["focushome"].as<int>(), num_steps));
+        }
+        if (vm.count("printiris")) {
+            DO_CMD(m.printIris());
         }
         if (vm.count("irisin")) {
             DO_CMD(m.irisIn(vm["irisin"].as<int>()));

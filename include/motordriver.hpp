@@ -7,26 +7,43 @@ public:
 
     bool init();
     bool initExpanders();
-    bool writeReg(uint8_t addr, uint8_t regaddr, char data);
     bool enablePowerLines();
+
+    bool zoomIn(int steps);
+    bool zoomOut(int steps);
+    bool zoomDir(int dir, int steps);
+    bool zoomHome(int dir, int steps);
+
+    bool focusIn(int steps);
+    bool focusOut(int steps);
+    bool focusDir(int dir, int steps);
+    bool focusHome(int dir, int steps);
+
+    bool irisIn(int steps);
+    bool irisOut(int steps);
+    bool irisDir(int dir, int steps);
+    bool printZoom();
+    bool printFocus();
+    bool printIris();
+    bool printPower();
+
+private:
+    bool writeReg(uint8_t addr, uint8_t regaddr, uint8_t data);
+    bool readReg(uint8_t addr, uint8_t regaddr, uint8_t& res);
+    bool printReg(uint8_t addr, uint8_t regaddr);
 
     bool enableZoom();
     bool disableZoom();
-    bool zoomIn(int steps);
-    bool zoomOut(int steps);
+    bool zoom(int steps);
+    bool zoomLimit();
 
     bool enableFocus();
     bool disableFocus();
-    bool focusIn(int steps);
-    bool focusOut(int steps);
+    bool focus(int steps);
+    bool focusLimit();
 
     bool enableIris();
     bool disableIris();
-    bool irisIn(int steps);
-    bool irisOut(int steps);
-private:
-    bool zoom(int steps);
-    bool focus(int steps);
     bool iris(int steps);
 
     int fd_;
