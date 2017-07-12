@@ -18,6 +18,19 @@ include_directories( ${GSTREAMER_INCLUDE_DIRS} )
 
 include_directories(../include)
 
+set(XMLRPC_DEPS
+    xmlrpc_xmltok
+        xmlrpc_xmlparse
+        xmlrpc_util
+        xmlrpc
+        xmlrpc++
+        xmlrpc_server++
+        xmlrpc_abyss
+        xmlrpc_server
+        xmlrpc_server_abyss
+        xmlrpc_server_abyss++
+)
+
 add_library(imx377 STATIC
         imx377camera.cpp)
 
@@ -26,6 +39,10 @@ add_library(logger STATIC
 
 add_library(stepper STATIC
         motordriver.cpp
+)
+
+add_library(config STATIC
+        configuration.cpp
 )
 
 add_executable(camerastreamer
@@ -49,12 +66,14 @@ target_link_libraries(camerastreamer
 
 install(TARGETS camerastreamer DESTINATION usr/local/bin COMPONENT camerastreamer)
 
-add_executable(testMotor test_motor.cpp)
-target_link_libraries(testMotor
+add_executable(lensDriver lensDriver.cpp)
+target_link_libraries(lensDriver
     stepper
     logger
+    config 
     ${BOOST_DEPS}
+    ${XMLRPC_DEPS}
 )
 
-install(TARGETS testMotor DESTINATION usr/local/bin COMPONENT camerastreamer)
+install(TARGETS lensDriver DESTINATION usr/local/bin COMPONENT camerastreamer)
 
