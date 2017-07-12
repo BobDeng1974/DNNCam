@@ -86,7 +86,6 @@ public:
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
         int ret = 0;
-        const int value(paramList.getInt(0));
         bl_log_info("XMLRPC: FocusGetLocation");
         ret = _md->focusAbsoluteLocation();
         *retvalP = xmlrpc_c::value_int(ret);
@@ -175,7 +174,6 @@ public:
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
         int ret = 0;
-        const int value(paramList.getInt(0));
         bl_log_info("XMLRPC: ZoomGetLocation");
         ret = _md->zoomAbsoluteLocation();
         *retvalP = xmlrpc_c::value_int(ret);
@@ -264,7 +262,6 @@ public:
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
         int ret = 0;
-        const int value(paramList.getInt(0));
         bl_log_info("XMLRPC: IrisGetLocation");
         ret = _md->irisAbsoluteLocation();
         *retvalP = xmlrpc_c::value_int(ret);
