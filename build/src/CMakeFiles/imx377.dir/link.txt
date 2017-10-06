@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../lib/libimx377.a  CMakeFiles/imx377.dir/imx377camera.cpp.o
-/usr/bin/ranlib ../lib/libimx377.a

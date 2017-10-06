@@ -16,7 +16,7 @@ import os
 import time
 import subprocess
 
-SERVER="http://localhost:7000/RPC2"
+SERVER="http://localhost:7001/RPC2"
 
 def do_xml_rpc(method, *args):
     s=xmlrpclib.ServerProxy(SERVER)
@@ -102,5 +102,5 @@ identity.MajorMinorRevision = '1.0'
 #---------------------------------------------------------------------------# 
 # run the server you want
 #---------------------------------------------------------------------------# 
-StartTcpServer(context, identity=identity, address=("0.0.0.0", 5020))
+StartTcpServer(context, identity=identity, address=("0.0.0.0", 5021))
 

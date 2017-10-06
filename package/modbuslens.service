@@ -1,0 +1,11 @@
+[Unit]
+Description=ModbusLens
+After=lensdriver.service
+Wants=lensdriver.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/smeltcam/bin/modbuslens.py >> /var/log/smeltcam/modbuslens.log 2>&1
+
+[Install]
+WantedBy=multi-user.target

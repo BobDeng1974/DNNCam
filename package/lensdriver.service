@@ -1,0 +1,11 @@
+[Unit]
+Description=ModbusLens
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/lensDriver --xmlrpc
+
+[Install]
+WantedBy=multi-user.target

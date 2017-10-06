@@ -318,7 +318,7 @@ public:
 
         _server = new xmlrpc_c::serverAbyss(xmlrpc_c::serverAbyss::constrOpt()
                         .registryP(&_registry)
-                        .portNumber(7000)
+                        .portNumber(7001)
                         .logFileName("/tmp/xmlrpc_log"));
 
     }
