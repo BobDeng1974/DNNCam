@@ -1,0 +1,127 @@
+[
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvElementProfiler.cpp.o -c /usr/local/src/nvidia/NvElementProfiler.cpp",
+  "file": "/usr/local/src/nvidia/NvElementProfiler.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvElement.cpp.o -c /usr/local/src/nvidia/NvElement.cpp",
+  "file": "/usr/local/src/nvidia/NvElement.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvApplicationProfiler.cpp.o -c /usr/local/src/nvidia/NvApplicationProfiler.cpp",
+  "file": "/usr/local/src/nvidia/NvApplicationProfiler.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvVideoDecoder.cpp.o -c /usr/local/src/nvidia/NvVideoDecoder.cpp",
+  "file": "/usr/local/src/nvidia/NvVideoDecoder.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvBuffer.cpp.o -c /usr/local/src/nvidia/NvBuffer.cpp",
+  "file": "/usr/local/src/nvidia/NvBuffer.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvJpegEncoder.cpp.o -c /usr/local/src/nvidia/NvJpegEncoder.cpp",
+  "file": "/usr/local/src/nvidia/NvJpegEncoder.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvVideoConverter.cpp.o -c /usr/local/src/nvidia/NvVideoConverter.cpp",
+  "file": "/usr/local/src/nvidia/NvVideoConverter.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvLogging.cpp.o -c /usr/local/src/nvidia/NvLogging.cpp",
+  "file": "/usr/local/src/nvidia/NvLogging.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvEglRenderer.cpp.o -c /usr/local/src/nvidia/NvEglRenderer.cpp",
+  "file": "/usr/local/src/nvidia/NvEglRenderer.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvUtils.cpp.o -c /usr/local/src/nvidia/NvUtils.cpp",
+  "file": "/usr/local/src/nvidia/NvUtils.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvJpegDecoder.cpp.o -c /usr/local/src/nvidia/NvJpegDecoder.cpp",
+  "file": "/usr/local/src/nvidia/NvJpegDecoder.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvVideoEncoder.cpp.o -c /usr/local/src/nvidia/NvVideoEncoder.cpp",
+  "file": "/usr/local/src/nvidia/NvVideoEncoder.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvV4l2ElementPlane.cpp.o -c /usr/local/src/nvidia/NvV4l2ElementPlane.cpp",
+  "file": "/usr/local/src/nvidia/NvV4l2ElementPlane.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/NvV4l2Element.cpp.o -c /usr/local/src/nvidia/NvV4l2Element.cpp",
+  "file": "/usr/local/src/nvidia/NvV4l2Element.cpp"
+},
+{
+  "directory": "/usr/local/src/build/nvidia",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/../include -I/usr/local/src/bllibs/c++/include -I/usr/local/src/nvidia/include -I/usr/local/src/nvidia/include/libjpeg-8b   -std=c++11   -o CMakeFiles/nvidia_util.dir/Thread.cpp.o -c /usr/local/src/nvidia/Thread.cpp",
+  "file": "/usr/local/src/nvidia/Thread.cpp"
+},
+{
+  "directory": "/usr/local/src/build/src",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/include -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/local/src/src/../include   -std=c++11   -o CMakeFiles/config.dir/configuration.cpp.o -c /usr/local/src/src/configuration.cpp",
+  "file": "/usr/local/src/src/configuration.cpp"
+},
+{
+  "directory": "/usr/local/src/build/src",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/include -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/local/src/src/../include   -std=c++11   -o CMakeFiles/logger.dir/log.cpp.o -c /usr/local/src/src/log.cpp",
+  "file": "/usr/local/src/src/log.cpp"
+},
+{
+  "directory": "/usr/local/src/build/src",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/include -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/local/src/src/../include   -std=c++11   -o CMakeFiles/imx377.dir/imx377camera.cpp.o -c /usr/local/src/src/imx377camera.cpp",
+  "file": "/usr/local/src/src/imx377camera.cpp"
+},
+{
+  "directory": "/usr/local/src/build/src",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/include -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/local/src/src/../include   -std=c++11   -o CMakeFiles/lensDriver.dir/lensDriver.cpp.o -c /usr/local/src/src/lensDriver.cpp",
+  "file": "/usr/local/src/src/lensDriver.cpp"
+},
+{
+  "directory": "/usr/local/src/build/src",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/include -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/local/src/src/../include   -std=c++11   -o CMakeFiles/stepper.dir/motordriver.cpp.o -c /usr/local/src/src/motordriver.cpp",
+  "file": "/usr/local/src/src/motordriver.cpp"
+},
+{
+  "directory": "/usr/local/src/build/src",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/include -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/local/src/src/../include   -std=c++11   -o CMakeFiles/camerastreamer.dir/camerastreamer.cpp.o -c /usr/local/src/src/camerastreamer.cpp",
+  "file": "/usr/local/src/src/camerastreamer.cpp"
+},
+{
+  "directory": "/usr/local/src/build/src",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/include -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/local/src/src/../include   -std=c++11   -o CMakeFiles/camerastreamer.dir/datasource.cpp.o -c /usr/local/src/src/datasource.cpp",
+  "file": "/usr/local/src/src/datasource.cpp"
+},
+{
+  "directory": "/usr/local/src/build/src",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/include -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/local/src/src/../include   -std=c++11   -o CMakeFiles/camerastreamer.dir/datasource_camera.cpp.o -c /usr/local/src/src/datasource_camera.cpp",
+  "file": "/usr/local/src/src/datasource_camera.cpp"
+},
+{
+  "directory": "/usr/local/src/build/src",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/include -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/local/src/src/../include   -std=c++11   -o CMakeFiles/camerastreamer.dir/frame_processor.cpp.o -c /usr/local/src/src/frame_processor.cpp",
+  "file": "/usr/local/src/src/frame_processor.cpp"
+},
+{
+  "directory": "/usr/local/src/build/src",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/include -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/local/src/src/../include   -std=c++11   -o CMakeFiles/camerastreamer.dir/stream.cpp.o -c /usr/local/src/src/stream.cpp",
+  "file": "/usr/local/src/src/stream.cpp"
+}
+]

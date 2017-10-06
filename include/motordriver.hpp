@@ -36,6 +36,9 @@ public:
     bool irisRelative(int steps);
     int  irisAbsoluteLocation() { return iris_abs_location; }
 
+    bool ircutOn();
+    bool ircutOff();
+
     bool printZoom();
     bool printFocus();
     bool printIris();
@@ -48,17 +51,17 @@ private:
     bool readReg(uint8_t addr, uint8_t regaddr, uint8_t& res);
     bool printReg(uint8_t addr, uint8_t regaddr);
 
-    bool enableZoom(MotorDirection dir);
+    bool enableZoom();
     bool disableZoom();
     bool zoom(int steps);
     bool zoomLimit();
 
-    bool enableFocus(MotorDirection dir);
+    bool enableFocus();
     bool disableFocus();
     bool focus(int steps);
     bool focusLimit();
 
-    bool enableIris(MotorDirection dir);
+    bool enableIris();
     bool disableIris();
     bool iris(int steps);
 

@@ -20,7 +20,7 @@ void interactive(MotorDriverPtr m) {
     char c;
     int num_steps = 1;
     m.reset(new MotorDriver(false));
-    std::cout << "Type --help for commands. Note that the -- (two dashes) are required for all the commands. Type quit or --quit to exit." << std::endl;
+    std::cout << "Verson 1.1.2: Type --help for commands. Note that the -- (two dashes) are required for all the commands. Type quit or --quit to exit." << std::endl;
     po::options_description desc("Options");
     desc.add_options()
         ("help", "print help message")
@@ -43,6 +43,10 @@ void interactive(MotorDriverPtr m) {
         ("irisdown", po::value<int>(), "iris down number of steps")
         ("irishome", "homes iris")
         ("irislocation", "prints iris location")
+	("ircuton", "flips the ir-cut filter on")
+        ("ircutoff", "flips the ir-cut filter off")
+
+
     ;
     std::string input;
     std::istringstream iss;
@@ -143,6 +147,13 @@ void interactive(MotorDriverPtr m) {
             std::cout << "Iris absolute location: " << ret << std::endl;
             continue;
         }
+	if (vm.count("ircuton")) {
+            DO_CMD(m->ircutOn());
+        }
+        if (vm.count("ircutoff")) {
+            DO_CMD(m->ircutOff());
+        }
+
     }
 }
 

@@ -30,8 +30,7 @@ int MotorDriver::addr2 = 0x21;
 #define ZOOM_AENBL 	ZOOM_ENABLE
 #define ZOOM_BENBL 	ZOOM_STEP
 #define ZOOM_APHASE 	ZOOM_MS1
-#define ZOOM_BPHASE	ZOOM_DIR
-#define ZOOM_EN1	ZOOM_MS2
+#define ZOOM_BPHASE	ZOOM_MS2
 
 #define FOCUS_LIMIT     0x01 //pin U5.B.0
 #define FOCUS_DIR       0x02 //pin U5.B.1
@@ -41,11 +40,6 @@ int MotorDriver::addr2 = 0x21;
 #define FOCUS_MS2       0X20 //pin U5.B.5
 #define FOCUS_MS1       0x40 //pin U5.B.6
 #define FOCUS_SLEEP     0x80 //pin U5.B.7
-#define FOCUS_AENBL      FOCUS_ENABLE
-#define FOCUS_BENBL      FOCUS_STEP
-#define FOCUS_APHASE     FOCUS_MS1
-#define FOCUS_BPHASE     FOCUS_DIR
-#define FOCUS_EN1        FOCUS_MS2
 
 #define PG		0x01 //pin U6.A.0
 #define IRIS_DIR        0x02 //pin U6.A.1
@@ -55,12 +49,6 @@ int MotorDriver::addr2 = 0x21;
 #define IRIS_MS2        0X20 //pin U6.A.5
 #define IRIS_MS1        0x40 //pin U6.A.6
 #define IRIS_SLEEP      0x80 //pin U6.A.7
-#define IRIS_AENBL      IRIS_ENABLE
-#define IRIS_BENBL      IRIS_STEP
-#define IRIS_APHASE     IRIS_MS1
-#define IRIS_BPHASE     IRIS_DIR
-#define IRIS_EN1        IRIS_MS2
-
 
 #define POWER_5V_EN        0x80 //pin U6.B.7
 #define POWER_4V_EN        0x40 //pin U6.B.6
@@ -85,11 +73,11 @@ int MotorDriver::addr2 = 0x21;
 #define REG_IODIRB_EXP1 0x11 //Fault, Pgood
 #define REG_IODIRA_EXP2 0x11 //Fault, Pgood input, all others output
 #define REG_IODIRB_EXP2 0x04 // U6.B.2 is input, all others output
-#define REG_GPPUA_VAL 0x00 // disable all pull-ups
-#define REG_GPPUB_VAL 0x00
-#define REG_GPIOA_EXP1 (ZOOM_SLEEP ) // wake up on init
-#define REG_GPIOB_EXP1 (FOCUS_SLEEP)
-#define REG_GPIOA_EXP2 (IRIS_SLEEP)
+#define REG_GPPUA_VAL 0xFF // enable all pull-ups
+#define REG_GPPUB_VAL 0xFF
+#define REG_GPIOA_EXP1 0x84 //enable active low, sleep active high so 0x80=wake.
+#define REG_GPIOB_EXP1 0x84
+#define REG_GPIOA_EXP2 0x84
 #define REG_GPIOB_EXP2 0x00
 
 #define DO_WRITE(addr,reg,data)   \
@@ -222,15 +210,13 @@ bool MotorDriver::initExpanders()
         return false;
     }
 
-//    DO_WRITE(addr1, REG_IOCON, REG_IOCON_VAL);
+    DO_WRITE(addr1, REG_IOCON, REG_IOCON_VAL);
     DO_WRITE(addr1, REG_IODIRA, REG_IODIRA_EXP1);
     DO_WRITE(addr1, REG_IODIRB, REG_IODIRB_EXP1);
     DO_WRITE(addr1, REG_GPPUA, REG_GPPUA_VAL);
     DO_WRITE(addr1, REG_GPPUB, REG_GPPUB_VAL);
-
     DO_WRITE(addr1, REG_GPIOA, REG_GPIOA_EXP1);
     exp1_gpioa = REG_GPIOA_EXP1;
-
     DO_WRITE(addr1, REG_GPIOB, REG_GPIOB_EXP1);
     exp1_gpiob = REG_GPIOB_EXP1;
 
@@ -238,13 +224,10 @@ bool MotorDriver::initExpanders()
     DO_WRITE(addr2, REG_IODIRB, REG_IODIRB_EXP2);
     DO_WRITE(addr2, REG_GPPUA, REG_GPPUA_VAL);
     DO_WRITE(addr2, REG_GPPUB, REG_GPPUB_VAL);
-
     DO_WRITE(addr2, REG_GPIOA, REG_GPIOA_EXP2);
     exp2_gpioa = REG_GPIOA_EXP2;
-
     DO_WRITE(addr2, REG_GPIOB, REG_GPIOB_EXP2);
     exp2_gpiob = REG_GPIOB_EXP2;
-
     if (false == enablePowerLines()) {
         bl_log_error("Unable to enable power lines");
         return false;
@@ -262,30 +245,39 @@ bool MotorDriver::enablePowerLines()
 
 bool MotorDriver::disableZoom()
 {
-    exp1_gpioa &= ~(ZOOM_AENBL + ZOOM_BENBL);
+    exp1_gpioa |= ZOOM_ENABLE;
     DO_WRITE(addr1, REG_GPIOA, exp1_gpioa);
     return true;
 }
 
-bool MotorDriver::enableZoom() {
-    exp1_gpioa |= ZOOM_AENBL + ZOOM_BENBL;
+bool MotorDriver::enableZoom(MotorDirection dir) {
+    if (((0 == Configuration::zoom_up_direction()) && (MotorDirection::UP == dir)) ||
+        ((0 != Configuration::zoom_up_direction()) && (MotorDirection::DOWN == dir))) {
+        exp1_gpioa &= ~ZOOM_DIR;
+    } else {
+        exp1_gpioa |= ZOOM_DIR;
+    }
+    exp1_gpioa &= ~ZOOM_ENABLE;
     DO_WRITE(addr1, REG_GPIOA, exp1_gpioa);
 }
 
 bool MotorDriver::zoomDir(int dir, int steps)
 {
     if (0 == dir) {
-	zoom(0-steps);
+        exp1_gpioa &= ~ZOOM_DIR;
+        exp1_gpioa &= ~ZOOM_ENABLE;
     } else {
-	zoom(steps);
+        exp1_gpioa |= ZOOM_DIR;
+        exp1_gpioa &= ~ZOOM_ENABLE;
     }
-    
-   disableZoom();
+    DO_WRITE(addr1, REG_GPIOA, exp1_gpioa);
+    zoom(steps);
+    disableZoom();
 }
 
 bool MotorDriver::zoomUp(int steps)
 {
-    enableZoom();
+    enableZoom(MotorDirection::UP);
     zoom(steps);
     zoom_abs_location += steps;
     disableZoom();
@@ -294,8 +286,8 @@ bool MotorDriver::zoomUp(int steps)
 
 bool MotorDriver::zoomDown(int steps)
 {
-    enableZoom();
-    zoom(0-steps);
+    enableZoom(MotorDirection::DOWN);
+    zoom(steps);
     zoom_abs_location -= steps;
     disableZoom();
     return true;
@@ -351,16 +343,22 @@ bool MotorDriver::zoomHome()
     bool ret = false;
     const int steps = Configuration::zoom_home_max_steps();
     const int stepsize = Configuration::zoom_home_step_size();
-//    enableZoom();
+    if (0 == Configuration::zoom_home_direction()) {
+        exp1_gpioa &= ~ZOOM_DIR;
+    } else {
+        exp1_gpioa |= ZOOM_DIR;
+    }
+    exp1_gpioa &= ~ZOOM_ENABLE;
+    DO_WRITE(addr1, REG_GPIOA, exp1_gpioa);
     int counter = 0;
     while ((!Configuration::zoom_has_limit() || !zoomLimit()) && (counter < steps)) {
         zoom(stepsize);
-	counter += stepsize;
+	    counter += stepsize;
     }
     if (counter <= steps) {
         bl_log_error("Reached zoom homing step limit of " << steps);
         zoom_abs_location = -1;
-        zoom_init = true;
+        zoom_init = false;
     } else {
         bl_log_info("Found zoom limit");
         zoom_abs_location = 0;
@@ -379,49 +377,31 @@ bool MotorDriver::zoomLimit()
 
 bool MotorDriver::zoom(int steps)
 {
-    char mask;
-    char phase;
-    char out;
-    for(int i = 0; i < abs(steps); ++i) {
-	phase = 0;
-	if (steps <0) {
-		phase = 3- (i%4);
-	}
-	else {
-		 phase = i%4;
-	}
-	out = 0;
-	switch(phase){
-		case 0:
-			out = ZOOM_APHASE;
-		break;
-		case 1:
-			 out = ZOOM_APHASE+ ZOOM_BPHASE;
-		break;
-		case 2:
-			 out = ZOOM_BPHASE;
-		break;	
-		case 3:
-			out=0;
-		break;
-	}
-        mask = exp1_gpioa & (~(ZOOM_APHASE + ZOOM_BPHASE));  //set before to the mask of phase a and b and the current output register
-        exp1_gpioa = out + mask; 
+    for(int i = 0; i < steps; ++i) {
+        char before = exp1_gpioa;
+        exp1_gpioa |= ZOOM_STEP;
         DO_WRITE(addr1, REG_GPIOA, exp1_gpioa);
         std::this_thread::sleep_for(std::chrono::milliseconds(STEPPER_SLEEP_TIME_MS));
-        
+        exp1_gpioa = before;
+        DO_WRITE(addr1, REG_GPIOA, exp1_gpioa);
+        std::this_thread::sleep_for(std::chrono::milliseconds(STEPPER_SLEEP_TIME_MS));
     }
 }
 
-bool MotorDriver::enableFocus() {
-
-    exp1_gpiob |= FOCUS_AENBL + FOCUS_BENBL;
+bool MotorDriver::enableFocus(MotorDirection dir) {
+    if (((0 == Configuration::focus_up_direction()) && (MotorDirection::UP == dir)) ||
+        ((0 != Configuration::focus_up_direction()) && (MotorDirection::DOWN == dir))) {
+        exp1_gpiob &= ~FOCUS_DIR;
+    } else {
+        exp1_gpiob |= FOCUS_DIR;
+    }
+    exp1_gpiob &= ~FOCUS_ENABLE;
     DO_WRITE(addr1, REG_GPIOB, exp1_gpiob);
 }
 
 bool MotorDriver::disableFocus()
 {
-    exp1_gpiob &= ~(FOCUS_AENBL+FOCUS_BENBL) ;
+    exp1_gpiob |= FOCUS_ENABLE;
     DO_WRITE(addr1, REG_GPIOB, exp1_gpiob);
     return true;
 }
@@ -429,16 +409,20 @@ bool MotorDriver::disableFocus()
 bool MotorDriver::focusDir(int dir, int steps)
 {
     if (0 == dir) {
-	focus(0-steps);
+        exp1_gpiob &= ~FOCUS_DIR;
+        exp1_gpiob &= ~FOCUS_ENABLE;
     } else {
-	focus(steps);
+        exp1_gpiob |= FOCUS_DIR;
+        exp1_gpiob &= ~FOCUS_ENABLE;
     }
+    DO_WRITE(addr1, REG_GPIOB, exp1_gpiob);
+    focus(steps);
     disableFocus();
 }
 
 bool MotorDriver::focusUp(int steps)
 {
-    enableFocus();
+    enableFocus(MotorDirection::UP);
     focus(steps);
     focus_abs_location += steps;
     disableFocus();
@@ -447,8 +431,8 @@ bool MotorDriver::focusUp(int steps)
 
 bool MotorDriver::focusDown(int steps)
 {
-    enableFocus();
-    focus(0-steps);
+    enableFocus(MotorDirection::DOWN);
+    focus(steps);
     focus_abs_location -= steps;
     disableFocus();
     return true;
@@ -503,23 +487,23 @@ bool MotorDriver::focusHome()
 {
     bool ret = false;
     const int steps = Configuration::focus_home_max_steps();
-    int stepsize;
-    //enableFocus();
+    const int stepsize = Configuration::focus_home_step_size();
     if (0 == Configuration::focus_home_direction()) {
-  	stepsize = 0-Configuration::focus_home_step_size();
+        exp1_gpiob &= ~FOCUS_DIR;
+    } else {
+        exp1_gpiob |= FOCUS_DIR;
     }
-    else {
-        stepsize = Configuration::focus_home_step_size();
-    }
+    exp1_gpiob &= ~FOCUS_ENABLE;
+    DO_WRITE(addr1, REG_GPIOB, exp1_gpiob);
     int counter = 0;
-    /*while ((!Configuration::focus_has_limit() || !focusLimit()) && (counter < steps)) {
+    while ((!Configuration::focus_has_limit() || !focusLimit()) && (counter < steps)) {
         focus(stepsize);
 	    counter += stepsize;
-    }*/
+    }
     if (counter <= steps) {
         bl_log_error("Reached focus homing step limit of " << steps);
         focus_abs_location = -1;
-        focus_init = true;
+        focus_init = false;
     } else {
         bl_log_info("Found focus limit");
         focus_abs_location = 0;
@@ -538,49 +522,31 @@ bool MotorDriver::focusLimit()
 
 bool MotorDriver::focus(int steps)
 {
-   char mask;
-   char out;
-   char phase;
-   for(int i = 0; i < abs(steps); ++i) {
-        phase = 0;
-        if (steps <0) {
-                phase = 3- (i%4);
-        }
-        else {
-                 phase = i%4;
-        }
-        out = 0;
-        switch(phase){
-                case 0:
-                        out = FOCUS_APHASE;
-                break;
-                case 1:
-                         out = FOCUS_APHASE+ FOCUS_BPHASE;
-                break;
-                case 2:
-                         out = FOCUS_BPHASE;
-                break;
-                case 3:
-                        out=0;
-                break;
-        }
-   
-        mask = exp1_gpiob & (~(FOCUS_APHASE + FOCUS_BPHASE));  //set before to the mask of phase a and b and the current output register
-        exp1_gpiob = out + mask;
+    for(int i = 0; i < steps; ++i) {
+        char before = exp1_gpiob;
+        exp1_gpiob |= FOCUS_STEP;
         DO_WRITE(addr1, REG_GPIOB, exp1_gpiob);
         std::this_thread::sleep_for(std::chrono::milliseconds(STEPPER_SLEEP_TIME_MS));
-   }
+        exp1_gpiob = before;
+        DO_WRITE(addr1, REG_GPIOB, exp1_gpiob);
+        std::this_thread::sleep_for(std::chrono::milliseconds(STEPPER_SLEEP_TIME_MS));
+    }
 }
 
-bool MotorDriver::enableIris() {
-
-    exp2_gpioa |= IRIS_AENBL + IRIS_BENBL;
-    DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
+bool MotorDriver::enableIris(MotorDirection dir) {
+    if (((0 == Configuration::iris_up_direction()) && (MotorDirection::UP == dir)) ||
+        ((0 != Configuration::iris_up_direction()) && (MotorDirection::DOWN == dir))) {
+        exp2_gpioa &= ~IRIS_DIR;
+    } else {
+        exp2_gpioa |= IRIS_DIR;
+    }
+    exp2_gpioa &= ~IRIS_ENABLE;
+    DO_WRITE(addr1, REG_GPIOA, exp2_gpioa);
 }
 
 bool MotorDriver::disableIris()
 {
-    exp2_gpioa &= ~(IRIS_AENBL+IRIS_BENBL) ;
+    exp2_gpioa |= IRIS_ENABLE;
     DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
     return true;
 }
@@ -588,16 +554,20 @@ bool MotorDriver::disableIris()
 bool MotorDriver::irisDir(int dir, int steps)
 {
     if (0 == dir) {
-        iris(0-steps);
+        exp2_gpioa &= ~IRIS_DIR;
+        exp2_gpioa &= ~IRIS_ENABLE;
     } else {
-        iris(steps);
+        exp2_gpioa |= IRIS_DIR;
+        exp2_gpioa &= ~IRIS_ENABLE;
     }
+    DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
+    iris(steps);
     disableIris();
 }
 
 bool MotorDriver::irisUp(int steps)
 {
-    enableIris();
+    enableIris(MotorDirection::UP);
     iris(steps);
     iris_abs_location += steps;
     disableIris();
@@ -606,18 +576,31 @@ bool MotorDriver::irisUp(int steps)
 
 bool MotorDriver::irisDown(int steps)
 {
-    enableIris();
-    iris(0-steps);
+    enableIris(MotorDirection::DOWN);
+    iris(steps);
     iris_abs_location -= steps;
     disableIris();
     return true;
+}
+
+bool MotorDriver::iris(int steps)
+{
+    for(int i = 0; i < steps; ++i) {
+        char before = exp2_gpioa;
+        exp2_gpioa |= IRIS_STEP;
+        DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
+        std::this_thread::sleep_for(std::chrono::milliseconds(STEPPER_SLEEP_TIME_MS));
+        exp1_gpioa = before;
+        DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
+        std::this_thread::sleep_for(std::chrono::milliseconds(STEPPER_SLEEP_TIME_MS));
+    }
 }
 
 bool MotorDriver::irisAbsolute(int loc)
 {
     bool ret = false;
     if (false == iris_init) {
-        bl_log_error("Unable to adjust iris to absolute position, iris not homed");
+        bl_log_error("Unable to move iris to absolute position, iris not homed");
         return false;
     } else if (loc < 0) {
         bl_log_error("Invalid absolute iris location: " << loc);
@@ -636,11 +619,12 @@ bool MotorDriver::irisAbsolute(int loc)
     }
     return ret;
 }
+
 bool MotorDriver::irisRelative(int steps)
 {
     bool ret = false;
     if (false == iris_init) {
-        bl_log_error("Unable to adjust iris to relative position, iris not homed");
+        bl_log_error("Unable to move iris to relative position, iris not homed");
         return false;
     } else if (steps == 0) {
         return true;
@@ -661,86 +645,22 @@ bool MotorDriver::irisHome()
 {
     bool ret = false;
     const int steps = Configuration::iris_home_max_steps();
-    int stepsize;
+    const int stepsize = Configuration::iris_home_step_size();
     if (0 == Configuration::iris_home_direction()) {
-        stepsize = 0-Configuration::iris_home_step_size();
-    }
-    else {
-        stepsize = Configuration::iris_home_step_size();
-    }
-    int counter = 0;
-  //  while ((!Configuration::iris_has_limit() || !irisLimit()) && (counter < steps)) {
-   //     iris(stepsize);
-   //         counter += stepsize;
-   // }
-    if (counter <= steps) {
-        bl_log_error("Reached iris homing step limit of " << steps);
-        iris_abs_location = -1;
-        iris_init = true;
+        exp2_gpioa &= ~IRIS_DIR;
     } else {
-        bl_log_info("Found iris limit");
-        iris_abs_location = 0;
-        ret = true;
+        exp2_gpioa |= IRIS_DIR;
     }
+    exp2_gpioa &= ~IRIS_ENABLE;
+    DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
+    int counter = 0;
+    while (counter < steps) {
+        focus(stepsize);
+	    counter += stepsize;
+    }
+    bl_log_info("At iris limit");
+    iris_abs_location = 0;
+    ret = true;
     disableIris();
     return ret;
 }
-
-/*bool MotorDriver::irisLimit()
-{
-    uint8_t res = 0x00;
-    bool ret = readReg(addr2, REG_GPIOA, res);
-    return (res & IRIS_LIMIT);
-}*/
-bool MotorDriver::iris(int steps)
-{
-   char mask;
-   char out;
-   char phase;
-   for(int i = 0; i < abs(steps); ++i) {
-        phase = 0;
-        if (steps <0) {
-                phase = 3- (i%4);
-        }
-        else {
-                 phase = i%4;
-        }
-        out = 0;
-        switch(phase){
-                case 0:
-                        out = IRIS_APHASE;
-                break;
-                case 1:
-                         out = IRIS_APHASE+ IRIS_BPHASE;
-                break;
-                case 2:
-                         out = IRIS_BPHASE;
-                break;
-                case 3:
-                        out=0;
-                break;
-        }
-
-        mask = exp2_gpioa & (~(IRIS_APHASE + IRIS_BPHASE));  //set before to the mask of phase a and b and the current output register
-        exp2_gpioa = out + mask;
-        DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
-        std::this_thread::sleep_for(std::chrono::milliseconds(STEPPER_SLEEP_TIME_MS)*4);
-   }
-}
-bool MotorDriver::ircutOn()
-{
-	exp2_gpiob |= IRCUT_A;
-	exp2_gpiob &= ~IRCUT_B;
-	DO_WRITE(addr2, REG_GPIOB, exp2_gpiob);
-	return true;
-	
-}
-bool MotorDriver::ircutOff()
-{
-        exp2_gpiob |= IRCUT_B;
-        exp2_gpiob &= ~IRCUT_A;
-        DO_WRITE(addr2, REG_GPIOB, exp2_gpiob);
-	return true;
-
-}
-
