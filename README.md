@@ -1,5 +1,9 @@
 # DNNCam
 
+
+![alt text](https://github.com/BoulderAI/DNNCam/blob/master/dnnhero_2a.png?raw=true "Logo Title Text 1")
+
+
 From jetpack_download directory scp \*arm64\*.deb onto the TX2.
 
 Then on the TX2 run
