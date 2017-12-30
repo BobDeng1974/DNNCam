@@ -6,6 +6,8 @@
 
 #IncludeRegexTransform: 
 
+../nvidia/../include/defines.hpp
+
 ../nvidia/../include/log.hpp
 sys/stat.h
 -
@@ -423,4 +425,6 @@ Thread.h
 /usr/local/src/nvidia/Thread.h
 log.hpp
 /usr/local/src/nvidia/log.hpp
+defines.hpp
+/usr/local/src/nvidia/defines.hpp
 

@@ -115,6 +115,7 @@ nvidia/CMakeFiles/nvidia_util.dir/NvVideoEncoder.cpp.o
  ../nvidia/include/v4l2_nv_extensions.h
  /usr/local/src/nvidia/NvVideoEncoder.cpp
 nvidia/CMakeFiles/nvidia_util.dir/Thread.cpp.o
+ ../nvidia/../include/defines.hpp
  ../nvidia/../include/log.hpp
  ../nvidia/../include/safequeue.hpp
  ../nvidia/include/Ordered.h

@@ -114,6 +114,7 @@ nvidia/CMakeFiles/nvidia_util.dir/NvVideoEncoder.cpp.o: ../nvidia/include/NvVide
 nvidia/CMakeFiles/nvidia_util.dir/NvVideoEncoder.cpp.o: ../nvidia/include/v4l2_nv_extensions.h
 nvidia/CMakeFiles/nvidia_util.dir/NvVideoEncoder.cpp.o: ../nvidia/NvVideoEncoder.cpp
 
+nvidia/CMakeFiles/nvidia_util.dir/Thread.cpp.o: ../nvidia/../include/defines.hpp
 nvidia/CMakeFiles/nvidia_util.dir/Thread.cpp.o: ../nvidia/../include/log.hpp
 nvidia/CMakeFiles/nvidia_util.dir/Thread.cpp.o: ../nvidia/../include/safequeue.hpp
 nvidia/CMakeFiles/nvidia_util.dir/Thread.cpp.o: ../nvidia/include/Ordered.h

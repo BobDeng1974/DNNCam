@@ -230,6 +230,8 @@ frame.hpp
 frame_processor.hpp
 ../src/../include/frame_processor.hpp
 
+../src/../include/defines.hpp
+
 ../src/../include/frame.hpp
 boost/shared_ptr.hpp
 -
@@ -2985,4 +2987,6 @@ frame_processor.hpp
 /usr/local/src/src/frame_processor.hpp
 EGLStream/NV/ImageNativeBuffer.h
 -
+defines.hpp
+/usr/local/src/src/defines.hpp
 

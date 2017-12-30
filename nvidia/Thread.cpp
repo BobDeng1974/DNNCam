@@ -28,6 +28,7 @@
 
 #include "Thread.h"
 #include "log.hpp"
+#include "defines.hpp"
 
 namespace NvidiaUtils
 {
@@ -142,7 +143,11 @@ bool Thread::threadFunction()
 
     while (!m_doShutdown)
     {
+#ifdef USE_ARGUS_CONVERT
+        if (false == threadArgusExecute())
+#else
         if (false == threadExecute())
+#endif
         {
             bl_log_error("threadExecute failed");
             return false;

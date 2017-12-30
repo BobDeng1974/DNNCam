@@ -66,6 +66,7 @@ public:
  protected:
     virtual bool threadInitialize() = 0;
     virtual bool threadExecute() = 0;
+    virtual bool threadArgusExecute() = 0;
     virtual bool threadShutdown() = 0;
 
     /**

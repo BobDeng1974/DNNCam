@@ -39,6 +39,7 @@ src/CMakeFiles/imx377.dir/imx377camera.cpp.o
  ../nvidia/include/nvbuf_utils.h
  ../nvidia/include/v4l2_nv_extensions.h
  ../src/../include/camera.hpp
+ ../src/../include/defines.hpp
  ../src/../include/frame.hpp
  ../src/../include/frame_processor.hpp
  ../src/../include/imx377camera.hpp

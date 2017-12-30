@@ -69,10 +69,12 @@ private:
         /**@{*/ 
         virtual bool threadInitialize();
         virtual bool threadExecute();
+        virtual bool threadArgusExecute();
         virtual bool threadShutdown();
         /**@}*/
     
         bool createImageConverter();
+        bool createArgusConverter();
     
         static bool converterCapturePlaneDqCallback(
                 struct v4l2_buffer *v4l2_buf,

@@ -51,7 +51,7 @@ Stream::Stream(const int width, const int height, const std::string host, const 
             NULL);
 */
     gst_rtsp_media_factory_set_launch (factory,
-        "( appsrc name=mysrc ! clockoverlay halignment=2 valignment=1 ! omxh265enc ! rtph265pay name=pay0 config-interval=3 pt=96 )");
+        "( appsrc name=mysrc ! clockoverlay halignment=2 valignment=1 ! omxh264enc ! rtph264pay name=pay0 config-interval=3 pt=96 )");
     g_signal_connect(factory, "media-configure", (GCallback) media_configure, (gpointer)(&_streamContext));
 //gst_rtsp_media_factory_set_launch (factory,
 //            "( videotestsrc horizontal-speed=5 is-live=1 ! clockoverlay halignment=0 valignment=2 ! omxh264enc ! rtph264pay name=pay0 pt=96 )");

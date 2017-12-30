@@ -112,7 +112,7 @@ int run(int argc, char** argv)
     camera->init();
     camera->start_capture();
     data_source.reset(new DataSourceCamera(camera, verbose, frame_proc));
-        
+   
     frame_proc->start_workers();
     
     if (camera) {

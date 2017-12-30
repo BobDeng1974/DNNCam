@@ -1,6 +1,7 @@
 #include "imx377camera.hpp"
 #include "frame_processor.hpp"
 #include <EGLStream/NV/ImageNativeBuffer.h>
+#include "defines.hpp"
 
 #define DEFAULT_FPS             (30)
 #define FRAME_CONVERTER_BUF_NUMBER (10)
@@ -290,7 +291,11 @@ bool Imx377Camera::ConsumerThread::threadInitialize()
     EXIT_IF_NULL(m_consumer, "Failed to create FrameConsumer", false);
 
     // Create Video converter
+#ifdef USE_ARGUS_CONVERT
+    if (!createArgusConverter())
+#else
     if (!createImageConverter())
+#endif
     {
         std::cout << "Failed to create video m_ImageConverter" << std::endl;
         return false;
@@ -358,7 +363,7 @@ bool Imx377Camera::ConsumerThread::threadExecute()
                                            NvBufferColorFormat_YUV420,
                                            NvBufferLayout_BlockLinear);
 
-        // Push the frame into V4L2.
+	// Push the frame into V4L2.
         v4l2_buf.index = buffer->index;
         // Set the bytesused to some non-zero value so that
         // v4l2 convert processes the buffer
@@ -380,6 +385,76 @@ bool Imx377Camera::ConsumerThread::threadExecute()
     // Wait till capture plane DQ Thread finishes
     // i.e. all the capture plane buffers are dequeued
     m_ImageConverter->capture_plane.waitForDQThread(2000);
+
+    std::cout << "consumer thread done" << std::endl;
+
+    requestShutdown();
+
+    return true;
+}
+bool Imx377Camera::ConsumerThread::threadArgusExecute()
+{
+    Argus::IStream *iStream = Argus::interface_cast<Argus::IStream>(m_stream);
+    EGLStream::IFrameConsumer *iFrameConsumer = Argus::interface_cast<EGLStream::IFrameConsumer>(m_consumer);
+  cv::Mat plane, result1, result2;
+
+    // Wait until the producer has connected to the stream.
+    std::cout << "Waiting until producer is connected..." << std::endl;
+    if (iStream->waitUntilConnected() != Argus::STATUS_OK)
+    {
+        std::cout << "Stream failed to connect" << std::endl;
+        return false;
+    }
+    std::cout << "Producer has connected; continuing" << std::endl;
+
+    // Keep acquire frames and queue into converter
+    while (!m_gotError)
+    {
+        NvBuffer *buffer = NULL;
+        int fd = -1;
+
+//        buffer = m_ConvOutputPlaneBufQueue->front();
+//        m_ConvOutputPlaneBufQueue->pop();
+        pthread_mutex_unlock(&m_queueLock);
+
+        // Acquire a frame.
+        Argus::UniqueObj<EGLStream::Frame> frame(iFrameConsumer->acquireFrame());
+        EGLStream::IFrame *iFrame = Argus::interface_cast<EGLStream::IFrame>(frame);
+        if (!iFrame)
+            break;
+
+        // Get the IImageNativeBuffer extension interface and create the fd.
+        EGLStream::NV::IImageNativeBuffer *iNativeBuffer =
+            Argus::interface_cast<EGLStream::NV::IImageNativeBuffer>(iFrame->getImage());
+        EXIT_IF_NULL(iNativeBuffer, "IImageNativeBuffer not supported by Image", false);
+        fd = iNativeBuffer->createNvBuffer(Argus::Size2D<uint32_t>(m_pContext->width, m_pContext->height),
+                                           NvBufferColorFormat_ABGR32,
+                                           NvBufferLayout_Pitch);
+  NvBufferParams params;
+  NvBufferGetParams( fd, &params );
+  if (params.num_planes != 1) {
+	  std::cout <<  "Buffer doesn't have the correct number of planes. ("
+                   << params.num_planes << " != 1)" ;
+    return false;
+  }
+  void* plane_buffer;
+#if 1
+  NvBufferMemMap( fd, 0, NvBufferMem_Read, &plane_buffer );
+  NvBufferMemSyncForCpu( fd, 0, &plane_buffer );
+  plane = cv::Mat( params.height[0], params.width[0],
+                           CV_8UC4, plane_buffer, params.pitch[0] );
+    cv::cvtColor(plane, result1, cv::COLOR_RGBA2BGR);
+//  std::cout  << plane_buffer << std::endl;
+  NvBufferMemUnMap(fd, 0, &plane_buffer );
+  NvBufferDestroy( fd );
+   m_pContext->frame_processor->process_frame(FramePtr(new Frame(result1)));
+#endif
+
+    }
+
+    // Wait till capture plane DQ Thread finishes
+    // i.e. all the capture plane buffers are dequeued
+//    m_ImageConverter->capture_plane.waitForDQThread(2000);
 
     std::cout << "consumer thread done" << std::endl;
 
@@ -546,9 +621,18 @@ bool Imx377Camera::ConsumerThread::createImageConverter()
     std::cout << "created video converter" << std::endl;
     return true;
 }
+bool Imx377Camera::ConsumerThread::createArgusConverter()
+{
+    int ret = 0;
+
+
+    std::cout << "created video converter" << std::endl;
+    return true;
+}
 
 void Imx377Camera::ConsumerThread::abort()
 {
+	if(m_ImageConverter)
     m_ImageConverter->abort();
     m_gotError = true;
 }
