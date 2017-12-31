@@ -4,6 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
+  "/usr/local/src/src/Timer.cpp" "/usr/local/src/build/src/CMakeFiles/camerastreamer.dir/Timer.cpp.o"
   "/usr/local/src/src/camerastreamer.cpp" "/usr/local/src/build/src/CMakeFiles/camerastreamer.dir/camerastreamer.cpp.o"
   "/usr/local/src/src/datasource.cpp" "/usr/local/src/build/src/CMakeFiles/camerastreamer.dir/datasource.cpp.o"
   "/usr/local/src/src/datasource_camera.cpp" "/usr/local/src/build/src/CMakeFiles/camerastreamer.dir/datasource_camera.cpp.o"

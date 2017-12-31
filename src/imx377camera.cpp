@@ -1,6 +1,7 @@
 #include "imx377camera.hpp"
 #include "frame_processor.hpp"
 #include <EGLStream/NV/ImageNativeBuffer.h>
+#include "Timer.hpp"
 
 #define DEFAULT_FPS             (30)
 #define FRAME_CONVERTER_BUF_NUMBER (10)
@@ -278,7 +279,7 @@ Imx377Camera::ConsumerThread::~ConsumerThread()
     if (m_ImageConverter)
     {
         //if (DO_STAT)
-        //     m_ImageConverter->printProfilingStats(std::cout);
+             m_ImageConverter->printProfilingStats(std::cout);
         delete m_ImageConverter;
     }
 }
@@ -303,6 +304,7 @@ bool Imx377Camera::ConsumerThread::threadExecute()
 {
     Argus::IStream *iStream = Argus::interface_cast<Argus::IStream>(m_stream);
     EGLStream::IFrameConsumer *iFrameConsumer = Argus::interface_cast<EGLStream::IFrameConsumer>(m_consumer);
+    Timer t1;
 
     // Wait until the producer has connected to the stream.
     std::cout << "Waiting until producer is connected..." << std::endl;
@@ -312,6 +314,7 @@ bool Imx377Camera::ConsumerThread::threadExecute()
         return false;
     }
     std::cout << "Producer has connected; continuing" << std::endl;
+	auto prev_t = t1.GetTickCount();
 
     // Keep acquire frames and queue into converter
     while (!m_gotError)
@@ -323,7 +326,6 @@ bool Imx377Camera::ConsumerThread::threadExecute()
         memset(planes, 0, MAX_PLANES * sizeof(struct v4l2_plane));
 
         v4l2_buf.m.planes = planes;
-
         pthread_mutex_lock(&m_queueLock);
         while (!m_gotError &&
             ((m_ConvOutputPlaneBufQueue->empty()) || (m_numPendingFrames >= MAX_PENDING_FRAMES)))
@@ -375,6 +377,10 @@ bool Imx377Camera::ConsumerThread::threadExecute()
             abort();
             std::cout << "Fail to qbuffer for conv output plane" << std::endl;
         }
+	auto next_t = t1.GetTickCount();
+//	std::cout << "time taken = " << next_t - prev_t << " ms."<< std::endl;
+	std::cout << "fps = " << 1000.00f/(next_t - prev_t) << std::endl;
+	prev_t = next_t;
     }
 
     // Wait till capture plane DQ Thread finishes
@@ -396,13 +402,17 @@ bool Imx377Camera::ConsumerThread::threadShutdown()
 void Imx377Camera::ConsumerThread::writeFrameToOpencvConsumer(
     std::shared_ptr<camera_context> p_ctx, NvBuffer *buffer)
 {
+	Timer t4;
     NvBuffer::NvBufferPlane *plane = &buffer->planes[0];
     uint8_t *pdata = (uint8_t *) plane->data;
 
     cv::Mat imgbuf = cv::Mat(p_ctx->height, p_ctx->width, CV_8UC4, pdata);
     cv::Mat display_img;
 
+    auto start_t = t4.GetTickCount();
     cv::cvtColor(imgbuf, display_img, cv::COLOR_RGBA2BGR);
+    auto end_t = t4.GetTickCount();
+    std::cout << "Time for cvtcolor = " << end_t-start_t << " ms."<< std::endl;
     //cv::cvtColor(imgbuf, display_img, cv::COLOR_RGBA2GRAY);
     //cv::imshow("img", display_img);
     //cv::waitKey();
@@ -479,7 +489,7 @@ bool Imx377Camera::ConsumerThread::createImageConverter()
     EXIT_IF_NULL(m_ImageConverter, "Could not create m_ImageConverter", false);
 
     //if (DO_STAT)
-    //    m_ImageConverter->enableProfiling();
+        m_ImageConverter->enableProfiling();
 
     m_ImageConverter->capture_plane.
         setDQThreadCallback(converterCapturePlaneDqCallback);

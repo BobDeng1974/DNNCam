@@ -123,5 +123,10 @@
   "directory": "/usr/local/src/build/src",
   "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/include -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/local/src/src/../include   -std=c++11   -o CMakeFiles/camerastreamer.dir/stream.cpp.o -c /usr/local/src/src/stream.cpp",
   "file": "/usr/local/src/src/stream.cpp"
+},
+{
+  "directory": "/usr/local/src/build/src",
+  "command": "/usr/bin/c++   -DBL_TIMER_BACKEND=BL_TIMER_BACKEND_USEC -DUSE_BOOST_FILESYSTEM_3 -D_FILE_OFFSET_BITS=64 -I/usr/include/opencv2 -I/usr/local/src/nvidia/include -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/usr/local/src/src/../include   -std=c++11   -o CMakeFiles/camerastreamer.dir/Timer.cpp.o -c /usr/local/src/src/Timer.cpp",
+  "file": "/usr/local/src/src/Timer.cpp"
 }
 ]

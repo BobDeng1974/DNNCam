@@ -84,6 +84,7 @@ static int parse_arguments(int argc, char *argv[])
 
     return 0;
 }
+#include <NvApplicationProfiler.h>
 
 int run(int argc, char** argv)
 {
@@ -97,6 +98,7 @@ int run(int argc, char** argv)
     {
         return ret;
     }
+    NvApplicationProfiler &profiler = NvApplicationProfiler::getProfilerInstance();
 
     FrameProcessorPtr frame_proc;
     frame_proc.reset(new FrameProcessor(W, H));
@@ -129,6 +131,8 @@ int run(int argc, char** argv)
         camera->stop();
     }
 
+    profiler.stop();
+    profiler.printProfilerData(std::cout);
     frame_proc->wait_for_queued_images();
     
     return ret; 

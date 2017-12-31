@@ -51,7 +51,7 @@ Stream::Stream(const int width, const int height, const std::string host, const 
             NULL);
 */
     gst_rtsp_media_factory_set_launch (factory,
-        "( appsrc name=mysrc ! clockoverlay halignment=2 valignment=1 ! omxh265enc ! rtph265pay name=pay0 config-interval=3 pt=96 )");
+        "( appsrc name=mysrc ! clockoverlay halignment=2 valignment=1 ! omxh264enc ! rtph264pay name=pay0 config-interval=3 pt=96 )");
     g_signal_connect(factory, "media-configure", (GCallback) media_configure, (gpointer)(&_streamContext));
 //gst_rtsp_media_factory_set_launch (factory,
 //            "( videotestsrc horizontal-speed=5 is-live=1 ! clockoverlay halignment=0 valignment=2 ! omxh264enc ! rtph264pay name=pay0 pt=96 )");
@@ -109,12 +109,13 @@ void Stream::stop()
     _thread_ptr->join();
     _thread_ptr.reset();
 }
-
+#include "Timer.hpp"
 void Stream::push_frame(const cv::Mat frame)
 {
     std::lock_guard<std::mutex> lg(_context_mutex);
     if(_streamContext.elementMap.empty()) return;
     guint size = frame.rows * frame.cols * 3/2;
+    Timer t3;
 
     auto itr = _streamContext.elementMap.begin();
     while (_streamContext.elementMap.end() != itr) {
@@ -135,7 +136,11 @@ void Stream::push_frame(const cv::Mat frame)
             }
             else
             {
+		auto start_t = t3.GetTickCount();
                 rgb_to_i420(frame.data, map.data, frame.cols, frame.rows);
+//                memcpy(map.data,frame.data,frame.rows*frame.cols*1.5);
+		auto end_t = t3.GetTickCount();
+		std::cout << "Time for BGR to I420 = " << end_t - start_t<< std::endl;
             }
             gst_buffer_unmap (buffer, &map);
         } else {

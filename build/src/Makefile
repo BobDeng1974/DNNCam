@@ -266,6 +266,33 @@ camerastreamer/fast:
 	cd /usr/local/src/build && $(MAKE) -f src/CMakeFiles/camerastreamer.dir/build.make src/CMakeFiles/camerastreamer.dir/build
 .PHONY : camerastreamer/fast
 
+Timer.o: Timer.cpp.o
+
+.PHONY : Timer.o
+
+# target to build an object file
+Timer.cpp.o:
+	cd /usr/local/src/build && $(MAKE) -f src/CMakeFiles/camerastreamer.dir/build.make src/CMakeFiles/camerastreamer.dir/Timer.cpp.o
+.PHONY : Timer.cpp.o
+
+Timer.i: Timer.cpp.i
+
+.PHONY : Timer.i
+
+# target to preprocess a source file
+Timer.cpp.i:
+	cd /usr/local/src/build && $(MAKE) -f src/CMakeFiles/camerastreamer.dir/build.make src/CMakeFiles/camerastreamer.dir/Timer.cpp.i
+.PHONY : Timer.cpp.i
+
+Timer.s: Timer.cpp.s
+
+.PHONY : Timer.s
+
+# target to generate assembly for a file
+Timer.cpp.s:
+	cd /usr/local/src/build && $(MAKE) -f src/CMakeFiles/camerastreamer.dir/build.make src/CMakeFiles/camerastreamer.dir/Timer.cpp.s
+.PHONY : Timer.cpp.s
+
 camerastreamer.o: camerastreamer.cpp.o
 
 .PHONY : camerastreamer.o
@@ -556,6 +583,9 @@ help:
 	@echo "... install/strip"
 	@echo "... camerastreamer"
 	@echo "... list_install_components"
+	@echo "... Timer.o"
+	@echo "... Timer.i"
+	@echo "... Timer.s"
 	@echo "... camerastreamer.o"
 	@echo "... camerastreamer.i"
 	@echo "... camerastreamer.s"

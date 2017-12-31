@@ -4,6 +4,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/camerastreamer.dir/datasource_camera.cpp.o"
   "CMakeFiles/camerastreamer.dir/frame_processor.cpp.o"
   "CMakeFiles/camerastreamer.dir/stream.cpp.o"
+  "CMakeFiles/camerastreamer.dir/Timer.cpp.o"
   "../bin/camerastreamer.pdb"
   "../bin/camerastreamer"
 )

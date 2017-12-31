@@ -37,6 +37,7 @@ src/CMakeFiles/imx377.dir/imx377camera.cpp.o: ../nvidia/include/Ordered.h
 src/CMakeFiles/imx377.dir/imx377camera.cpp.o: ../nvidia/include/Thread.h
 src/CMakeFiles/imx377.dir/imx377camera.cpp.o: ../nvidia/include/nvbuf_utils.h
 src/CMakeFiles/imx377.dir/imx377camera.cpp.o: ../nvidia/include/v4l2_nv_extensions.h
+src/CMakeFiles/imx377.dir/imx377camera.cpp.o: ../src/../include/Timer.hpp
 src/CMakeFiles/imx377.dir/imx377camera.cpp.o: ../src/../include/camera.hpp
 src/CMakeFiles/imx377.dir/imx377camera.cpp.o: ../src/../include/frame.hpp
 src/CMakeFiles/imx377.dir/imx377camera.cpp.o: ../src/../include/frame_processor.hpp

@@ -84,7 +84,7 @@ nvidia/preinstall:
 nvidia/CMakeFiles/nvidia_util.dir/all:
 	$(MAKE) -f nvidia/CMakeFiles/nvidia_util.dir/build.make nvidia/CMakeFiles/nvidia_util.dir/depend
 	$(MAKE) -f nvidia/CMakeFiles/nvidia_util.dir/build.make nvidia/CMakeFiles/nvidia_util.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30 "Built target nvidia_util"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31 "Built target nvidia_util"
 .PHONY : nvidia/CMakeFiles/nvidia_util.dir/all
 
 # Include target in all.
@@ -149,7 +149,7 @@ src/preinstall:
 src/CMakeFiles/config.dir/all:
 	$(MAKE) -f src/CMakeFiles/config.dir/build.make src/CMakeFiles/config.dir/depend
 	$(MAKE) -f src/CMakeFiles/config.dir/build.make src/CMakeFiles/config.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=7,8 "Built target config"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=8,9 "Built target config"
 .PHONY : src/CMakeFiles/config.dir/all
 
 # Include target in all.
@@ -186,7 +186,7 @@ clean: src/CMakeFiles/config.dir/clean
 src/CMakeFiles/logger.dir/all:
 	$(MAKE) -f src/CMakeFiles/logger.dir/build.make src/CMakeFiles/logger.dir/depend
 	$(MAKE) -f src/CMakeFiles/logger.dir/build.make src/CMakeFiles/logger.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=13,14 "Built target logger"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=14,15 "Built target logger"
 .PHONY : src/CMakeFiles/logger.dir/all
 
 # Include target in all.
@@ -223,7 +223,7 @@ clean: src/CMakeFiles/logger.dir/clean
 src/CMakeFiles/imx377.dir/all:
 	$(MAKE) -f src/CMakeFiles/imx377.dir/build.make src/CMakeFiles/imx377.dir/depend
 	$(MAKE) -f src/CMakeFiles/imx377.dir/build.make src/CMakeFiles/imx377.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=9,10 "Built target imx377"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=10,11 "Built target imx377"
 .PHONY : src/CMakeFiles/imx377.dir/all
 
 # Include target in all.
@@ -262,7 +262,7 @@ src/CMakeFiles/lensDriver.dir/all: src/CMakeFiles/logger.dir/all
 src/CMakeFiles/lensDriver.dir/all: src/CMakeFiles/stepper.dir/all
 	$(MAKE) -f src/CMakeFiles/lensDriver.dir/build.make src/CMakeFiles/lensDriver.dir/depend
 	$(MAKE) -f src/CMakeFiles/lensDriver.dir/build.make src/CMakeFiles/lensDriver.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=11,12 "Built target lensDriver"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=12,13 "Built target lensDriver"
 .PHONY : src/CMakeFiles/lensDriver.dir/all
 
 # Include target in all.
@@ -299,7 +299,7 @@ clean: src/CMakeFiles/lensDriver.dir/clean
 src/CMakeFiles/stepper.dir/all:
 	$(MAKE) -f src/CMakeFiles/stepper.dir/build.make src/CMakeFiles/stepper.dir/depend
 	$(MAKE) -f src/CMakeFiles/stepper.dir/build.make src/CMakeFiles/stepper.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=31,32 "Built target stepper"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=32,33 "Built target stepper"
 .PHONY : src/CMakeFiles/stepper.dir/all
 
 # Include target in all.
@@ -338,7 +338,7 @@ src/CMakeFiles/camerastreamer.dir/all: src/CMakeFiles/logger.dir/all
 src/CMakeFiles/camerastreamer.dir/all: src/CMakeFiles/imx377.dir/all
 	$(MAKE) -f src/CMakeFiles/camerastreamer.dir/build.make src/CMakeFiles/camerastreamer.dir/depend
 	$(MAKE) -f src/CMakeFiles/camerastreamer.dir/build.make src/CMakeFiles/camerastreamer.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=1,2,3,4,5,6 "Built target camerastreamer"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/usr/local/src/build/CMakeFiles --progress-num=1,2,3,4,5,6,7 "Built target camerastreamer"
 .PHONY : src/CMakeFiles/camerastreamer.dir/all
 
 # Include target in all.
@@ -348,7 +348,7 @@ all: src/CMakeFiles/camerastreamer.dir/all
 
 # Build rule for subdir invocation for target.
 src/CMakeFiles/camerastreamer.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/build/CMakeFiles 26
+	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/build/CMakeFiles 27
 	$(MAKE) -f CMakeFiles/Makefile2 src/CMakeFiles/camerastreamer.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /usr/local/src/build/CMakeFiles 0
 .PHONY : src/CMakeFiles/camerastreamer.dir/rule

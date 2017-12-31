@@ -142,6 +142,18 @@ inttypes.h
 stdint.h
 -
 
+../nvidia/include/NvApplicationProfiler.h
+iostream
+-
+pthread.h
+-
+stdint.h
+-
+sys/time.h
+-
+time.h
+-
+
 ../nvidia/include/NvBuffer.h
 linux/videodev2.h
 -
@@ -223,6 +235,12 @@ errno.h
 -
 
 ../nvidia/include/v4l2_nv_extensions.h
+
+../src/../include/Timer.hpp
+sys/time.h
+-
+cstddef
+-
 
 ../src/../include/camera.hpp
 frame.hpp
@@ -2992,6 +3010,10 @@ float.h
 
 /usr/lib/aarch64-linux-gnu/gstreamer-1.0/include/gst/gstconfig.h
 
+/usr/local/src/src/Timer.cpp
+Timer.hpp
+/usr/local/src/src/Timer.hpp
+
 /usr/local/src/src/camerastreamer.cpp
 stdexcept
 -
@@ -3011,6 +3033,8 @@ datasource_camera.hpp
 /usr/local/src/src/datasource_camera.hpp
 frame_processor.hpp
 /usr/local/src/src/frame_processor.hpp
+NvApplicationProfiler.h
+-
 
 /usr/local/src/src/datasource.cpp
 datasource.hpp
@@ -3037,6 +3061,8 @@ opencv2/highgui/highgui.hpp
 -
 frame_processor.hpp
 /usr/local/src/src/frame_processor.hpp
+Timer.hpp
+/usr/local/src/src/Timer.hpp
 sys/stat.h
 -
 sys/time.h
@@ -3057,4 +3083,6 @@ opencv/highgui.h
 -
 stream.hpp
 /usr/local/src/src/stream.hpp
+Timer.hpp
+/usr/local/src/src/Timer.hpp
 

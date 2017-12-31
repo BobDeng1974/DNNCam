@@ -224,6 +224,12 @@ errno.h
 
 ../nvidia/include/v4l2_nv_extensions.h
 
+../src/../include/Timer.hpp
+sys/time.h
+-
+cstddef
+-
+
 ../src/../include/camera.hpp
 frame.hpp
 ../src/../include/frame.hpp
@@ -2985,4 +2991,6 @@ frame_processor.hpp
 /usr/local/src/src/frame_processor.hpp
 EGLStream/NV/ImageNativeBuffer.h
 -
+Timer.hpp
+/usr/local/src/src/Timer.hpp
 

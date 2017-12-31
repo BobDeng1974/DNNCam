@@ -51,6 +51,7 @@ add_executable(camerastreamer
 		datasource_camera.cpp
 		frame_processor.cpp
 		stream.cpp
+		Timer.cpp
 )
 
 target_link_libraries(camerastreamer

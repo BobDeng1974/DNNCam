@@ -4,6 +4,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "frame_processor.hpp"
+#include "Timer.hpp"
 
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -164,14 +165,17 @@ void FrameProcessor::process_frame_task(FramePtr src, const int frame_num, const
 {
     const int queue_size = get_queue_size();
     const bool skip_processing = (queue_size > 350) && frame_num % 2 == 1;
+    Timer t2;
     if (skip_processing)
     {
         std::cout << "Skipping frame " << frame_num << " because frame queue contains " << queue_size << " frames.";
     }
-
+	auto start_t = t2.GetTickCount();
     cv::Mat source_frame; 
     source_frame = src->to_mat();
     do_stream(source_frame, frame_num, n_dropped_before);
+	auto end_t = t2.GetTickCount();
+	std::cout << "time taken to stream "<< frame_num <<" = " << (end_t - start_t) << " ms." <<std::endl;
 }
 
 void touch(const std::string& pathname)
