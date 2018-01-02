@@ -1,6 +1,5 @@
 # DNNCam
 
-
 ![alt text](https://github.com/BoulderAI/DNNCam/blob/master/dnnhero_2a.png?raw=true "Logo Title Text 1")
 
 
@@ -21,3 +20,17 @@ sudo apt-get install libarchive-dev
 sudo apt-get install libxmlrpc-c++8-dev
 sudo apt-get install libv4l-dev
 ```
+
+Includes Cooper's method for getting frames from argus camera.
+
+Controls need to be tested.
+
+Error logging and handling done to some extent.
+
+TODO:
+1. Support for various resolutions supported by driver
+2. ROI support
+3. Controls settable via xmlrpc
+4. integrate existing lens control driver with this source and add test support for xmlrpc
+5. error logging and handling
+6. Add wiki document

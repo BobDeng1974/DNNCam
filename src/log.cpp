@@ -5,7 +5,7 @@
 #define BOOST_FILESYSTEM_VERSION 2
 #endif
 
-#include "log.hpp"
+#include "include/log.hpp"
 
 #include <boost/filesystem/operations.hpp>
 

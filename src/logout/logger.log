@@ -1,7 +1,0 @@
-2017-10-05T17:35:34.018389:INFO:motordriver.cpp[133]:init():Initializing i2c device
-2017-10-05T17:35:34.018658:INFO:motordriver.cpp[145]:init():Supports I2C_RDWR
-2017-10-05T17:35:34.018711:INFO:motordriver.cpp[212]:initExpanders():IN initExpanders
-2017-10-05T17:35:47.081064:WARN:configuration.cpp[57]:_load_config_file():Unable to open: /etc/lensdriver.cfg
-2017-10-05T17:35:47.081189:WARN:configuration.cpp[61]:_load_config_file():Unable to open ./lensdriver.cfg either.
-2017-10-05T17:35:47.081381:INFO:configuration.cpp[80]:_load_config_file():Loaded config file.
-2017-10-05T17:35:47.081749:ERROR:motordriver.cpp[364]:zoomHome():Reached zoom homing step limit of 100
