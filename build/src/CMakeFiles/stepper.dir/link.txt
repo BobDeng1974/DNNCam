@@ -1,2 +1,0 @@
-/usr/bin/ar qc ../lib/libstepper.a  CMakeFiles/stepper.dir/motordriver.cpp.o
-/usr/bin/ranlib ../lib/libstepper.a
