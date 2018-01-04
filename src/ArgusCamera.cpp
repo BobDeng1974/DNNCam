@@ -54,8 +54,8 @@ po::options_description ArgusCamera::GetOptions()
         "Maximum gain value to be used by the AE algorithm. If negative, the "
             "default maximum gain value for the sensor will be used" )
       ( OPT_AWB_MODE, po::value<std::string>()->default_value(
-//          AutoWhiteBalanceModeToString( DEFAULT_AWB_MODE ) ),
-	    "Auto"),
+          AutoWhiteBalanceModeToString( DEFAULT_AWB_MODE ) ),
+        // "Auto"),
         "Auto white balance mode. Options: off, auto, incandescent, florescent,"
             "warm_fluorescent, daylight, cloudy_daylight, twilight, shade, or"
             "manual." )
@@ -469,10 +469,11 @@ bool ArgusCamera::_init()
     return false;
   }
   //FIXME
-#if 0
+#if 1
   // Set auto white balance mode
   status = auto_control_settings->setAwbMode(
-//      AutoWhiteBalanceModeToAwbMode( _awb_mode ) );
+      AutoWhiteBalanceModeToAwbMode( _awb_mode ) );
+  //        <Argus::AwbMode> _awb_mode);
   if ( status != Argus::STATUS_OK ) {
     bl_log_error( "Couldn't auto white balance mode. Status: ");
 //                   << ArgusStatusToString( status ) );

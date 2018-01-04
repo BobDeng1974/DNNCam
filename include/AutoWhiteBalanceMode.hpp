@@ -22,6 +22,7 @@ enum class AutoWhiteBalanceMode {
 
 //! Returns a string version of the given AutoWhiteBalanceMode.
 std::string AutoWhiteBalanceModeToString( AutoWhiteBalanceMode mode );
+Argus::AwbMode AutoWhiteBalanceModeToAwbMode( AutoWhiteBalanceMode mode );
 
 /**
  * Converts a string to a AutoWhiteBalanceMode

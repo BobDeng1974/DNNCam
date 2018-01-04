@@ -189,6 +189,8 @@ private:
   Argus::SensorMode *_sensor_mode_object = nullptr;
 };
 
+typedef std::shared_ptr < ArgusCamera > ArgusCameraPtr;
+
 //}
 //}
 
