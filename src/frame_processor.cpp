@@ -4,6 +4,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "frame_processor.hpp"
+#include "log.hpp"
 
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -98,6 +99,9 @@ void FrameProcessor::process_frame(FramePtr frame, const bool block)
         return;
     }
 
+    //cv::Mat m = frame->to_mat();
+    //bl_log_info("In process frame: " << m.cols << "x" << m.rows);
+    
     {
         ScopedLock lock(_prebuffer_mtex);
         if (_prebuffer.size() == PREBUFFERED_FRAMES)  // Buffer size limit
@@ -135,7 +139,7 @@ void FrameProcessor::do_stream(cv::Mat frame, const int frame_num, const int n_d
      * to stream the frame. Requires some logic for figuring out dropped frames */
 
     cv::Mat scaled_frame; 
-    if (frame_num % 4 == 0)
+    //if (frame_num % 2 == 0)
     {
         cv::Mat stream_frame; 
         stream_frame = frame;
@@ -153,7 +157,7 @@ void FrameProcessor::do_stream(cv::Mat frame, const int frame_num, const int n_d
     if (!SequentialSection::too_late("stream", frame_num, n_dropped_before))
     {
         SequentialSection ss("stream", frame_num, n_dropped_before);
-        if (frame_num % 4 == 0)
+        //if (frame_num % 2 == 0)
         {
            _streamer->push_frame(frame);
         }

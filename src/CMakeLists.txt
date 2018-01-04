@@ -49,6 +49,8 @@ add_executable(camerastreamer
 		camerastreamer.cpp
 		datasource.cpp
 		datasource_camera.cpp
+        ArgusCamera.cpp
+        AutoWhiteBalanceMode.cpp
 		frame_processor.cpp
 		stream.cpp
 )

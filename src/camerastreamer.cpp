@@ -9,10 +9,13 @@
 #include <exception>
 #include <boost/program_options.hpp>
 
-#include "imx377camera.hpp"
-
+//#include "imx377camera.hpp"
 #include "datasource_camera.hpp"
+#include "ArgusCamera.hpp"
+
 #include "frame_processor.hpp"
+
+using namespace std;
 
 namespace po = boost::program_options ;
 static bool verbose=false;
@@ -89,8 +92,13 @@ int run(int argc, char** argv)
 {
     srand(time(NULL));
 
+    // full hd
     W=1920;
     H=1080;
+
+    // camera full res
+    //W = 3864;
+    //H = 2196;
 
     int ret = parse_arguments(argc, argv);
     if (ret != 0)
@@ -108,7 +116,8 @@ int run(int argc, char** argv)
     ctx->height = H;
     ctx->frame_processor = frame_proc;
     std::cout << "Initializing camera. Frame size: " << W << "x" << H << std::endl;
-    camera.reset(new Imx377Camera(ctx));
+    //camera.reset(new Imx377Camera(ctx));
+    camera.reset(new ArgusCamera(ctx, W, H));
     camera->init();
     camera->start_capture();
     data_source.reset(new DataSourceCamera(camera, verbose, frame_proc));

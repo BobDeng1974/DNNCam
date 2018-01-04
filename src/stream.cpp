@@ -133,6 +133,10 @@ void Stream::push_frame(const cv::Mat frame)
                 memcpy(map.data, frame.data, frame.rows*frame.cols);
                 memset(map.data+frame.rows*frame.cols, 128, frame.rows*frame.cols/2);
             }
+            else if(frame.channels() == 4)
+            {
+                rgba_to_i420(frame.data, map.data, frame.cols, frame.rows);
+            }
             else
             {
                 rgb_to_i420(frame.data, map.data, frame.cols, frame.rows);
@@ -198,6 +202,32 @@ void Stream::rgb_to_i420(unsigned char *rgb, unsigned char *yuv420, int width, i
             const unsigned char b = rgb[3 * (y * width + x) + 0]; 
             const unsigned char g = rgb[3 * (y * width + x) + 1]; 
             const unsigned char r = rgb[3 * (y * width + x) + 2]; 
+            if ((x%2==0) && (y%2==0))
+            {
+                u_pixel[uv_index]=cv::saturate_cast<unsigned char>(((-38 * r -  74 * g + 112 * b + 128) >> 8) + 128);
+                v_pixel[uv_index++]=cv::saturate_cast<unsigned char>(((112 * r -  94 * g -  18 * b + 128) >> 8) + 128);
+            }
+            y_pixel[index++] = cv::saturate_cast<unsigned char>((( 66 * r + 129 * g +  25 * b + 128) >> 8) +  16);
+        }
+    }
+}
+
+/* http://code.opencv.org/attachments/1116/rgb_to_yuv420.cpp modified for alpha */
+void Stream::rgba_to_i420(unsigned char *rgb, unsigned char *yuv420, int width, int height)
+{
+    unsigned char * y_pixel = yuv420;
+    unsigned char * u_pixel = yuv420 + width * height;
+    unsigned char * v_pixel = yuv420 + width * height + (width * height / 4);
+
+    int index = 0;
+    int uv_index=0;
+    for (int y = 0; y < height; ++y)
+    {
+        for (int x = 0; x < width; ++x)
+        {
+            const unsigned char b = rgb[4 * (y * width + x) + 0]; 
+            const unsigned char g = rgb[4 * (y * width + x) + 1]; 
+            const unsigned char r = rgb[4 * (y * width + x) + 2]; 
             if ((x%2==0) && (y%2==0))
             {
                 u_pixel[uv_index]=cv::saturate_cast<unsigned char>(((-38 * r -  74 * g + 112 * b + 128) >> 8) + 128);

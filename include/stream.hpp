@@ -36,6 +36,7 @@ protected:
 
     static void media_configure(GstRTSPMediaFactory * factory, GstRTSPMedia * media, gpointer user_data);
     static void rgb_to_i420(unsigned char *rgb, unsigned char *yuv420, int width, int height); 
+    static void rgba_to_i420(unsigned char *rgb, unsigned char *yuv420, int width, int height); 
     static inline void rgb_to_yuv(unsigned char b, unsigned char g, unsigned char r, unsigned char & y, unsigned char & u, unsigned char & v);
 
     const std::string _host;
