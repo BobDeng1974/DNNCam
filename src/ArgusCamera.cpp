@@ -631,13 +631,13 @@ void ArgusCamera::requestFrame(
   NvBufferMemMap( fd, 0, NvBufferMem_Read, &plane_buffer );
   NvBufferMemSyncForCpu( fd, 0, &plane_buffer );
 
-  cv_frame = cv::Mat( params.height[0], params.width[0],
+  cv::Mat plane = cv::Mat( params.height[0], params.width[0],
                            CV_8UC4, plane_buffer, params.pitch[0] );
   //cv::cvtColor(plane, cv_frame, cv::COLOR_BGRA2BGR);
-  //plane.copyTo( cv_frame );
+  plane.copyTo( cv_frame );
 
-  //NvBufferMemUnMap(fd, 0, &plane_buffer );
-  //NvBufferDestroy( fd );
+  NvBufferMemUnMap(fd, 0, &plane_buffer );
+  NvBufferDestroy( fd );
 
   // Convert capture time in microseconds since epoch to seconds since epoch
 //  result->time = frame->getTime() * pow( 10, -6 );
