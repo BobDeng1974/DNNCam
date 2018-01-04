@@ -18,7 +18,7 @@ static: locations src/*.cpp
 	rm -rf *.o
 
 app: locations arguscamapp
-arguscamapp: static app/main.cpp
+arguscamapp: app/main.cpp
 	$(CXX) app/main.cpp -o build/bin/$@ -L./build/lib/ -larguscam -I./ -I ./nvidia/include -I./ -std=c++11 $(shell pkg-config --libs --cflags opencv) -lboost_system -lboost_filesystem -lboost_program_options -lboost_date_time -L /usr/lib/aarch64-linux-gnu/tegra/ -largus -lnvbuf_utils
 
 clean: 

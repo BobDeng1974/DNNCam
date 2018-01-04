@@ -9,6 +9,7 @@
 //namespace amp {
 //namespace camera {
 
+const char *ArgusCamera::OPT_CAM_ID = "argus-camera-id";
 const char *ArgusCamera::OPT_WIDTH = "argus-camera-width";
 const char *ArgusCamera::OPT_HEIGHT = "argus-camera-height";
 const char *ArgusCamera::OPT_EXPOSURE_TIME_MIN = "argus-camera-exposure-time-min";
@@ -31,10 +32,29 @@ const double ArgusCamera::DEFAULT_FRAMERATE = -1;
 const double ArgusCamera::DEFAULT_TIMEOUT = -1;
 const float ArgusCamera::DEFAULT_EXPOSURE_COMPENSATION = 0;
 
+//Assuming sensor mode table is defined in decreasing order of size
+int ArgusCamera::find_nearest_sensor_mode(uint32_t width, uint32_t height)
+{
+	int i = 0;
+	for (i = ArgusCamera::num_modes; i>= 0; i--) {
+		if ((ArgusCamera::mode_info[i].width >= width) &&
+				(ArgusCamera::mode_info[i].height >= height)) {
+			break;
+		}
+	}
+	/* If not found, select first mode */
+	if (i < 0)
+		i = 0;
+
+	return i;
+
+}
+
 po::options_description ArgusCamera::GetOptions()
 {
   po::options_description desc( "ArgusCamera Options" );
   desc.add_options()
+      ( OPT_CAM_ID, po::value<uint8_t>(), "Camera node ID to be accessed" )
       ( OPT_WIDTH, po::value<uint32_t>(), "Pixel width of output video" )
       ( OPT_HEIGHT, po::value<uint32_t>(), "Pixel height of output video" )
       ( OPT_EXPOSURE_TIME_MIN,
@@ -79,7 +99,7 @@ po::options_description ArgusCamera::GetOptions()
   return desc;
 }
 
-ArgusCamera::ArgusCamera( const uint32_t width, const uint32_t height,
+ArgusCamera::ArgusCamera( const uint8_t camera_id, const uint32_t width, const uint32_t height,
                           const double exposure_time_min,
                           const double exposure_time_max,
                           const float gain_min,
@@ -89,7 +109,8 @@ ArgusCamera::ArgusCamera( const uint32_t width, const uint32_t height,
                           const double framerate,
                           const double timeout,
                           const float exposure_compensation )
-    : _width( width ),
+    : _camera_id( camera_id),
+      _width( width ),
       _height( height ),
       _exposure_time_min( exposure_time_min ),
       _exposure_time_max( exposure_time_max ),
@@ -102,7 +123,8 @@ ArgusCamera::ArgusCamera( const uint32_t width, const uint32_t height,
       _exposure_compensation( exposure_compensation ) {}
 
 ArgusCamera::ArgusCamera( const po::variables_map &vm )
-    : _width( vm.count( OPT_WIDTH ) ?
+    : _camera_id( vm[OPT_CAM_ID].as<int8_t>() ),
+      _width( vm.count( OPT_WIDTH ) ?
               vm[OPT_WIDTH].as<uint32_t>() :
               throw po::error(
                   std::string( OPT_WIDTH ) + " is required." ) ),
@@ -166,9 +188,8 @@ bool ArgusCamera::init()
     return false;
   }
 
-  // Use the first reported device
-  // TODO(cooper): Investigate if we need to make this configurable
-  Argus::CameraDevice *device = devices[0];
+  Argus::CameraDevice *device = devices[_camera_id];
+  ArgusCamera::device = device;
 
   // Create a capture session
   _capture_session_object.reset( camera_provider->createCaptureSession( device,
@@ -206,9 +227,27 @@ bool ArgusCamera::init()
     bl_log_error( "Camera reports no sensor modes." );
     return false;
   }
+  //Init SensorModeInfo struct
+  ArgusCamera::num_modes = sensor_mode_objects.size();
+  ArgusCamera::mode_info = new SensorModeInfo[ArgusCamera::num_modes];
+  for(int i = 0; i < ArgusCamera::num_modes; ++i) {
+        Argus::ISensorMode *mode = Argus::interface_cast<Argus::ISensorMode>(sensor_mode_objects[i]);
+        auto resolution = mode->getResolution();
+        std::cout << "Sensor mode: " << i << " width: " << resolution.width() << " height: " << resolution.height() << " mode type: " << mode->getSensorModeType().getName() << std::endl;
+        Argus::Range<uint64_t> limitExposureTimeRange = mode->getExposureTimeRange();
+        std::cout << "\tExposure min: " << limitExposureTimeRange.min() << " max: " << limitExposureTimeRange.max() << std::endl;
+        Argus::Range<float> sensorModeAnalogGainRange = mode->getAnalogGainRange();
+        std::cout << "\tGain min: " << sensorModeAnalogGainRange.min() << " max: " << sensorModeAnalogGainRange.max() << std::endl;
+        Argus::Range<uint64_t> limitFrameDurationRange = mode->getFrameDurationRange();
+        std::cout << "\tFrame Duration min: " << limitFrameDurationRange.min() << " max: " << limitFrameDurationRange.max() << std::endl;
 
-  // TODO(#1436): Choose sensor mode based on closest resolution
-  _sensor_mode_object = sensor_mode_objects[0];
+	ArgusCamera::mode_info[i].width = resolution.width();
+	ArgusCamera::mode_info[i].height = resolution.height();
+  }
+  auto mode = find_nearest_sensor_mode(_width,_height);
+  std::cout << "selecting mode = " << mode << std::endl;
+
+  _sensor_mode_object = sensor_mode_objects[mode];
   auto sensor_mode = Argus::interface_cast<Argus::ISensorMode>(
       _sensor_mode_object );
   if ( sensor_mode == nullptr ) {
@@ -514,7 +553,7 @@ bool ArgusCamera::init()
   return initialized = true;
 }
 
-void ArgusCamera::requestFrame(
+bool ArgusCamera::requestFrame(
 //    pubsub::Callback<void, CameraFrame::Shared> onSuccess,
 //    pubsub::Callback<void, FrameError> onError
       )
@@ -522,13 +561,13 @@ void ArgusCamera::requestFrame(
   if ( !isInitialized()) {
     bl_log_error( "Camera is not initialized." );
 //    onError( FrameError::NOT_INITIALIZED );
-    return;
+    return false;
   }
 #if 0
   if ( !isConnected()) {
     bl_log_error( "Camera is not connected." );
 //    onError( FrameError::NOT_CONNECTED );
-    return;
+    return false;
   }
 #endif
 
@@ -538,7 +577,7 @@ void ArgusCamera::requestFrame(
   if ( capture_session == nullptr ) {
     bl_log_error( "Interface cast to ICaptureSession failed." );
 //    onError( FrameError::UNKNOWN );
-    return;
+    return false;
   }
 
   // Obtain frame consumer
@@ -547,7 +586,7 @@ void ArgusCamera::requestFrame(
   if ( frame_consumer == nullptr ) {
     bl_log_error( "Interface cast to IFrameConsumer failed." );
 //    onError( FrameError::UNKNOWN );
-    return;
+    return false;
   }
 
   // Acquire frame from frame consumer
@@ -563,14 +602,14 @@ void ArgusCamera::requestFrame(
     bl_log_error( "Failed to acquire frame. Status: ");
 //                   << ArgusStatusToString( status ) );
 //    onError( ArgusStatusToFrameError( status ) );
-    return;
+    return false;
   }
 
   auto frame = Argus::interface_cast<EGLStream::IFrame>( frame_object );
   if ( frame == nullptr ) {
     bl_log_error( "Interface cast to IFrame failed." );
 //    onError( FrameError::UNKNOWN );
-    return;
+    return false;
   }
 
   // Get image from frame
@@ -580,7 +619,7 @@ void ArgusCamera::requestFrame(
   if ( image_native_buffer == nullptr ) {
     bl_log_error( "Interface cast to IImageNativeBuffer failed." );
 //    onError( FrameError::UNKNOWN );
-    return;
+    return false;
   }
 
   Argus::Size2D<uint32_t> image_size( _width, _height );
@@ -592,7 +631,7 @@ void ArgusCamera::requestFrame(
     bl_log_error( "Failed to create NvBuffer! Status: ");
 //                   << ArgusStatusToString( status ) );
 //    onError( ArgusStatusToFrameError( status ) );
-    return;
+    return false;
   }
 
   // Read image buffer into the final camera frame object
@@ -605,7 +644,7 @@ void ArgusCamera::requestFrame(
     bl_log_error( "Buffer doesn't have the correct number of planes. (");
 //                   << params.num_planes << " != 1)" );
 //    onError( FrameError::UNKNOWN );
-    return;
+    return false;
   }
 
   void* plane_buffer;
@@ -625,7 +664,108 @@ void ArgusCamera::requestFrame(
 //  result->time = frame->getTime() * pow( 10, -6 );
 //  result->encoding = ImageEncoding::BGRA8;
 //  onSuccess( result );
-  return;
+  return true;
+}
+#if 1 
+bool ArgusCamera::setCamRes(uint32_t width, uint32_t height)
+{
+  Argus::Status status;
+
+  ArgusCamera::deinit();
+  ArgusCamera::_width = width;
+  ArgusCamera::_height = height;
+  ArgusCamera::initialized = true;
+//  ArgusCamera::init();
+  std::vector<Argus::SensorMode *> sensor_mode_objects;
+  // Get camera properties
+  auto *camera_properties = Argus::interface_cast<Argus::ICameraProperties>(
+      device );
+  if ( camera_properties == nullptr ) {
+    bl_log_error( "Interface cast to ICameraProperties failed." );
+    return false;
+  }
+  status = camera_properties->getBasicSensorModes( &sensor_mode_objects );
+  if ( status != Argus::STATUS_OK ) {
+    bl_log_error( "Could not get available sensor modes. Status: ");
+//                   << ArgusStatusToString( status ) );
+    return false;
+  }
+  if ( sensor_mode_objects.empty()) {
+    bl_log_error( "Camera reports no sensor modes." );
+    return false;
+  }
+  auto mode = find_nearest_sensor_mode(width,height);
+  std::cout << "selecting mode = " << mode << std::endl;
+
+  _sensor_mode_object = sensor_mode_objects[mode];
+
+  auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
+  if ( request == nullptr ) {
+    bl_log_error( "Interface cast to IRequest failed." );
+    return false;
+  }
+  // Set capture settings
+  auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(
+      request->getSourceSettings() );
+  if ( source_settings == nullptr ) {
+    bl_log_error( "Interface cast to ISourceSettings failed." );
+    return false;
+  }
+
+  // Get sensor modes to use
+  status = source_settings->setSensorMode( _sensor_mode_object );
+  if ( status != Argus::STATUS_OK ) {
+    bl_log_error( "Couldn't set the sensor mode. Status: ");
+//                   << ArgusStatusToString( status ) );
+    return false;
+  }
+  // Obtain capture session
+  auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(
+      _capture_session_object );
+  if ( capture_session == nullptr ) {
+    bl_log_error( "Interface cast to ICaptureSession failed." );
+//    onError( FrameError::UNKNOWN );
+    return false;
+  }
+  // Submit capture request on repeat
+  status = capture_session->repeat( _request_object.get() );
+  if ( status != Argus::STATUS_OK ) {
+    bl_log_error( "Failed to submit repeating capture request. Status: ");
+//                   << ArgusStatusToString( status ) );
+    return false;
+  }
+  auto *output_stream = Argus::interface_cast<Argus::IStream>(
+      _output_stream_object );
+  if ( output_stream == nullptr ) {
+    bl_log_error( "Interface cast to IStream failed." );
+    return false;
+  }
+
+  status = output_stream->waitUntilConnected();
+  if ( status != Argus::STATUS_OK ) {
+    bl_log_error( "Failed to connect output stream. Status: ");
+//                   << ArgusStatusToString( status ) );
+    return false;
+  }
+}
+#endif
+
+
+bool ArgusCamera::deinit()
+{
+  // Obtain capture session
+  auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(
+      _capture_session_object );
+  if ( capture_session == nullptr ) {
+    bl_log_error( "Interface cast to ICaptureSession failed." );
+//    onError( FrameError::UNKNOWN );
+    return false;
+  }
+  capture_session->stopRepeat();
+  capture_session->waitForIdle();
+
+  ArgusCamera::initialized = false;
+  return true;
 }
 
 //}

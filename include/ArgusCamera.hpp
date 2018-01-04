@@ -18,6 +18,7 @@ namespace po = boost::program_options;
 class ArgusCamera
 {
  public:
+  static const char *OPT_CAM_ID;
   static const char *OPT_WIDTH;
   static const char *OPT_HEIGHT;
   static const char *OPT_EXPOSURE_TIME_MIN;
@@ -41,7 +42,7 @@ class ArgusCamera
 
   static po::options_description GetOptions();
 
-  ArgusCamera( const uint32_t width, const uint32_t height,
+  ArgusCamera( const uint8_t camera_id, const uint32_t width, const uint32_t height,
                const double exposure_time_min = DEFAULT_EXPOSURE_TIME_MIN,
                const double exposure_time_max = DEFAULT_EXPOSURE_TIME_MAX,
                const float gain_min = DEFAULT_GAIN_MIN,
@@ -53,12 +54,22 @@ class ArgusCamera
                const float exposure_compensation = DEFAULT_EXPOSURE_COMPENSATION );
   ArgusCamera( const po::variables_map &vm );
   cv::Mat cv_frame;
+  struct SensorModeInfo
+  {
+	uint32_t width,height;
+	uint64_t exp_min,exp_max, frame_duration_min,frame_duration_max;
+	float gain_min,gain_max;
 
+  };
+
+  SensorModeInfo* mode_info;
+  int num_modes;
   bool connected = false;
   bool initialized = false;
 
   // Initable implementation
   virtual bool init();
+  virtual bool deinit();
 
   // Connectable implementation
   virtual bool connect()
@@ -81,13 +92,18 @@ class ArgusCamera
   }
 
   // Camera implementation
-  virtual void requestFrame(
+  virtual bool requestFrame(
 //      pubsub::Callback<void, CameraFrame::Shared> onSuccess,
 //      pubsub::Callback<void, FrameError> onError
   );
+  //Configures sensor to use the closest supported resolution
+  bool setCamRes(uint32_t width,uint32_t height);
+  //Configures output of the capture stream to the exact WxH requested
+  bool setOutRes(uint32_t width,uint32_t height);
 
  private:
-  const uint32_t _width, _height;
+  const uint8_t _camera_id;
+  uint32_t _width, _height;
   const double _exposure_time_min, _exposure_time_max;
   const float _gain_min, _gain_max;
   AutoWhiteBalanceMode _awb_mode;
@@ -95,6 +111,7 @@ class ArgusCamera
   const double _framerate;
   const double _timeout;
   const float _exposure_compensation;
+  int find_nearest_sensor_mode(uint32_t width, uint32_t height);
 
   Argus::UniqueObj<Argus::CameraProvider>    _camera_provider_object;
   Argus::UniqueObj<Argus::CaptureSession>    _capture_session_object;
@@ -102,6 +119,7 @@ class ArgusCamera
   Argus::UniqueObj<EGLStream::FrameConsumer> _frame_consumer_object;
   Argus::UniqueObj<Argus::Request>           _request_object;
   Argus::SensorMode *_sensor_mode_object = nullptr;
+  Argus::CameraDevice *device;
 };
 
 //}
