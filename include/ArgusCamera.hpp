@@ -1,5 +1,4 @@
-#ifndef __ARGUS_CAMERA__
-#define __ARGUS_CAMERA__
+#pragma once
 
 #include <boost/program_options.hpp>
 
@@ -16,9 +15,11 @@ namespace po = boost::program_options;
 //namespace amp {
 //namespace camera {
 
+struct ArgusReleaseData;
+    
 class ArgusCamera : public Camera
 {
- public:
+public:
   static const char *OPT_WIDTH;
   static const char *OPT_HEIGHT;
   static const char *OPT_EXPOSURE_TIME_MIN;
@@ -53,7 +54,6 @@ class ArgusCamera : public Camera
                const double timeout = DEFAULT_TIMEOUT,
                const float exposure_compensation = DEFAULT_EXPOSURE_COMPENSATION );
   ArgusCamera( std::shared_ptr < camera_context > ctx, const po::variables_map &vm );
-  cv::Mat cv_frame;
 
   bool connected = false;
   bool initialized = false;
@@ -79,10 +79,7 @@ class ArgusCamera : public Camera
   }
 
   // Camera implementation
-  virtual void requestFrame(
-//      pubsub::Callback<void, CameraFrame::Shared> onSuccess,
-//      pubsub::Callback<void, FrameError> onError
-      );
+  virtual ArgusReleaseData *requestFrame();
 
     // inherited from Camera
     virtual void stop()
@@ -172,6 +169,7 @@ private:
     }
     virtual bool _init();
     
+  cv::Mat cv_frame;
   const uint32_t _width, _height;
   const double _exposure_time_min, _exposure_time_max;
   const float _gain_min, _gain_max;
@@ -193,5 +191,3 @@ typedef std::shared_ptr < ArgusCamera > ArgusCameraPtr;
 
 //}
 //}
-
-#endif //__ARGUS_CAMERA__

@@ -139,7 +139,7 @@ void FrameProcessor::do_stream(cv::Mat frame, const int frame_num, const int n_d
      * to stream the frame. Requires some logic for figuring out dropped frames */
 
     cv::Mat scaled_frame; 
-    //if (frame_num % 2 == 0)
+    if (frame_num % 2 == 0)
     {
         cv::Mat stream_frame; 
         stream_frame = frame;
@@ -157,7 +157,7 @@ void FrameProcessor::do_stream(cv::Mat frame, const int frame_num, const int n_d
     if (!SequentialSection::too_late("stream", frame_num, n_dropped_before))
     {
         SequentialSection ss("stream", frame_num, n_dropped_before);
-        //if (frame_num % 2 == 0)
+        if (frame_num % 2 == 0)
         {
            _streamer->push_frame(frame);
         }

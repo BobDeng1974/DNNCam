@@ -31,6 +31,29 @@ const double ArgusCamera::DEFAULT_FRAMERATE = 30;
 const double ArgusCamera::DEFAULT_TIMEOUT = -1;
 const float ArgusCamera::DEFAULT_EXPOSURE_COMPENSATION = 0;
 
+// we need to track this stuff to avoid an extra copy here....
+// this will be used to free the nvbuffer data when a user is done with a frame
+struct ArgusReleaseData
+{
+    ArgusReleaseData(const int nvbuf_fd, void *mmapped_pointer)
+        :
+        _nvbuf_fd(nvbuf_fd),
+        _mmapped_pointer(mmapped_pointer)
+    {
+    }
+    
+    int _nvbuf_fd;
+    void *_mmapped_pointer;
+};
+
+static void argus_release_helper(void *opaque)
+{
+    ArgusReleaseData *data = (ArgusReleaseData *)opaque;
+    NvBufferMemUnMap(data->_nvbuf_fd, 0, &data->_mmapped_pointer);
+    NvBufferDestroy(data->_nvbuf_fd);
+    delete data;
+}
+
 po::options_description ArgusCamera::GetOptions()
 {
   po::options_description desc( "ArgusCamera Options" );
@@ -522,7 +545,7 @@ bool ArgusCamera::_init()
   return initialized = true;
 }
 
-void ArgusCamera::requestFrame(
+ArgusReleaseData *ArgusCamera::requestFrame(
 //    pubsub::Callback<void, CameraFrame::Shared> onSuccess,
 //    pubsub::Callback<void, FrameError> onError
       )
@@ -530,13 +553,13 @@ void ArgusCamera::requestFrame(
   if ( !isInitialized()) {
     bl_log_error( "Camera is not initialized." );
 //    onError( FrameError::NOT_INITIALIZED );
-    return;
+    return NULL;
   }
 #if 0
   if ( !isConnected()) {
     bl_log_error( "Camera is not connected." );
 //    onError( FrameError::NOT_CONNECTED );
-    return;
+    return NULL;
   }
 #endif
 
@@ -546,7 +569,7 @@ void ArgusCamera::requestFrame(
   if ( capture_session == nullptr ) {
     bl_log_error( "Interface cast to ICaptureSession failed." );
 //    onError( FrameError::UNKNOWN );
-    return;
+    return NULL;
   }
 
   // Obtain frame consumer
@@ -555,7 +578,7 @@ void ArgusCamera::requestFrame(
   if ( frame_consumer == nullptr ) {
     bl_log_error( "Interface cast to IFrameConsumer failed." );
 //    onError( FrameError::UNKNOWN );
-    return;
+    return NULL;
   }
 
   // Acquire frame from frame consumer
@@ -571,14 +594,14 @@ void ArgusCamera::requestFrame(
     bl_log_error( "Failed to acquire frame. Status: ");
 //                   << ArgusStatusToString( status ) );
 //    onError( ArgusStatusToFrameError( status ) );
-    return;
+    return NULL;
   }
 
   auto frame = Argus::interface_cast<EGLStream::IFrame>( frame_object );
   if ( frame == nullptr ) {
     bl_log_error( "Interface cast to IFrame failed." );
 //    onError( FrameError::UNKNOWN );
-    return;
+    return NULL;
   }
 
   static uint64_t last_frame_num = 0;
@@ -598,7 +621,7 @@ void ArgusCamera::requestFrame(
   if ( image_native_buffer == nullptr ) {
     bl_log_error( "Interface cast to IImageNativeBuffer failed." );
 //    onError( FrameError::UNKNOWN );
-    return;
+    return NULL;
   }
 
   Argus::Size2D<uint32_t> image_size( _width, _height );
@@ -611,7 +634,7 @@ void ArgusCamera::requestFrame(
     bl_log_error( "Failed to create NvBuffer! Status: ");
 //                   << ArgusStatusToString( status ) );
 //    onError( ArgusStatusToFrameError( status ) );
-    return;
+    return NULL;
   }
 
   // Read image buffer into the final camera frame object
@@ -623,7 +646,7 @@ void ArgusCamera::requestFrame(
   if (params.num_planes != 1) {
     bl_log_error( "Buffer doesn't have the correct number of planes. (" << params.num_planes << " != 1)" );
 //    onError( FrameError::UNKNOWN );
-    return;
+    return NULL;
   }
 
   void* plane_buffer;
@@ -631,25 +654,22 @@ void ArgusCamera::requestFrame(
   NvBufferMemMap( fd, 0, NvBufferMem_Read, &plane_buffer );
   NvBufferMemSyncForCpu( fd, 0, &plane_buffer );
 
-  cv::Mat plane = cv::Mat( params.height[0], params.width[0],
+  cv_frame = cv::Mat( params.height[0], params.width[0],
                            CV_8UC4, plane_buffer, params.pitch[0] );
   //cv::cvtColor(plane, cv_frame, cv::COLOR_BGRA2BGR);
-  plane.copyTo( cv_frame );
-
-  NvBufferMemUnMap(fd, 0, &plane_buffer );
-  NvBufferDestroy( fd );
+  //plane.copyTo( cv_frame );
 
   // Convert capture time in microseconds since epoch to seconds since epoch
 //  result->time = frame->getTime() * pow( 10, -6 );
 //  result->encoding = ImageEncoding::BGRA8;
 //  onSuccess( result );
-  return;
+  return new ArgusReleaseData(fd, plane_buffer);
 }
 
 FramePtr ArgusCamera::grab()
 {
-    requestFrame();
-    return FramePtr(new Frame(cv_frame));
+    ArgusReleaseData *data = requestFrame();
+    return FramePtr(new Frame(cv_frame, data, argus_release_helper));
 }
 
 //}
