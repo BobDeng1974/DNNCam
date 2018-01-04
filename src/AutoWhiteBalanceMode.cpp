@@ -31,6 +31,21 @@ std::string AutoWhiteBalanceModeToString( AutoWhiteBalanceMode mode )
     case AutoWhiteBalanceMode::MANUAL: return AWB_MODE_MANUAL;
   }
 }
+Argus::AwbMode AutoWhiteBalanceModeToAwbMode( AutoWhiteBalanceMode mode )
+{
+  switch ( mode ) {
+	  case AutoWhiteBalanceMode::OFF: return Argus::AWB_MODE_OFF;
+	  case AutoWhiteBalanceMode::AUTO: return Argus::AWB_MODE_AUTO;
+	  case AutoWhiteBalanceMode::INCANDESCENT: return Argus::AWB_MODE_INCANDESCENT;
+	  case AutoWhiteBalanceMode::FLUORESCENT: return Argus::AWB_MODE_FLUORESCENT;
+	  case AutoWhiteBalanceMode::WARM_FLUORESCENT: return Argus::AWB_MODE_WARM_FLUORESCENT;
+	  case AutoWhiteBalanceMode::DAYLIGHT: return Argus::AWB_MODE_DAYLIGHT;
+	  case AutoWhiteBalanceMode::CLOUDY_DAYLIGHT: return Argus::AWB_MODE_CLOUDY_DAYLIGHT;
+	  case AutoWhiteBalanceMode::TWILIGHT: return Argus::AWB_MODE_TWILIGHT;
+	  case AutoWhiteBalanceMode::SHADE: return Argus::AWB_MODE_SHADE;
+	  case AutoWhiteBalanceMode::MANUAL: return Argus::AWB_MODE_MANUAL;
+  }
+}
 
 bool AutoWhiteBalanceModeFromString( AutoWhiteBalanceMode& mode,
                                      const std::string& mode_str )

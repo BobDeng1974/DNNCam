@@ -1,0 +1,43 @@
+diff --git a/include/ArgusCamera.hpp b/include/ArgusCamera.hpp
+index fffd0d9..b99bc04 100644
+--- a/include/ArgusCamera.hpp
++++ b/include/ArgusCamera.hpp
+@@ -120,6 +120,8 @@ class ArgusCamera
+   Argus::UniqueObj<Argus::Request>           _request_object;
+   Argus::SensorMode *_sensor_mode_object = nullptr;
+   Argus::CameraDevice *device;
++  Argus::CameraDevice *device;
++  Argus::IOutputStreamSettings		     _stream_settings;
+ };
+ 
+ //}
+diff --git a/src/ArgusCamera.cpp b/src/ArgusCamera.cpp
+index 11bea5e..9754e47 100644
+--- a/src/ArgusCamera.cpp
++++ b/src/ArgusCamera.cpp
+@@ -270,6 +270,7 @@ bool ArgusCamera::init()
+     bl_log_error( "Interface cast to IOutputStreamSettings failed." );
+     return false;
+   }
++  _stream_settings = stream_settings;
+ 
+   // Configure stream settings
+   status = stream_settings->setPixelFormat( Argus::PIXEL_FMT_YCbCr_420_888 );
+@@ -727,6 +728,17 @@ bool ArgusCamera::setCamRes(uint32_t width, uint32_t height)
+ //    onError( FrameError::UNKNOWN );
+     return false;
+   }
++  if ( _stream_settings == nullptr ) {
++    bl_log_error( "No valid stream settings" );
++    return false;
++  }
++  status = _stream_settings->setResolution( Argus::Size2D<uint32_t>( _width,
++                                                                    _height ) );
++  if ( status != Argus::STATUS_OK ) {
++    bl_log_error( "Couldn't set the output resolution. Status: ");
++//                   << ArgusStatusToString( status ) );
++    return false;
++  }
+   // Submit capture request on repeat
+   status = capture_session->repeat( _request_object.get() );
+   if ( status != Argus::STATUS_OK ) {

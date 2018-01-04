@@ -122,6 +122,7 @@ class ArgusCamera
   Argus::CameraDevice *device;
 };
 
+typedef std::shared_ptr<ArgusCamera> ArgusCameraPtr;
 //}
 //}
 
