@@ -158,6 +158,9 @@ public:
     
 
     virtual FramePtr grab();
+    virtual FramePtr grab_y();
+    virtual FramePtr grab_u();
+    virtual FramePtr grab_v();
     
     virtual void start_capture()
     {
@@ -169,7 +172,10 @@ private:
     }
     virtual bool _init();
     
-  cv::Mat cv_frame;
+  cv::Mat cv_frame_rgb;
+  cv::Mat cv_frame_y;
+  cv::Mat cv_frame_u;
+  cv::Mat cv_frame_v;
   const uint32_t _width, _height;
   const double _exposure_time_min, _exposure_time_max;
   const float _gain_min, _gain_max;

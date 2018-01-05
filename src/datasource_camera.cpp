@@ -24,7 +24,11 @@ DataSourceCamera::~DataSourceCamera()
 
 bool DataSourceCamera::ProcessImpl(void)
 {
-    FramePtr frame = _camera->grab();  // This is a blocking call.
-    _frame_proc->process_frame(frame);
+    FrameCollection col;
+    col.frame_rgb = _camera->grab();  // This is a blocking call.
+    col.frame_y = _camera->grab_y();
+    col.frame_u = _camera->grab_u();
+    col.frame_v = _camera->grab_v();
+    _frame_proc->process_frame(col);
     return true;
 }

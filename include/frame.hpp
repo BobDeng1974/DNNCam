@@ -90,3 +90,16 @@ private:
 } ; 
 
 typedef boost::shared_ptr < Frame > FramePtr; 
+
+struct FrameCollection
+{
+    FramePtr frame_rgb;
+    FramePtr frame_y;
+    FramePtr frame_u;
+    FramePtr frame_v;
+};
+
+typedef std::deque < FrameCollection > FrameQueue;
+typedef FrameQueue::iterator FrameQueueIter;
+typedef FrameQueue::reverse_iterator FrameQueueRIter;
+

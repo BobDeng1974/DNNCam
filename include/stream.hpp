@@ -2,14 +2,14 @@
 
 #include <string>
 #include <mutex>
-#include <opencv2/opencv.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/mutex.hpp>
 #include <unordered_map>
 
 #include <gst/gst.h>
 #include <gst/rtsp-server/rtsp-server.h>
+
+#include "frame.hpp"
 
 namespace pt = boost::posix_time;
 
@@ -21,7 +21,7 @@ public:
 
     void start();
     void stop(); 
-    void push_frame(const cv::Mat frame);
+    void push_frame(const FrameCollection frame_col);
 
 protected:
 

@@ -69,6 +69,9 @@ public:
     virtual void set_log_mode_value(const int value) = 0;
 
     virtual FramePtr grab() = 0;
+    virtual FramePtr grab_y() = 0;
+    virtual FramePtr grab_u() = 0;
+    virtual FramePtr grab_v() = 0;
     virtual void start_capture() = 0;
 protected:
     std::shared_ptr<camera_context>     _ctx;

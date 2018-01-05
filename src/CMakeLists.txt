@@ -8,7 +8,7 @@ endif(COMMAND cmake_policy)
 
 include_directories(${CMAKE_SOURCE_DIR}/nvidia/include)
 LINK_DIRECTORIES(/usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}/tegra)
-set(CAMERA_DEPS imx377 nvidia_util v4l2 nvbuf_utils argus) 
+set(CAMERA_DEPS nvidia_util v4l2 nvbuf_utils argus) 
 
 find_package(PkgConfig)
 pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
@@ -30,9 +30,6 @@ set(XMLRPC_DEPS
         xmlrpc_server_abyss
         xmlrpc_server_abyss++
 )
-
-add_library(imx377 STATIC
-        imx377camera.cpp)
 
 add_library(logger STATIC
         log.cpp)

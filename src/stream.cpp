@@ -13,6 +13,7 @@
 #include <opencv/highgui.h>
 
 #include "stream.hpp"
+#include "log.hpp"
 
 std::mutex Stream::_context_mutex;
 
@@ -110,12 +111,16 @@ void Stream::stop()
     _thread_ptr.reset();
 }
 
-void Stream::push_frame(const cv::Mat frame)
+void Stream::push_frame(const FrameCollection frame_col)
 {
     std::lock_guard<std::mutex> lg(_context_mutex);
     if(_streamContext.elementMap.empty()) return;
-    guint size = frame.rows * frame.cols * 3/2;
 
+    cv::Mat frame_y = frame_col.frame_y->to_mat();
+    cv::Mat frame_u = frame_col.frame_u->to_mat();
+    cv::Mat frame_v = frame_col.frame_v->to_mat();
+    const guint size = frame_y.rows * frame_y.cols * 3/2;
+    
     auto itr = _streamContext.elementMap.begin();
     while (_streamContext.elementMap.end() != itr) {
         GstBuffer *buffer;
@@ -127,31 +132,34 @@ void Stream::push_frame(const cv::Mat frame)
         /* I420 => Y frame followed by 2x2 subsampled U/V frame
         * set the U/V to 128 for black & white */
         GstMapInfo map;
-        if (gst_buffer_map (buffer, &map, GST_MAP_READ)) {
-            if (frame.channels() == 1)
+        if (gst_buffer_map (buffer, &map, GST_MAP_READ))
+        {
+            // the data produced by libargus has stride != width, so we must copy by row...
+            for(int j = 0; j < frame_y.rows; j++)
             {
-                memcpy(map.data, frame.data, frame.rows*frame.cols);
-                memset(map.data+frame.rows*frame.cols, 128, frame.rows*frame.cols/2);
+                memcpy(map.data + j * frame_y.cols, frame_y.row(j).data, frame_y.cols);
             }
-            else if(frame.channels() == 4)
+            for(int j = 0; j < frame_u.rows; j++)
             {
-                rgba_to_i420(frame.data, map.data, frame.cols, frame.rows);
+                memcpy(map.data + frame_y.rows * frame_y.cols + j * frame_u.cols, frame_u.row(j).data, frame_u.cols);
             }
-            else
+            for(int j = 0; j < frame_v.rows; j++)
             {
-                rgb_to_i420(frame.data, map.data, frame.cols, frame.rows);
+                memcpy(map.data + frame_y.rows * frame_y.cols + frame_u.rows * frame_u.cols + j * frame_v.cols, frame_v.row(j).data, frame_v.cols);
             }
+            
             gst_buffer_unmap (buffer, &map);
-        } else {
+        }
+        else {
             std::cout << "gst_buffer_map error" << std::endl;
         }
 
         const GstClockTime now = gst_clock_get_time(GST_ELEMENT_CLOCK(itr->first)) - gst_element_get_base_time(itr->first);
         GST_BUFFER_PTS(buffer) = now;
- 
+
         g_signal_emit_by_name (itr->first, "push-buffer", buffer, &ret);
         gst_buffer_unref(buffer);
- 
+
         if (ret != GST_FLOW_OK) {
             std::cout << "Something went wrong while streaming(most likely client disconnected): " << ret << std::endl;
             gst_object_unref(itr->first);
@@ -178,123 +186,3 @@ Stream::~Stream()
     }
     g_main_loop_unref(_loop);
 }
-
-void Stream::rgb_to_yuv(unsigned char b, unsigned char g, unsigned char r, unsigned char & y, unsigned char & u, unsigned char & v)
-{
-    y = cv::saturate_cast<unsigned char>((( 66 * r + 129 * g +  25 * b + 128) >> 8) +  16);
-    u = cv::saturate_cast<unsigned char>(((-38 * r -  74 * g + 112 * b + 128) >> 8) + 128); 
-    v = cv::saturate_cast<unsigned char>(((112 * r -  94 * g -  18 * b + 128) >> 8) + 128);
-}
-
-/* http://code.opencv.org/attachments/1116/rgb_to_yuv420.cpp */
-void Stream::rgb_to_i420(unsigned char *rgb, unsigned char *yuv420, int width, int height)
-{
-    unsigned char * y_pixel = yuv420;
-    unsigned char * u_pixel = yuv420 + width * height;
-    unsigned char * v_pixel = yuv420 + width * height + (width * height / 4);
-
-    int index = 0;
-    int uv_index=0;
-    for (int y = 0; y < height; ++y)
-    {
-        for (int x = 0; x < width; ++x)
-        {
-            const unsigned char b = rgb[3 * (y * width + x) + 0]; 
-            const unsigned char g = rgb[3 * (y * width + x) + 1]; 
-            const unsigned char r = rgb[3 * (y * width + x) + 2]; 
-            if ((x%2==0) && (y%2==0))
-            {
-                u_pixel[uv_index]=cv::saturate_cast<unsigned char>(((-38 * r -  74 * g + 112 * b + 128) >> 8) + 128);
-                v_pixel[uv_index++]=cv::saturate_cast<unsigned char>(((112 * r -  94 * g -  18 * b + 128) >> 8) + 128);
-            }
-            y_pixel[index++] = cv::saturate_cast<unsigned char>((( 66 * r + 129 * g +  25 * b + 128) >> 8) +  16);
-        }
-    }
-}
-
-/* http://code.opencv.org/attachments/1116/rgb_to_yuv420.cpp modified for alpha */
-void Stream::rgba_to_i420(unsigned char *rgb, unsigned char *yuv420, int width, int height)
-{
-    unsigned char * y_pixel = yuv420;
-    unsigned char * u_pixel = yuv420 + width * height;
-    unsigned char * v_pixel = yuv420 + width * height + (width * height / 4);
-
-    int index = 0;
-    int uv_index=0;
-    for (int y = 0; y < height; ++y)
-    {
-        for (int x = 0; x < width; ++x)
-        {
-            const unsigned char b = rgb[4 * (y * width + x) + 0]; 
-            const unsigned char g = rgb[4 * (y * width + x) + 1]; 
-            const unsigned char r = rgb[4 * (y * width + x) + 2]; 
-            if ((x%2==0) && (y%2==0))
-            {
-                u_pixel[uv_index]=cv::saturate_cast<unsigned char>(((-38 * r -  74 * g + 112 * b + 128) >> 8) + 128);
-                v_pixel[uv_index++]=cv::saturate_cast<unsigned char>(((112 * r -  94 * g -  18 * b + 128) >> 8) + 128);
-            }
-            y_pixel[index++] = cv::saturate_cast<unsigned char>((( 66 * r + 129 * g +  25 * b + 128) >> 8) +  16);
-        }
-    }
-}
-
-// The following code came from the link listed above.  It's a conversion using float instead of int arithmetic.
-// It works, but the int code would probably run faster.  I'm leaving it here and can easily be swapped out.
-/*
-void Stream::rgb_to_yuv(unsigned char   b, unsigned char   g, unsigned char   r,
-                       unsigned char & y, unsigned char & u, unsigned char & v)
-{
-    float yf, uf, vf;
-    //Y = R * 0.299 + G * 0.587 + B * 0.114;
-    //U = R * -0.169 + G * -0.332 + B * 0.500 + 128.0;
-    //V = R * 0.500 + G * -0.419 + B * -0.0813 + 128.0;
-
-    yf =    0.299f * static_cast<float>(r) +
-            0.587f * static_cast<float>(g) +
-            0.114f * static_cast<float>(b);
-    yf = (yf > 255.0f) ? 255.0f: yf;
-    yf = (yf < 0.0f) ? 0.0f: yf;
-    y = static_cast<unsigned char>(yf);
-    uf =   -0.169f * static_cast<float>(r) -
-            0.332f * static_cast<float>(g) +
-            0.500f * static_cast<float>(b) + 128.0;
-    uf = (uf > 255.0f) ? 255.0f: uf;
-    uf = (uf < 0.0f) ? 0.0f: uf;
-    u = static_cast<unsigned char>(uf);
-    vf =    0.500f * static_cast<float>(r) -
-            0.419f * static_cast<float>(g) -
-            0.081f * static_cast<float>(b) + 128.0;
-    vf = (vf > 255.0f) ? 255.0f: vf;
-    vf = (vf < 0.0f) ? 0.0f: vf;
-    v = static_cast<unsigned char>(vf);
-}
-
-void Stream::rgb_to_i420(unsigned char *rgb, unsigned char *yuv420, int width, int height)
-{
-    unsigned char * y_pixel = yuv420;
-    unsigned char * u_pixel = yuv420 + width * height;
-    unsigned char * v_pixel = yuv420 + width * height + (width * height / 4);
-    unsigned char * U_tmp = new unsigned char [width * height];
-    unsigned char * V_tmp = new unsigned char [width * height];
-    int index = 0;
-    for (int y = 0; y < height; ++y)
-    {
-        for (int x = 0; x < width; ++x)
-        {
-            rgb_to_yuv(rgb[3 * (y * width + x) + 0], rgb[3 * (y * width + x) + 1], rgb[3 * (y * width + x) + 2], y_pixel[index], U_tmp[index], V_tmp[index]);
-            index++;
-        }
-    }
-    index = 0;
-    for (int y = 0; y < height; y+=2)
-    {
-        for (int x = 0; x < width; x+=2)
-        {
-            u_pixel[index] = U_tmp[y * width + x];
-            v_pixel[index] = V_tmp[y * width + x];
-            index++;
-        }
-    }
-    delete [] U_tmp;
-    delete [] V_tmp;
-}*/

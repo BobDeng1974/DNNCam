@@ -35,23 +35,40 @@ const float ArgusCamera::DEFAULT_EXPOSURE_COMPENSATION = 0;
 // this will be used to free the nvbuffer data when a user is done with a frame
 struct ArgusReleaseData
 {
-    ArgusReleaseData(const int nvbuf_fd, void *mmapped_pointer)
+    ArgusReleaseData(const int rgb_fd, void *rgb, const int yuv_fd, void *y, void *u, void *v)
         :
-        _nvbuf_fd(nvbuf_fd),
-        _mmapped_pointer(mmapped_pointer)
+        _rgb_fd(rgb_fd),
+        _yuv_fd(yuv_fd),
+        _rgb(rgb),
+        _y(y),
+        _u(u),
+        _v(v)
     {
     }
-    
-    int _nvbuf_fd;
-    void *_mmapped_pointer;
+
+    int _rgb_fd;
+    int _yuv_fd;
+    void *_rgb;
+    void *_y;
+    void *_u;
+    void *_v;
 };
 
 static void argus_release_helper(void *opaque)
 {
     ArgusReleaseData *data = (ArgusReleaseData *)opaque;
-    NvBufferMemUnMap(data->_nvbuf_fd, 0, &data->_mmapped_pointer);
-    NvBufferDestroy(data->_nvbuf_fd);
-    delete data;
+    if(data)
+    {
+        NvBufferMemUnMap(data->_rgb_fd, 0, &data->_rgb);
+        NvBufferDestroy(data->_rgb_fd);
+
+
+        NvBufferMemUnMap(data->_yuv_fd, 0, &data->_y);
+        NvBufferMemUnMap(data->_yuv_fd, 1, &data->_u);
+        NvBufferMemUnMap(data->_yuv_fd, 2, &data->_v);
+        NvBufferDestroy(data->_yuv_fd);
+        delete data;
+    }
 }
 
 po::options_description ArgusCamera::GetOptions()
@@ -625,37 +642,68 @@ ArgusReleaseData *ArgusCamera::requestFrame(
   }
 
   Argus::Size2D<uint32_t> image_size( _width, _height );
-  int fd = image_native_buffer->createNvBuffer( image_size,
-                                                NvBufferColorFormat_ARGB32,
-                                                //NvBufferColorFormat_NV12,
-                                                NvBufferLayout_Pitch,
-                                                &status );
-  if ( fd == -1 || status != Argus::STATUS_OK ) {
-    bl_log_error( "Failed to create NvBuffer! Status: ");
-//                   << ArgusStatusToString( status ) );
-//    onError( ArgusStatusToFrameError( status ) );
-    return NULL;
+  int fd_yuv = image_native_buffer->createNvBuffer( image_size,
+                                                    NvBufferColorFormat_YUV420,
+                                                    //NvBufferColorFormat_NV12,
+                                                    NvBufferLayout_Pitch,
+                                                    &status );
+  if ( fd_yuv == -1 || status != Argus::STATUS_OK ) {
+      bl_log_error( "Failed to create NvBuffer! Status: " << status);
+      return NULL;
+  }
+
+    int fd_rgb = image_native_buffer->createNvBuffer( image_size,
+                                                      NvBufferColorFormat_ARGB32,
+                                                      NvBufferLayout_Pitch,
+                                                      &status );
+  if ( fd_rgb == -1 || status != Argus::STATUS_OK ) {
+      bl_log_error( "Failed to create NvBuffer! Status: " << status);
+      return NULL;
   }
 
   // Read image buffer into the final camera frame object
 //  CameraFrame::Shared result( std::make_shared<CameraFrame>() );
 
-  NvBufferParams params;
-  NvBufferGetParams( fd, &params );
+  NvBufferParams params_yuv;
+  NvBufferGetParams( fd_yuv, &params_yuv );
+  NvBufferParams params_rgb;
+  NvBufferGetParams( fd_rgb, &params_rgb );
 
-  if (params.num_planes != 1) {
-    bl_log_error( "Buffer doesn't have the correct number of planes. (" << params.num_planes << " != 1)" );
-//    onError( FrameError::UNKNOWN );
+  //bl_log_info("height0 " << params_yuv.height[0] << " width0 " << params_yuv.width[0] << " pitch0 " << params_yuv.pitch[0]);
+  //bl_log_info("height1 " << params_yuv.height[1] << " width1 " << params_yuv.width[1] << " pitch1 " << params_yuv.pitch[1]);
+  //bl_log_info("height2 " << params_yuv.height[2] << " width2 " << params_yuv.width[2] << " pitch2 " << params_yuv.pitch[2]);
+
+  if (params_yuv.num_planes != 3) {
+    bl_log_error( "Buffer doesn't have the correct number of planes. (" << params_yuv.num_planes << " != 3)" );
     return NULL;
   }
-
-  void* plane_buffer;
-
-  NvBufferMemMap( fd, 0, NvBufferMem_Read, &plane_buffer );
-  NvBufferMemSyncForCpu( fd, 0, &plane_buffer );
-
-  cv_frame = cv::Mat( params.height[0], params.width[0],
-                           CV_8UC4, plane_buffer, params.pitch[0] );
+  if (params_rgb.num_planes != 1) {
+    bl_log_error( "Buffer doesn't have the correct number of planes. (" << params_rgb.num_planes << " != 1)" );
+    return NULL;
+  }
+  
+  void *plane_buffer_y;
+  void *plane_buffer_u;
+  void *plane_buffer_v;
+  NvBufferMemMap(fd_yuv, 0, NvBufferMem_Read, &plane_buffer_y);
+  NvBufferMemMap(fd_yuv, 1, NvBufferMem_Read, &plane_buffer_u);
+  NvBufferMemMap(fd_yuv, 2, NvBufferMem_Read, &plane_buffer_v);
+  NvBufferMemSyncForCpu(fd_yuv, 0, &plane_buffer_y);
+  NvBufferMemSyncForCpu(fd_yuv, 1, &plane_buffer_u);
+  NvBufferMemSyncForCpu(fd_yuv, 2, &plane_buffer_v);
+  cv_frame_y = cv::Mat(params_yuv.height[0], params_yuv.width[0],
+                       CV_8U, plane_buffer_y, params_yuv.pitch[0]);
+  cv_frame_u = cv::Mat(params_yuv.height[1], params_yuv.width[1],
+                       CV_8U, plane_buffer_u, params_yuv.pitch[1]);
+  cv_frame_v = cv::Mat(params_yuv.height[2], params_yuv.width[2],
+                       CV_8U, plane_buffer_v, params_yuv.pitch[2]);
+  
+  void *plane_buffer_rgb;
+  NvBufferMemMap(fd_rgb, 0, NvBufferMem_Read, &plane_buffer_rgb);
+  NvBufferMemSyncForCpu(fd_rgb, 0, &plane_buffer_rgb);
+  cv_frame_rgb = cv::Mat(params_rgb.height[0], params_rgb.width[0],
+                         CV_8UC4, plane_buffer_rgb, params_rgb.pitch[0]);
+  
   //cv::cvtColor(plane, cv_frame, cv::COLOR_BGRA2BGR);
   //plane.copyTo( cv_frame );
 
@@ -663,13 +711,31 @@ ArgusReleaseData *ArgusCamera::requestFrame(
 //  result->time = frame->getTime() * pow( 10, -6 );
 //  result->encoding = ImageEncoding::BGRA8;
 //  onSuccess( result );
-  return new ArgusReleaseData(fd, plane_buffer);
+  return new ArgusReleaseData(fd_rgb, plane_buffer_rgb, fd_yuv, plane_buffer_y, plane_buffer_u, plane_buffer_v);
 }
 
 FramePtr ArgusCamera::grab()
 {
     ArgusReleaseData *data = requestFrame();
-    return FramePtr(new Frame(cv_frame, data, argus_release_helper));
+    return FramePtr(new Frame(cv_frame_rgb, data, argus_release_helper));
+}
+
+FramePtr ArgusCamera::grab_y()
+{
+    //ArgusReleaseData *data = requestFrame();
+    return FramePtr(new Frame(cv_frame_y, NULL, argus_release_helper));
+}
+
+FramePtr ArgusCamera::grab_u()
+{
+    //ArgusReleaseData *data = requestFrame();
+    return FramePtr(new Frame(cv_frame_u, NULL, argus_release_helper));
+}
+
+FramePtr ArgusCamera::grab_v()
+{
+    //ArgusReleaseData *data = requestFrame();
+    return FramePtr(new Frame(cv_frame_v, NULL, argus_release_helper));
 }
 
 //}
