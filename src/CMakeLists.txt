@@ -72,6 +72,7 @@ target_link_libraries(lensDriver
     config 
     ${BOOST_DEPS}
     ${XMLRPC_DEPS}
+    readline
 )
 
 install(TARGETS lensDriver DESTINATION usr/local/bin COMPONENT camerastreamer)

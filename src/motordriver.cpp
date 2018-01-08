@@ -108,6 +108,7 @@ MotorDriver::MotorDriver(bool doInit) : fd_(-1),
         init();
         enablePowerLines();
 
+        /*
         // Home our zoom and then move to start position
         if (false == (zoom_init = zoomHome())) {
             bl_log_error("Unable to home zoom");
@@ -121,6 +122,8 @@ MotorDriver::MotorDriver(bool doInit) : fd_(-1),
         } else if (false == focusAbsolute(Configuration::focus_start())) {
             bl_log_error("Unable to focus to start position: " << Configuration::focus_start());
         }
+        */
+        irisHome();
     } else {
         zoom_init = true;
         zoom_abs_location = 0;
@@ -349,14 +352,18 @@ bool MotorDriver::zoomRelative(int steps)
 bool MotorDriver::zoomHome()
 {
     bool ret = false;
-    const int steps = Configuration::zoom_home_max_steps();
+    //const int steps = Configuration::zoom_home_max_steps();
+    const int steps = 20000;
     const int stepsize = Configuration::zoom_home_step_size();
 //    enableZoom();
     int counter = 0;
+    bl_log_info("conf zoom limit: " << Configuration::zoom_has_limit() << " zoom limit pre while " << zoomLimit() << " stepsize " << stepsize);
     while ((!Configuration::zoom_has_limit() || !zoomLimit()) && (counter < steps)) {
+        bl_log_info("zoom limit during: " << zoomLimit());
         zoom(stepsize);
-	counter += stepsize;
+        counter += stepsize;
     }
+    bl_log_info("zoom limit after: " << zoomLimit());
     if (counter <= steps) {
         bl_log_error("Reached zoom homing step limit of " << steps);
         zoom_abs_location = -1;
@@ -374,6 +381,7 @@ bool MotorDriver::zoomLimit()
 {
     uint8_t res = 0x00;
     bool ret = readReg(addr1, REG_GPIOA, res);
+    bl_log_info("gpioa: 0x" << hex << (int)res << dec);
     return (res & ZOOM_LIMIT);
 }
 
@@ -383,34 +391,35 @@ bool MotorDriver::zoom(int steps)
     char phase;
     char out;
     for(int i = 0; i < abs(steps); ++i) {
-	phase = 0;
-	if (steps <0) {
-		phase = 3- (i%4);
-	}
-	else {
-		 phase = i%4;
-	}
-	out = 0;
-	switch(phase){
+        phase = 0;
+        if (steps <0) {
+            phase = 3- (i%4);
+        }
+        else {
+            phase = i%4;
+        }
+        out = 0;
+        switch(phase){
 		case 0:
 			out = ZOOM_APHASE;
-		break;
+            break;
 		case 1:
-			 out = ZOOM_APHASE+ ZOOM_BPHASE;
-		break;
+            out = ZOOM_APHASE+ ZOOM_BPHASE;
+            break;
 		case 2:
-			 out = ZOOM_BPHASE;
-		break;	
+            out = ZOOM_BPHASE;
+            break;	
 		case 3:
 			out=0;
-		break;
-	}
+            break;
+        }
         mask = exp1_gpioa & (~(ZOOM_APHASE + ZOOM_BPHASE));  //set before to the mask of phase a and b and the current output register
         exp1_gpioa = out + mask; 
         DO_WRITE(addr1, REG_GPIOA, exp1_gpioa);
-        std::this_thread::sleep_for(std::chrono::milliseconds(STEPPER_SLEEP_TIME_MS));
-        
+        std::this_thread::sleep_for(std::chrono::milliseconds(STEPPER_SLEEP_TIME_MS));   
     }
+
+    zoomLimit();
 }
 
 bool MotorDriver::enableFocus() {
@@ -533,6 +542,7 @@ bool MotorDriver::focusLimit()
 {
     uint8_t res = 0x00;
     bool ret = readReg(addr1, REG_GPIOB, res);
+    bl_log_info("gpiob: 0x" << hex << (int)res << dec);
     return (res & FOCUS_LIMIT);
 }
 
@@ -570,6 +580,8 @@ bool MotorDriver::focus(int steps)
         DO_WRITE(addr1, REG_GPIOB, exp1_gpiob);
         std::this_thread::sleep_for(std::chrono::milliseconds(STEPPER_SLEEP_TIME_MS));
    }
+
+   focusLimit();
 }
 
 bool MotorDriver::enableIris() {
@@ -669,10 +681,12 @@ bool MotorDriver::irisHome()
         stepsize = Configuration::iris_home_step_size();
     }
     int counter = 0;
-  //  while ((!Configuration::iris_has_limit() || !irisLimit()) && (counter < steps)) {
-   //     iris(stepsize);
-   //         counter += stepsize;
-   // }
+    while (/*(!Configuration::iris_has_limit() || !irisLimit()) &&*/ (counter < steps))
+    {
+        iris(stepsize);
+        bl_log_info("finding iris home " << counter << " " << stepsize);
+        counter += stepsize;
+    }
     if (counter <= steps) {
         bl_log_error("Reached iris homing step limit of " << steps);
         iris_abs_location = -1;

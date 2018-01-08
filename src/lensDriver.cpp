@@ -1,9 +1,13 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <boost/iterator/transform_iterator.hpp>
+#include <readline/readline.h>
+#include <readline/history.h>
+
 #include "motordriver.hpp"
 #include "motorxmlrpc.hpp"
 
+using namespace std;
 using namespace boost;
 namespace po = boost::program_options;
 
@@ -13,14 +17,14 @@ const char *convert_to_cstr(const std::string & s)
 }
 
 #define DO_CMD(cmd)   \
-        {if (false == cmd) { std::cout << "FAILED" << std::endl; } else { std::cout << "OK" << std::endl; }; continue;}
+        {if (false == cmd) { std::cout << "FAILED" << std::endl; } else { std::cout << "OK" << std::endl; } continue;}
 
 
 void interactive(MotorDriverPtr m) {
     char c;
     int num_steps = 1;
-    m.reset(new MotorDriver(false));
-    std::cout << "Verson 1.1.2: Type --help for commands. Note that the -- (two dashes) are required for all the commands. Type quit or --quit to exit." << std::endl;
+    m.reset(new MotorDriver(true));
+    std::cout << "Verson 1.1.3: Type help for commands." << std::endl;
     po::options_description desc("Options");
     desc.add_options()
         ("help", "print help message")
@@ -43,26 +47,37 @@ void interactive(MotorDriverPtr m) {
         ("irisdown", po::value<int>(), "iris down number of steps")
         ("irishome", "homes iris")
         ("irislocation", "prints iris location")
-	("ircuton", "flips the ir-cut filter on")
+        ("ircuton", "flips the ir-cut filter on")
         ("ircutoff", "flips the ir-cut filter off")
 
 
     ;
-    std::string input;
     std::istringstream iss;
     std::vector<std::string> args;
     std::string token;
     po::variables_map vm;
-    while (true) {
-        std::cout << "> ";
-        std::getline(std::cin, input);
+    string input;
+    char *buf;
+
+    rl_bind_key('\t', rl_abort);
+    while((buf = readline("\n> ")) != NULL)
+    {
+        input = buf;
         if ("quit" == input) break;
 
         iss.clear();
         iss.str(input);
         args.clear();
         args.push_back("name");
+        bool first = true;
         while (iss >> token) {
+            // kind of ghetto, but add '--' to the first command, because we're just using boot::po
+            // to do the parsing
+            if(first)
+            {
+                token = "--" + token;
+                first = false;
+            }
             args.push_back(token);
         }
         auto beg = boost::make_transform_iterator(args.begin(), 
@@ -80,8 +95,15 @@ void interactive(MotorDriverPtr m) {
             std::cout << desc << std::endl;
         }
 
+        add_history(buf);
+
         if (vm.count("help")) {
-            std::cout << desc << "\n";
+            // remove the dashes since we're using boost::po to parse this interactively
+            ostringstream remove_dashes_oss;
+            remove_dashes_oss << desc;
+            string remove_dashes = remove_dashes_oss.str();
+            boost::replace_all(remove_dashes, "--", "");
+            std::cout << remove_dashes << endl;
             continue;
         }
         if (vm.count("quit")) {
@@ -147,7 +169,7 @@ void interactive(MotorDriverPtr m) {
             std::cout << "Iris absolute location: " << ret << std::endl;
             continue;
         }
-	if (vm.count("ircuton")) {
+        if (vm.count("ircuton")) {
             DO_CMD(m->ircutOn());
         }
         if (vm.count("ircutoff")) {
@@ -186,7 +208,7 @@ int main(int argc, const char* argv[])
         } else {
             interactive(m);
         }
-    } catch (std::exception &e) {
+    } catch (const std::exception &e) {
         std::cout << "Error: " << e.what() << std::endl;
         std::cout << desc << std::endl;
     }
