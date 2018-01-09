@@ -10,10 +10,10 @@
 #include <boost/program_options.hpp>
 
 //#include "imx377camera.hpp"
-#include "datasource_camera.hpp"
 #include "ArgusCamera.hpp"
 
 #include "frame_processor.hpp"
+#include "log.hpp"
 
 using namespace std;
 
@@ -93,12 +93,12 @@ int run(int argc, char** argv)
     srand(time(NULL));
 
     // full hd
-    W=1920;
-    H=1080;
+    //W=1920;
+    //H=1080;
 
     // camera full res
-    //W = 3864;
-    //H = 2196;
+    W = 3864;
+    H = 2196;
 
     int ret = parse_arguments(argc, argv);
     if (ret != 0)
@@ -106,38 +106,55 @@ int run(int argc, char** argv)
         return ret;
     }
 
-    FrameProcessorPtr frame_proc;
-    frame_proc.reset(new FrameProcessor(W, H));
-
-    DataSourceBasePtr data_source;
-    CameraPtr camera;
-    auto ctx = std::make_shared<camera_context>();
-    ctx->width = W;
-    ctx->height = H;
-    ctx->frame_processor = frame_proc;
+    ArgusCameraPtr camera;
     std::cout << "Initializing camera. Frame size: " << W << "x" << H << std::endl;
-    //camera.reset(new Imx377Camera(ctx));
-    camera.reset(new ArgusCamera(ctx, W, H));
+    
+    //camera.reset(new ArgusCamera(ctx, 1944, 1116, W, H));
+    camera.reset(new ArgusCamera(0, 0, 1920, 1080, 1920, 1080));
     camera->init();
-    camera->start_capture();
-    data_source.reset(new DataSourceCamera(camera, verbose, frame_proc));
         
+    FrameProcessorPtr frame_proc;
+    frame_proc.reset(new FrameProcessor(1920, 1080));
     frame_proc->start_workers();
     
-    if (camera) {
-        camera->start_capture();
-    }
-    if (false == data_source->usesCallback()) {
-        data_source->Process();
-    } else {
-        while (running) {
-            sleep(1);
-        }
-    }
-    if (camera) {
-        camera->stop();
-    }
+    while(1)
+    {
+        static bool auto_exp = true;
+        static time_t last = time(NULL);
+        
+        FrameCollection col;
+        col.frame_rgb = camera->grab();  // This is a blocking call. Grab must be called before any grab_*
+        col.frame_y = camera->grab_y();
+        col.frame_u = camera->grab_u();
+        col.frame_v = camera->grab_v();
 
+        time_t now = time(NULL);
+        if(now - last > 5)
+        {
+            auto_exp = !auto_exp;
+            camera->set_auto_exposure(auto_exp);
+            
+            if(!auto_exp)
+            {
+                camera->set_exposure_time(2000000);
+                camera->set_gain(10);
+                //_camera->set_frame_duration(30000);
+            }
+            else
+            {
+                camera->set_gain(50);
+                //_camera->set_frame_duration(33333333);
+            }
+            
+            camera->get_exposure_time();
+            camera->get_gain();
+            bl_log_info("Auto exposure is " << auto_exp);
+            last = now;
+        }
+        
+        frame_proc->process_frame(col);
+    }
+    
     frame_proc->wait_for_queued_images();
     
     return ret; 

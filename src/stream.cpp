@@ -153,7 +153,8 @@ void Stream::push_frame(const FrameCollection frame_col)
         else {
             std::cout << "gst_buffer_map error" << std::endl;
         }
-
+        
+        GST_ELEMENT_CLOCK(itr->first);
         const GstClockTime now = gst_clock_get_time(GST_ELEMENT_CLOCK(itr->first)) - gst_element_get_base_time(itr->first);
         GST_BUFFER_PTS(buffer) = now;
 
