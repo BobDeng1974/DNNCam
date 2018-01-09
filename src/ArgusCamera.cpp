@@ -585,8 +585,7 @@ bool ArgusCamera::init()
 
     bl_log_info("Post processing: " << stream_settings->getPostProcessingEnable());
 
-    //Argus::Rectangle < float > rect((float)_roi_x / _sensor_width, (float)_roi_y / _sensor_height, (float)(_roi_x + _roi_width) / _sensor_width, (float)(_roi_y + _roi_height) / _sensor_height);
-    Argus::Rectangle < float > rect(0, 0, 1, 1);
+    Argus::Rectangle < float > rect((float)_roi_x / _sensor_width, (float)_roi_y / _sensor_height, (float)(_roi_x + _roi_width) / _sensor_width, (float)(_roi_y + _roi_height) / _sensor_height);
     status = stream_settings->setSourceClipRect(rect);
     if(status != Argus::STATUS_OK)
     {

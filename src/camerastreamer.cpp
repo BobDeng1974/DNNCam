@@ -93,12 +93,12 @@ int run(int argc, char** argv)
     srand(time(NULL));
 
     // full hd
-    //W=1920;
-    //H=1080;
+    W=1920;
+    H=1080;
 
     // camera full res
-    W = 3864;
-    H = 2196;
+    //W = 3864;
+    //H = 2196;
 
     int ret = parse_arguments(argc, argv);
     if (ret != 0)
@@ -109,12 +109,11 @@ int run(int argc, char** argv)
     ArgusCameraPtr camera;
     std::cout << "Initializing camera. Frame size: " << W << "x" << H << std::endl;
     
-    //camera.reset(new ArgusCamera(ctx, 1944, 1116, W, H));
-    camera.reset(new ArgusCamera(0, 0, 1920, 1080, 1920, 1080));
+    camera.reset(new ArgusCamera(0, 0, W, H, W, H));
     camera->init();
         
     FrameProcessorPtr frame_proc;
-    frame_proc.reset(new FrameProcessor(1920, 1080));
+    frame_proc.reset(new FrameProcessor(W, H));
     frame_proc->start_workers();
     
     while(1)
