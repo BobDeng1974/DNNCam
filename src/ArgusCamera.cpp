@@ -170,13 +170,13 @@ ArgusCamera::ArgusCamera( const po::variables_map &vm )
     _roi_x(0),
     _roi_y(0),
     _roi_width( vm.count( OPT_WIDTH ) ?
-            vm[OPT_WIDTH].as<uint32_t>() :
-            throw po::error(
-                std::string( OPT_WIDTH ) + " is required." ) ),
+                vm[OPT_WIDTH].as<uint32_t>() :
+                throw po::error(
+                    std::string( OPT_WIDTH ) + " is required." ) ),
     _roi_height( vm.count( OPT_HEIGHT ) ?
-             vm[OPT_HEIGHT].as<uint32_t>() :
-             throw po::error(
-                 std::string( OPT_HEIGHT ) + " is required." ) ),
+                 vm[OPT_HEIGHT].as<uint32_t>() :
+                 throw po::error(
+                     std::string( OPT_HEIGHT ) + " is required." ) ),
     _sensor_width(3864),
     _sensor_height(2196),
     _output_width(_sensor_width),
@@ -653,7 +653,7 @@ bool ArgusCamera::init()
 
     status = source_settings->setExposureTimeRange(
         Argus::Range<uint64_t>( exposure_time_min, exposure_time_max) );
-        //Argus::Range<uint64_t>( 20000, 20000) );
+    //Argus::Range<uint64_t>( 20000, 20000) );
     if ( status != Argus::STATUS_OK ) {
         bl_log_error( "Couldn't set exposure time range. Status: ");
 //                   << ArgusStatusToString( status ) );
@@ -698,7 +698,7 @@ bool ArgusCamera::init()
 
     status = source_settings->setGainRange( Argus::Range<float>(
                                                 gain_min, gain_max) );
-                                                //1, 1) );
+    //1, 1) );
     if ( status != Argus::STATUS_OK ) {
         bl_log_error( "Couldn't set gain range. Status: ");
 //                   << ArgusStatusToString( status ) );
