@@ -1,7 +1,6 @@
 #include <sstream>
 
 #include "ArgusCamera.hpp"
-#include "CameraFrame.hpp"
 
 #include "EGLStream/NV/ImageNativeBuffer.h"
 
