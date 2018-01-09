@@ -13,7 +13,6 @@
 #include "ArgusCamera.hpp"
 
 #include "frame_processor.hpp"
-#include "log.hpp"
 
 using namespace std;
 
@@ -147,7 +146,7 @@ int run(int argc, char** argv)
             
             camera->get_exposure_time();
             camera->get_gain();
-            bl_log_info("Auto exposure is " << auto_exp);
+            cout << "Auto exposure is " << auto_exp << endl;
             last = now;
         }
         

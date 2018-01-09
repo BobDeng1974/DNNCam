@@ -4,7 +4,6 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "frame_processor.hpp"
-#include "log.hpp"
 
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -100,7 +99,7 @@ void FrameProcessor::process_frame(FrameCollection frame_col, const bool block)
     }
 
     //cv::Mat m = frame->to_mat();
-    //bl_log_info("In process frame: " << m.cols << "x" << m.rows);
+    //cout << "In process frame: " << m.cols << "x" << m.rows << endl;
     
     {
         ScopedLock lock(_prebuffer_mtex);

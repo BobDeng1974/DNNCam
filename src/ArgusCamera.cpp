@@ -1,7 +1,6 @@
 #include <sstream>
 
 #include "ArgusCamera.hpp"
-#include "log.hpp"
 #include "CameraFrame.hpp"
 
 #include "EGLStream/NV/ImageNativeBuffer.h"
@@ -159,7 +158,7 @@ ArgusCamera::ArgusCamera(const uint32_t roi_x, const uint32_t roi_y,
         ostringstream oss;
         oss << "Bounds checking failed... SensorW " << _sensor_width << " SensorH " << _sensor_height << " roix " << _roi_x << " roiy " << _roi_y
             << " roiwidth " << _roi_width << " roiheight " << _roi_height;
-        bl_log_error(oss.str());
+        cout << oss.str() << endl;
         throw runtime_error(oss.str());
     }
 }
@@ -190,9 +189,6 @@ ArgusCamera::ArgusCamera( const po::variables_map &vm )
     _timeout( vm[OPT_TIMEOUT].as<double>() ),
     _exposure_compensation( vm[OPT_EXPOSURE_COMPENSATION].as<float>() )
 {
-
-    bl_log_info("Hello from ArgusCamera");
-    
     if ( !AutoWhiteBalanceModeFromString( _awb_mode,
                                           vm[OPT_AWB_MODE].as<std::string>() ) ) {
         throw po::error( vm[OPT_AWB_MODE].as<std::string>() +
@@ -208,7 +204,7 @@ ArgusCamera::ArgusCamera( const po::variables_map &vm )
         ostringstream oss;
         oss << "Bounds checking failed... SensorW " << _sensor_width << " SensorH " << _sensor_height << " roix " << _roi_x << " roiy " << _roi_y
             << " roiwidth " << _roi_width << " roiheight " << _roi_height;
-        bl_log_error(oss.str());
+        cout << oss.str() << endl;
         throw runtime_error(oss.str());      
     }
 }
@@ -224,14 +220,14 @@ void ArgusCamera::set_auto_exposure(const bool auto_exp)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        bl_log_error( "Interface cast to IRequest failed." );
+        cout << "Interface cast to IRequest failed." << endl;
         return;
     }
     
     auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(
         request->getAutoControlSettings() );
     if ( auto_control_settings == nullptr ) {
-        bl_log_error( "Interface cast to ISourceSettings failed." );
+        cout << "Interface cast to ISourceSettings failed." << endl;
         return;
     }
     
@@ -240,7 +236,7 @@ void ArgusCamera::set_auto_exposure(const bool auto_exp)
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(
         _capture_session_object );
     if ( capture_session == nullptr ) {
-        bl_log_error( "Interface cast to ICaptureSession failed." );
+        cout << "Interface cast to ICaptureSession failed." << endl;
 //    onError( FrameError::UNKNOWN );
         return;
     }
@@ -252,14 +248,14 @@ uint64_t ArgusCamera::get_exposure_time()
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        bl_log_error( "Interface cast to IRequest failed." );
+        cout << "Interface cast to IRequest failed." << endl;
         return -1;
     }
     
     auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(
         request->getSourceSettings() );
     if ( source_settings == nullptr ) {
-        bl_log_error( "Interface cast to ISourceSettings failed." );
+        cout << "Interface cast to ISourceSettings failed." << endl;
         return -1;
     }
 
@@ -268,8 +264,8 @@ uint64_t ArgusCamera::get_exposure_time()
     Argus::Range < uint64_t > frame_range;
     frame_range = source_settings->getFrameDurationRange();
     
-    bl_log_info("exp " << exposure_range.min() << " " << exposure_range.max());
-    bl_log_info("frame " << frame_range.min() << " " << frame_range.max());
+    cout << "exp " << exposure_range.min() << " " << exposure_range.max() << endl;
+    cout << "frame " << frame_range.min() << " " << frame_range.max() << endl;
     
     return exposure_range.min();
 }
@@ -278,14 +274,14 @@ void ArgusCamera::set_exposure_time(const float exp_time)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        bl_log_error( "Interface cast to IRequest failed." );
+        cout << "Interface cast to IRequest failed." << endl;
         return;
     }
     
     auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(
         request->getSourceSettings() );
     if ( source_settings == nullptr ) {
-        bl_log_error( "Interface cast to ISourceSettings failed." );
+        cout << "Interface cast to ISourceSettings failed." << endl;
         return;
     }
 
@@ -295,7 +291,7 @@ void ArgusCamera::set_exposure_time(const float exp_time)
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(
         _capture_session_object );
     if ( capture_session == nullptr ) {
-        bl_log_error( "Interface cast to ICaptureSession failed." );
+        cout << "Interface cast to ICaptureSession failed." << endl;
 //    onError( FrameError::UNKNOWN );
         return;
     }
@@ -304,70 +300,28 @@ void ArgusCamera::set_exposure_time(const float exp_time)
     
 }
 
-float ArgusCamera::get_gain()
+void ArgusCamera::set_exposure_compensation(const float comp)
 {
-    auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
-    if ( request == nullptr ) {
-        bl_log_error( "Interface cast to IRequest failed." );
-        return -1;
-    }
-    
-    auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(
-        request->getSourceSettings() );
-    if ( source_settings == nullptr ) {
-        bl_log_error( "Interface cast to ISourceSettings failed." );
-        return -1;
-    }
-
-    Argus::Range < float > gain_range;
-    gain_range = source_settings->getGainRange();
-
-    bl_log_info("gain " << gain_range.min() << " " << gain_range.max());
-
-    return gain_range.min();
+    //TODO
 }
 
-void ArgusCamera::set_gain(const int gain)
+float ArgusCamera::get_exposure_compensation()
 {
-    auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
-    if ( request == nullptr ) {
-        bl_log_error( "Interface cast to IRequest failed." );
-        return;
-    }
-    
-    auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(
-        request->getSourceSettings() );
-    if ( source_settings == nullptr ) {
-        bl_log_error( "Interface cast to ISourceSettings failed." );
-        return;
-    }
-
-    Argus::Range < float > gain_range((float)gain / 10.0, (float)gain / 10.0);
-    source_settings->setGainRange(gain_range);
-
-    auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(
-        _capture_session_object );
-    if ( capture_session == nullptr ) {
-        bl_log_error( "Interface cast to ICaptureSession failed." );
-//    onError( FrameError::UNKNOWN );
-        return;
-    }
-
-    capture_session->repeat(_request_object.get());
+    //TODO
 }
 
 void ArgusCamera::set_frame_duration(const uint64_t frame_duration)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        bl_log_error( "Interface cast to IRequest failed." );
+        cout << "Interface cast to IRequest failed." << endl;
         return;
     }
     
     auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(
         request->getSourceSettings() );
     if ( source_settings == nullptr ) {
-        bl_log_error( "Interface cast to ISourceSettings failed." );
+        cout << "Interface cast to ISourceSettings failed." << endl;
         return;
     }
 
@@ -377,12 +331,109 @@ void ArgusCamera::set_frame_duration(const uint64_t frame_duration)
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(
         _capture_session_object );
     if ( capture_session == nullptr ) {
-        bl_log_error( "Interface cast to ICaptureSession failed." );
+        cout << "Interface cast to ICaptureSession failed." << endl;
 //    onError( FrameError::UNKNOWN );
         return;
     }
 
     capture_session->repeat(_request_object.get());
+}
+
+uint64_t ArgusCamera::get_frame_duration()
+{
+    //TODO
+}
+
+void ArgusCamera::set_gain(const int gain)
+{
+    auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
+    if ( request == nullptr ) {
+        cout << "Interface cast to IRequest failed." << endl;
+        return;
+    }
+    
+    auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(
+        request->getSourceSettings() );
+    if ( source_settings == nullptr ) {
+        cout << "Interface cast to ISourceSettings failed." << endl;
+        return;
+    }
+
+    Argus::Range < float > gain_range((float)gain / 10.0, (float)gain / 10.0);
+    source_settings->setGainRange(gain_range);
+
+    auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(
+        _capture_session_object );
+    if ( capture_session == nullptr ) {
+        cout << "Interface cast to ICaptureSession failed." << endl;
+//    onError( FrameError::UNKNOWN );
+        return;
+    }
+
+    capture_session->repeat(_request_object.get());
+}
+
+float ArgusCamera::get_gain()
+{
+    auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
+    if ( request == nullptr ) {
+        cout << "Interface cast to IRequest failed." << endl;
+        return -1;
+    }
+    
+    auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(
+        request->getSourceSettings() );
+    if ( source_settings == nullptr ) {
+        cout << "Interface cast to ISourceSettings failed." << endl;
+        return -1;
+    }
+
+    Argus::Range < float > gain_range;
+    gain_range = source_settings->getGainRange();
+
+    cout << "gain " << gain_range.min() << " " << gain_range.max() << endl;
+
+    return gain_range.min();
+}
+
+void ArgusCamera::set_awb_mode(const Argus::AwbMode mode)
+{
+    //TODO
+}
+
+Argus::AwbMode ArgusCamera::get_awb_mode()
+{
+    //TODO
+}
+
+void ArgusCamera::set_awb(const bool enabled)
+{
+    //TODO
+}
+
+void ArgusCamera::set_awb_gains()
+{
+    //TODO
+}
+
+void ArgusCamera::set_denoise_mode(const Argus::DenoiseMode mode)
+{
+    //TODO
+}
+
+Argus::DenoiseMode ArgusCamera::get_denoise_mode()
+{
+    //TODO
+}
+
+void ArgusCamera::set_denoise_strength(const float strength)
+{
+    //TODO
+}
+
+float ArgusCamera::get_denoise_strength()
+{
+    //TODO
 }
 
 bool ArgusCamera::is_initialized()
@@ -401,15 +452,14 @@ bool ArgusCamera::init()
     // Get camera provider
     _camera_provider_object.reset( Argus::CameraProvider::create( &status ) );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Failed to create camera provider. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Failed to create camera provider. Status: " << status << endl;
         return false;
     }
 
     auto *camera_provider = Argus::interface_cast<Argus::ICameraProvider>(
         _camera_provider_object );
     if ( camera_provider == nullptr ) {
-        bl_log_error( "Interface cast to ICameraProvider failed." );
+        cout << "Interface cast to ICameraProvider failed." << endl;
         return false;
     }
 
@@ -417,12 +467,11 @@ bool ArgusCamera::init()
     std::vector<Argus::CameraDevice *> devices;
     status = camera_provider->getCameraDevices( &devices );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Could not get available cameras. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Could not get available cameras. Status: " << status << endl;
         return false;
     }
     if ( devices.empty() ) {
-        bl_log_error( "No devices available." );
+        cout <<  "No devices available." << endl;
         return false;
     }
 
@@ -434,15 +483,14 @@ bool ArgusCamera::init()
     _capture_session_object.reset( camera_provider->createCaptureSession( device,
                                                                           &status ) );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Failed to create a capture session. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Failed to create a capture session. Status: " << status << endl;
         return false;
     }
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(
         _capture_session_object );
     if ( capture_session == nullptr ) {
-        bl_log_error( "Interface cast to ICaptureSession failed." );
+        cout << "Interface cast to ICaptureSession failed." << endl;
         return false;
     }
 
@@ -450,7 +498,7 @@ bool ArgusCamera::init()
     auto *camera_properties = Argus::interface_cast<Argus::ICameraProperties>(
         device );
     if ( camera_properties == nullptr ) {
-        bl_log_error( "Interface cast to ICameraProperties failed." );
+        cout << "Interface cast to ICameraProperties failed." << endl;
         return false;
     }
 
@@ -458,12 +506,11 @@ bool ArgusCamera::init()
     std::vector<Argus::SensorMode *> sensor_mode_objects;
     status = camera_properties->getBasicSensorModes( &sensor_mode_objects );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Could not get available sensor modes. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Could not get available sensor modes. Status: " << status << endl;
         return false;
     }
     if ( sensor_mode_objects.empty()) {
-        bl_log_error( "Camera reports no sensor modes." );
+        cout << "Camera reports no sensor modes." << endl;
         return false;
     }
 
@@ -472,7 +519,7 @@ bool ArgusCamera::init()
     auto sensor_mode = Argus::interface_cast<Argus::ISensorMode>(
         _sensor_mode_object );
     if ( sensor_mode == nullptr ) {
-        bl_log_error( "Interface cast to ISensorMode failed." );
+        cout << "Interface cast to ISensorMode failed." << endl;
         return false;
     }
 
@@ -480,45 +527,40 @@ bool ArgusCamera::init()
     Argus::UniqueObj<Argus::OutputStreamSettings> output_stream_settings_object(
         capture_session->createOutputStreamSettings( &status ) );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Failed to create output stream settings. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Failed to create output stream settings. Status: " << status << endl;
         return false;
     }
 
     auto *output_stream_settings = Argus::interface_cast<Argus::IOutputStreamSettings>(
         output_stream_settings_object );
     if ( output_stream_settings == nullptr ) {
-        bl_log_error( "Interface cast to IOutputStreamSettings failed." );
+        cout << "Interface cast to IOutputStreamSettings failed." << endl;
         return false;
     }
 
     // Configure stream settings
     status = output_stream_settings->setPixelFormat( Argus::PIXEL_FMT_YCbCr_420_888 );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Couldn't set the pixel format. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Couldn't set the pixel format. Status: " << status << endl;
         return false;
     }
 
     status = output_stream_settings->setResolution( Argus::Size2D<uint32_t>( _roi_width,
                                                                              _roi_height ) );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Couldn't set the output resolution. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Couldn't set the output resolution. Status: " << status << endl;
         return false;
     }
 
     status = output_stream_settings->setMetadataEnable( true );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Couldn't enable metadata output. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Couldn't enable metadata output. Status: " << status << endl;
         return false;
     }
 
     status = output_stream_settings->setMode( Argus::STREAM_MODE_MAILBOX );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Couldn't make the stream operate in mailbox mode. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Couldn't make the stream operate in mailbox mode. Status: " << status << endl;
         return false;
     }
 
@@ -526,15 +568,14 @@ bool ArgusCamera::init()
     _output_stream_object.reset( capture_session->createOutputStream(
                                      output_stream_settings_object.get(), &status ) );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Failed to create output stream. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Failed to create output stream. Status: " << status << endl;
         return false;
     }
 
     auto *output_stream = Argus::interface_cast<Argus::IStream>(
         _output_stream_object );
     if ( output_stream == nullptr ) {
-        bl_log_error( "Interface cast to IStream failed." );
+        cout << "Interface cast to IStream failed." << endl;
         return false;
     }
 
@@ -542,15 +583,14 @@ bool ArgusCamera::init()
     _frame_consumer_object.reset( EGLStream::FrameConsumer::create(
                                       _output_stream_object.get(), 1, &status ) );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Failed to create frame consumer. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Failed to create frame consumer. Status: " << status << endl;
         return false;
     }
 
     auto *frame_consumer = Argus::interface_cast<EGLStream::IFrameConsumer>(
         _frame_consumer_object );
     if ( frame_consumer == nullptr ) {
-        bl_log_error( "Interface cast to IFrameConsumer failed." );
+        cout << "Interface cast to IFrameConsumer failed." << endl;
         return false;
     }
 
@@ -558,38 +598,36 @@ bool ArgusCamera::init()
     _request_object.reset( capture_session->createRequest(
                                Argus::CAPTURE_INTENT_STILL_CAPTURE, &status ) );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Failed to create capture request. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Failed to create capture request. Status: " << status << endl;
         return false;
     }
 
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        bl_log_error( "Interface cast to IRequest failed." );
+        cout << "Interface cast to IRequest failed." << endl;
         return false;
     }
 
     status = request->enableOutputStream( _output_stream_object.get() );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Couldn't set the output stream. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout <<"Couldn't set the output stream. Status: " << status << endl;
         return false;
     }
 
     auto stream_settings = Argus::interface_cast < Argus::IStreamSettings > (request->getStreamSettings(_output_stream_object.get()));
     if(stream_settings == nullptr)
     {
-        bl_log_error("Interface cast to IStreamSettings failed.");
+        cout << "Interface cast to IStreamSettings failed." << endl;
         return false;
     }
 
-    bl_log_info("Post processing: " << stream_settings->getPostProcessingEnable());
+    cout << "Post processing: " << stream_settings->getPostProcessingEnable() << endl;
 
     Argus::Rectangle < float > rect((float)_roi_x / _sensor_width, (float)_roi_y / _sensor_height, (float)(_roi_x + _roi_width) / _sensor_width, (float)(_roi_y + _roi_height) / _sensor_height);
     status = stream_settings->setSourceClipRect(rect);
     if(status != Argus::STATUS_OK)
     {
-        bl_log_error("Couldn't set the clipping rect, status: " << status);
+        cout << "Couldn't set the clipping rect, status: " << status << endl;
         return false;
     }
   
@@ -597,14 +635,13 @@ bool ArgusCamera::init()
     auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(
         request->getSourceSettings() );
     if ( source_settings == nullptr ) {
-        bl_log_error( "Interface cast to ISourceSettings failed." );
+        cout << "Interface cast to ISourceSettings failed." << endl;
         return false;
     }
 
     status = source_settings->setSensorMode( _sensor_mode_object );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Couldn't set the sensor mode. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Couldn't set the sensor mode. Status: " << status << endl;
         return false;
     }
 
@@ -618,10 +655,10 @@ bool ArgusCamera::init()
 
         if ( sensor_exposure_time.max() < exposure_time_min_ns ||
              sensor_exposure_time.min() > exposure_time_min_ns ) {
-            bl_log_error( "Minimum exposure time value (" << _exposure_time_min << ") is"
-                          " outside the range supported by the sensor. Allowed range is ["
-                          << sensor_exposure_time.min() * pow( 10 , -9 ) << ", "
-                          << sensor_exposure_time.max() * pow( 10 , -9 ) << "].");
+            cout << "Minimum exposure time value (" << _exposure_time_min << ") is"
+                 << " outside the range supported by the sensor. Allowed range is ["
+                 << sensor_exposure_time.min() * pow( 10 , -9 ) << ", "
+                 << sensor_exposure_time.max() * pow( 10 , -9 ) << "]." << endl;
             return false;
         }
 
@@ -633,17 +670,17 @@ bool ArgusCamera::init()
 
         if ( sensor_exposure_time.max() < exposure_time_max_ns ||
              sensor_exposure_time.min() > exposure_time_max_ns ) {
-            bl_log_error( "Maximum exposure time value (" << _exposure_time_max << ") is"
-                          " outside the range supported by the sensor. Allowed range is ["
-                          << sensor_exposure_time.min() * pow( 10 , -9 ) << ", "
-                          << sensor_exposure_time.max() * pow( 10 , -9 ) << "].");
+            cout << "Maximum exposure time value (" << _exposure_time_max << ") is"
+                 << " outside the range supported by the sensor. Allowed range is ["
+                 << sensor_exposure_time.min() * pow( 10 , -9 ) << ", "
+                 << sensor_exposure_time.max() * pow( 10 , -9 ) << "]." << endl;
             return false;
         }
 
         if ( exposure_time_max_ns < exposure_time_min ) {
-            bl_log_error( "Maximum exposure time value (" << _exposure_time_max
-                          << ") cannot be less than the minimum value ("
-                          << exposure_time_min * pow( 10 , -9 ) << ")." );
+            cout << "Maximum exposure time value (" << _exposure_time_max
+                 << ") cannot be less than the minimum value ("
+                 << exposure_time_min * pow( 10 , -9 ) << ")." << endl;
             return false;
         }
 
@@ -654,8 +691,7 @@ bool ArgusCamera::init()
         Argus::Range<uint64_t>( exposure_time_min, exposure_time_max) );
     //Argus::Range<uint64_t>( 20000, 20000) );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Couldn't set exposure time range. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Couldn't set exposure time range. Status: " << status << endl;
         return false;
     }
 
@@ -666,10 +702,10 @@ bool ArgusCamera::init()
 
     if ( _gain_min >= 0 ) {
         if ( sensor_gain.max() < _gain_min || sensor_gain.min() > _gain_min ) {
-            bl_log_error( "Minimum gain value (" << _gain_min
-                          << ") is outside the range supported by the sensor. "
-                          << "Allowed range is [" << sensor_gain.min() << ", "
-                          << sensor_gain.max() << "]." );
+            cout << "Minimum gain value (" << _gain_min
+                 << ") is outside the range supported by the sensor. "
+                 << "Allowed range is [" << sensor_gain.min() << ", "
+                 << sensor_gain.max() << "]." << endl;
             return false;
         }
 
@@ -678,17 +714,17 @@ bool ArgusCamera::init()
 
     if ( _gain_max >= 0 ) {
         if ( sensor_gain.max() < _gain_max || sensor_gain.min() > _gain_max ) {
-            bl_log_error( "Maximum gain value (" << _gain_max
-                          << ") is outside the range supported by the sensor. "
-                          << "Allowed range is [" << sensor_gain.min() << ", "
-                          << sensor_gain.max() << "].");
+            cout << "Maximum gain value (" << _gain_max
+                 << ") is outside the range supported by the sensor. "
+                 << "Allowed range is [" << sensor_gain.min() << ", "
+                 << sensor_gain.max() << "]." << endl;
             return false;
         }
 
         if ( _gain_max < gain_min ) {
-            bl_log_error( "Maximum gain value (" << _gain_max
-                          << ") cannot be less than the minimum value ("
-                          << gain_min << ")." );
+            cout << "Maximum gain value (" << _gain_max
+                 << ") cannot be less than the minimum value ("
+                 << gain_min << ")." << endl;
             return false;
         }
 
@@ -699,8 +735,7 @@ bool ArgusCamera::init()
                                                 gain_min, gain_max) );
     //1, 1) );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Couldn't set gain range. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Couldn't set gain range. Status: "  << status << endl;
         return false;
     }
 
@@ -713,11 +748,11 @@ bool ArgusCamera::init()
 
         if ( sensor_frame_duration.max() < requested_frame_duration ||
              sensor_frame_duration.min() > requested_frame_duration ) {
-            bl_log_error( "Framerate value (" << _framerate
-                          << ") is outside the range supported by the sensor. "
-                          << "Allowed range is ["
-                          << 1 / ( sensor_frame_duration.max() * pow( 10, -9 ) ) << ", "
-                          << 1 / ( sensor_frame_duration.min() * pow( 10, -9 ) ) << "].");
+            cout << "Framerate value (" << _framerate
+                 << ") is outside the range supported by the sensor. "
+                 << "Allowed range is ["
+                 << 1 / ( sensor_frame_duration.max() * pow( 10, -9 ) ) << ", "
+                 << 1 / ( sensor_frame_duration.min() * pow( 10, -9 ) ) << "]." << endl;
             return false;
         }
 
@@ -730,15 +765,14 @@ bool ArgusCamera::init()
         Argus::Range<uint64_t>(33333333, 33333333)
         );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Couldn't set frame duration range. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Couldn't set frame duration range. Status: " << status << endl;
         return false;
     }
 
     auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(
         request->getAutoControlSettings() );
     if ( auto_control_settings == nullptr ) {
-        bl_log_error( "Interface cast to ISourceSettings failed." );
+        cout << "Interface cast to ISourceSettings failed." << endl;
         return false;
     }
     //FIXME
@@ -748,8 +782,7 @@ bool ArgusCamera::init()
         AutoWhiteBalanceModeToAwbMode( _awb_mode ) );
     //        <Argus::AwbMode> _awb_mode);
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Couldn't auto white balance mode. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Couldn't auto white balance mode. Status: " << status << endl;
         return false;
     }
 #endif
@@ -763,8 +796,7 @@ bool ArgusCamera::init()
                                       _wb_gains[3] )
             );
         if ( status != Argus::STATUS_OK ) {
-            bl_log_error( "Couldn't set white balance gains. Status: ");
-//                     << ArgusStatusToString( status ) );
+            cout << "Couldn't set white balance gains. Status: " << status << endl;
             return false;
         }
     }
@@ -772,53 +804,38 @@ bool ArgusCamera::init()
     // Set exposure compensation
     status = auto_control_settings->setExposureCompensation( _exposure_compensation );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Couldn't set exposure compensation. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Couldn't set exposure compensation. Status: " << status << endl;
         return false;
     }
 
     // Submit capture request on repeat
     status = capture_session->repeat( _request_object.get() );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Failed to submit repeating capture request. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Failed to submit repeating capture request. Status: " << status << endl;
         return false;
     }
 
     status = output_stream->waitUntilConnected();
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Failed to connect output stream. Status: ");
-//                   << ArgusStatusToString( status ) );
+        cout << "Failed to connect output stream. Status: " << status << endl;
         return false;
     }
 
     return _initialized = true;
 }
 
-ArgusReleaseData *ArgusCamera::requestFrame(
-//    pubsub::Callback<void, CameraFrame::Shared> onSuccess,
-//    pubsub::Callback<void, FrameError> onError
-    )
+ArgusReleaseData *ArgusCamera::request_frame()
 {
     if ( !is_initialized()) {
-        bl_log_error( "Camera is not initialized." );
-//    onError( FrameError::NOT_INITIALIZED );
+        cout << "Camera is not initialized."  << endl;
         return NULL;
     }
-#if 0
-    if ( !isConnected()) {
-        bl_log_error( "Camera is not connected." );
-//    onError( FrameError::NOT_CONNECTED );
-        return NULL;
-    }
-#endif
 
     // Obtain capture session
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(
         _capture_session_object );
     if ( capture_session == nullptr ) {
-        bl_log_error( "Interface cast to ICaptureSession failed." );
-//    onError( FrameError::UNKNOWN );
+        cout << "Interface cast to ICaptureSession failed." << endl;
         return NULL;
     }
 
@@ -826,8 +843,7 @@ ArgusReleaseData *ArgusCamera::requestFrame(
     auto *frame_consumer = Argus::interface_cast<EGLStream::IFrameConsumer>(
         _frame_consumer_object );
     if ( frame_consumer == nullptr ) {
-        bl_log_error( "Interface cast to IFrameConsumer failed." );
-//    onError( FrameError::UNKNOWN );
+        cout << "Interface cast to IFrameConsumer failed." << endl;
         return NULL;
     }
 
@@ -841,16 +857,13 @@ ArgusReleaseData *ArgusCamera::requestFrame(
     Argus::UniqueObj<EGLStream::Frame> frame_object( frame_consumer->acquireFrame(
                                                          timeout, &status ) );
     if ( status != Argus::STATUS_OK ) {
-        bl_log_error( "Failed to acquire frame. Status: ");
-//                   << ArgusStatusToString( status ) );
-//    onError( ArgusStatusToFrameError( status ) );
+        cout << "Failed to acquire frame. Status: " << status << endl;
         return NULL;
     }
 
     auto frame = Argus::interface_cast<EGLStream::IFrame>( frame_object );
     if ( frame == nullptr ) {
-        bl_log_error( "Interface cast to IFrame failed." );
-//    onError( FrameError::UNKNOWN );
+        cout << "Interface cast to IFrame failed." << endl;
         return NULL;
     }
 
@@ -859,9 +872,8 @@ ArgusReleaseData *ArgusCamera::requestFrame(
     if((this_frame_num != last_frame_num + 1) &&
        (last_frame_num != 0))
     {
-        bl_log_error("Missed frame! last " << last_frame_num << " this " << this_frame_num);
+        cout << "Missed frame! last " << last_frame_num << " this " << this_frame_num << endl;
     }
-    //bl_log_info("Got frame " << this_frame_num);
     last_frame_num = this_frame_num;
   
     // Get image from frame
@@ -869,8 +881,7 @@ ArgusReleaseData *ArgusCamera::requestFrame(
     auto *image_native_buffer =
         Argus::interface_cast<EGLStream::NV::IImageNativeBuffer>( image_object );
     if ( image_native_buffer == nullptr ) {
-        bl_log_error( "Interface cast to IImageNativeBuffer failed." );
-//    onError( FrameError::UNKNOWN );
+        cout << "Interface cast to IImageNativeBuffer failed." << endl;
         return NULL;
     }
 
@@ -881,7 +892,7 @@ ArgusReleaseData *ArgusCamera::requestFrame(
                                                       NvBufferLayout_Pitch,
                                                       &status );
     if ( fd_yuv == -1 || status != Argus::STATUS_OK ) {
-        bl_log_error( "Failed to create NvBuffer! Status: " << status);
+        cout << "Failed to create NvBuffer! Status: " << status << endl;
         return NULL;
     }
 
@@ -890,7 +901,7 @@ ArgusReleaseData *ArgusCamera::requestFrame(
                                                       NvBufferLayout_Pitch,
                                                       &status );
     if ( fd_rgb == -1 || status != Argus::STATUS_OK ) {
-        bl_log_error( "Failed to create NvBuffer! Status: " << status);
+        cout << "Failed to create NvBuffer! Status: " << status << endl;
         return NULL;
     }
 
@@ -902,16 +913,12 @@ ArgusReleaseData *ArgusCamera::requestFrame(
     NvBufferParams params_rgb;
     NvBufferGetParams( fd_rgb, &params_rgb );
 
-    //bl_log_info("height0 " << params_yuv.height[0] << " width0 " << params_yuv.width[0] << " pitch0 " << params_yuv.pitch[0]);
-    //bl_log_info("height1 " << params_yuv.height[1] << " width1 " << params_yuv.width[1] << " pitch1 " << params_yuv.pitch[1]);
-    //bl_log_info("height2 " << params_yuv.height[2] << " width2 " << params_yuv.width[2] << " pitch2 " << params_yuv.pitch[2]);
-
     if (params_yuv.num_planes != 3) {
-        bl_log_error( "Buffer doesn't have the correct number of planes. (" << params_yuv.num_planes << " != 3)" );
+        cout << "Buffer doesn't have the correct number of planes. (" << params_yuv.num_planes << " != 3)" << endl;
         return NULL;
     }
     if (params_rgb.num_planes != 1) {
-        bl_log_error( "Buffer doesn't have the correct number of planes. (" << params_rgb.num_planes << " != 1)" );
+        cout << "Buffer doesn't have the correct number of planes. (" << params_rgb.num_planes << " != 1)" << endl;
         return NULL;
     }
   
@@ -949,25 +956,22 @@ ArgusReleaseData *ArgusCamera::requestFrame(
 
 FramePtr ArgusCamera::grab()
 {
-    ArgusReleaseData *data = requestFrame();
+    ArgusReleaseData *data = request_frame();
     return FramePtr(new Frame(cv_frame_rgb, data, argus_release_helper));
 }
 
 FramePtr ArgusCamera::grab_y()
 {
-    //ArgusReleaseData *data = requestFrame();
     return FramePtr(new Frame(cv_frame_y, NULL, argus_release_helper));
 }
 
 FramePtr ArgusCamera::grab_u()
 {
-    //ArgusReleaseData *data = requestFrame();
     return FramePtr(new Frame(cv_frame_u, NULL, argus_release_helper));
 }
 
 FramePtr ArgusCamera::grab_v()
 {
-    //ArgusReleaseData *data = requestFrame();
     return FramePtr(new Frame(cv_frame_v, NULL, argus_release_helper));
 }
 

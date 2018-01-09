@@ -75,22 +75,20 @@ public:
     void set_awb_mode(const Argus::AwbMode mode);
     Argus::AwbMode get_awb_mode();
     void set_awb(const bool enabled);
-    void set_gain_red(const int gain);
-    void set_gain_green(const int gain);
-    void set_gain_blue(const int gain);
-
-    void set_denoise_mode(const Argus::DenoiseMode denoise);
+    void set_awb_gains();
+    
+    void set_denoise_mode(const Argus::DenoiseMode mode);
     Argus::DenoiseMode get_denoise_mode();
     void set_denoise_strength(const float strength);
-    float get_denoise_strenght();
+    float get_denoise_strength();
     
-    FramePtr grab();
-    FramePtr grab_y();
+    FramePtr grab(); // Grabs the RGB frame. This call must be made before any of the other grab_* calls
+    FramePtr grab_y(); // Grabs just the 'Y' plane of a YUV image. This is equivalent to grescale.
     FramePtr grab_u();
     FramePtr grab_v();
     
 private:
-    virtual ArgusReleaseData *requestFrame();
+    virtual ArgusReleaseData *request_frame();
     bool check_bounds();
 
     bool _initialized;
