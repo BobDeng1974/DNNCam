@@ -1,14 +1,12 @@
 #pragma once
 
 #include <boost/program_options.hpp>
+#include <opencv2/opencv.hpp>
 
 #include "Argus/Argus.h"
 #include "EGLStream/EGLStream.h"
 
-//#include "amp_camera/Camera.hpp"
 #include "frame.hpp"
-#include "AutoWhiteBalanceMode.hpp"
-#include "opencv2/opencv.hpp"
 
 namespace po = boost::program_options;
 
@@ -35,7 +33,7 @@ public:
     static const double DEFAULT_EXPOSURE_TIME_MAX;
     static const float DEFAULT_GAIN_MIN;
     static const float DEFAULT_GAIN_MAX;
-    static const AutoWhiteBalanceMode DEFAULT_AWB_MODE;
+    static const Argus::AwbMode DEFAULT_AWB_MODE;
     static const std::vector<float> DEFAULT_WB_GAINS;
     static const double DEFAULT_FRAMERATE;
     static const double DEFAULT_TIMEOUT;
@@ -50,7 +48,7 @@ public:
                 const double exposure_time_max = DEFAULT_EXPOSURE_TIME_MAX,
                 const float gain_min = DEFAULT_GAIN_MIN,
                 const float gain_max = DEFAULT_GAIN_MAX,
-                const AutoWhiteBalanceMode awb_mode = DEFAULT_AWB_MODE,
+                const Argus::AwbMode awb_mode = DEFAULT_AWB_MODE,
                 const std::vector<float>& wb_gains = DEFAULT_WB_GAINS,
                 const double framerate = DEFAULT_FRAMERATE,
                 const double timeout = DEFAULT_TIMEOUT,
@@ -82,13 +80,15 @@ public:
     void set_denoise_strength(const float strength);
     float get_denoise_strength();
     
-    FramePtr grab(); // Grabs the RGB frame. This call must be made before any of the other grab_* calls
+    // Grabs the RGB frame. This call must be made before any of the other grab_* calls
+    FramePtr grab(bool &dropped_frame, // return parameter: true if a frame was dropped since the last call
+                  uint64_t &frame_num); // return parameter: the frame number of the returned frame, according to libargus
     FramePtr grab_y(); // Grabs just the 'Y' plane of a YUV image. This is equivalent to grescale.
     FramePtr grab_u();
     FramePtr grab_v();
     
 private:
-    virtual ArgusReleaseData *request_frame();
+    virtual ArgusReleaseData *request_frame(bool &dropped_frame, uint64_t &frame_num);
     bool check_bounds();
 
     bool _initialized;
@@ -102,7 +102,7 @@ private:
     const uint32_t _output_width, _output_height;
     const double _exposure_time_min, _exposure_time_max;
     const float _gain_min, _gain_max;
-    AutoWhiteBalanceMode _awb_mode;
+    Argus::AwbMode _awb_mode;
     const std::vector<float> _wb_gains;
     const double _framerate;
     const double _timeout;

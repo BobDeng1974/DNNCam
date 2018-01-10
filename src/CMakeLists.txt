@@ -45,7 +45,6 @@ add_library(config STATIC
 add_executable(camerastreamer
 		camerastreamer.cpp
         ArgusCamera.cpp
-        AutoWhiteBalanceMode.cpp
 		frame_processor.cpp
 		stream.cpp
 )

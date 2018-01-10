@@ -25,7 +25,7 @@ const double ArgusCamera::DEFAULT_EXPOSURE_TIME_MIN = -1;
 const double ArgusCamera::DEFAULT_EXPOSURE_TIME_MAX = -1;
 const float ArgusCamera::DEFAULT_GAIN_MIN = -1;
 const float ArgusCamera::DEFAULT_GAIN_MAX = -1;
-const AutoWhiteBalanceMode ArgusCamera::DEFAULT_AWB_MODE = AutoWhiteBalanceMode::AUTO;
+const Argus::AwbMode ArgusCamera::DEFAULT_AWB_MODE = Argus::AWB_MODE_AUTO;
 const std::vector<float> ArgusCamera::DEFAULT_WB_GAINS = { 1, 1, 1, 1 };
 const double ArgusCamera::DEFAULT_FRAMERATE = 30;
 const double ArgusCamera::DEFAULT_TIMEOUT = -1;
@@ -94,12 +94,13 @@ po::options_description ArgusCamera::GetOptions()
         ( OPT_GAIN_MAX, po::value<float>()->default_value( DEFAULT_GAIN_MAX ),
           "Maximum gain value to be used by the AE algorithm. If negative, the "
           "default maximum gain value for the sensor will be used" )
-        ( OPT_AWB_MODE, po::value<std::string>()->default_value(
-            AutoWhiteBalanceModeToString( DEFAULT_AWB_MODE ) ),
+        //TODO?
+        //( OPT_AWB_MODE, po::value<std::string>()->default_value(
+        //  AutoWhiteBalanceModeToString( DEFAULT_AWB_MODE ) ),
           // "Auto"),
-          "Auto white balance mode. Options: off, auto, incandescent, florescent,"
-          "warm_fluorescent, daylight, cloudy_daylight, twilight, shade, or"
-          "manual." )
+        // "Auto white balance mode. Options: off, auto, incandescent, florescent,"
+        // "warm_fluorescent, daylight, cloudy_daylight, twilight, shade, or"
+          //"manual." )
         ( OPT_WB_GAINS, po::value<std::vector<float>>()->multitoken()
           ->default_value( DEFAULT_WB_GAINS, "1 1 1 1" ), ("Vector of manual"
                                                            " white balance gains [R, G_EVEN, G_ODD, B]. Only used if --" +
@@ -127,7 +128,7 @@ ArgusCamera::ArgusCamera(const uint32_t roi_x, const uint32_t roi_y,
                          const double exposure_time_max,
                          const float gain_min,
                          const float gain_max,
-                         const AutoWhiteBalanceMode awb_mode,
+                         const Argus::AwbMode awb_mode,
                          const std::vector<float>& wb_gains,
                          const double framerate,
                          const double timeout,
@@ -183,16 +184,18 @@ ArgusCamera::ArgusCamera( const po::variables_map &vm )
     _exposure_time_max( vm[OPT_EXPOSURE_TIME_MAX].as<double>() ),
     _gain_min( vm[OPT_GAIN_MIN].as<float>() ),
     _gain_max( vm[OPT_GAIN_MAX].as<float>() ),
+    _awb_mode(DEFAULT_AWB_MODE),
     _wb_gains( vm[OPT_WB_GAINS].as<std::vector<float>>() ),
     _framerate( vm[OPT_FRAMERATE].as<double>() ),
     _timeout( vm[OPT_TIMEOUT].as<double>() ),
     _exposure_compensation( vm[OPT_EXPOSURE_COMPENSATION].as<float>() )
 {
-    if ( !AutoWhiteBalanceModeFromString( _awb_mode,
-                                          vm[OPT_AWB_MODE].as<std::string>() ) ) {
-        throw po::error( vm[OPT_AWB_MODE].as<std::string>() +
-                         " is not a valid value for " + std::string( OPT_AWB_MODE ) );
-    }
+    //TODO ?
+    //if ( !AutoWhiteBalanceModeFromString( _awb_mode,
+    //                                      vm[OPT_AWB_MODE].as<std::string>() ) ) {
+    //    throw po::error( vm[OPT_AWB_MODE].as<std::string>() +
+    //                     " is not a valid value for " + std::string( OPT_AWB_MODE ) );
+    // }
 
     if ( _wb_gains.size() != 4 ) {
         throw po::error( std::string( OPT_WB_GAINS ) + " requires exactly 4 values." );
@@ -236,7 +239,6 @@ void ArgusCamera::set_auto_exposure(const bool auto_exp)
         _capture_session_object );
     if ( capture_session == nullptr ) {
         cout << "Interface cast to ICaptureSession failed." << endl;
-//    onError( FrameError::UNKNOWN );
         return;
     }
 
@@ -291,7 +293,6 @@ void ArgusCamera::set_exposure_time(const float exp_time)
         _capture_session_object );
     if ( capture_session == nullptr ) {
         cout << "Interface cast to ICaptureSession failed." << endl;
-//    onError( FrameError::UNKNOWN );
         return;
     }
 
@@ -331,7 +332,6 @@ void ArgusCamera::set_frame_duration(const uint64_t frame_duration)
         _capture_session_object );
     if ( capture_session == nullptr ) {
         cout << "Interface cast to ICaptureSession failed." << endl;
-//    onError( FrameError::UNKNOWN );
         return;
     }
 
@@ -365,7 +365,6 @@ void ArgusCamera::set_gain(const int gain)
         _capture_session_object );
     if ( capture_session == nullptr ) {
         cout << "Interface cast to ICaptureSession failed." << endl;
-//    onError( FrameError::UNKNOWN );
         return;
     }
 
@@ -475,7 +474,7 @@ bool ArgusCamera::init()
     }
 
     // Use the first reported device
-    // TODO(cooper): Investigate if we need to make this configurable
+    // TODO: For multiple camera support, this will need to change
     Argus::CameraDevice *device = devices[0];
 
     // Create a capture session
@@ -759,9 +758,9 @@ bool ArgusCamera::init()
     }
 
     status = source_settings->setFrameDurationRange(
-        //Argus::Range<uint64_t>( frame_duration, frame_duration )
+        Argus::Range<uint64_t>( frame_duration, frame_duration )
         //Argus::Range<uint64_t>( 20000, 20000)
-        Argus::Range<uint64_t>(33333333, 33333333)
+        //Argus::Range<uint64_t>(33333333, 33333333)
         );
     if ( status != Argus::STATUS_OK ) {
         cout << "Couldn't set frame duration range. Status: " << status << endl;
@@ -774,20 +773,16 @@ bool ArgusCamera::init()
         cout << "Interface cast to ISourceSettings failed." << endl;
         return false;
     }
-    //FIXME
-#if 1
+    
     // Set auto white balance mode
-    status = auto_control_settings->setAwbMode(
-        AutoWhiteBalanceModeToAwbMode( _awb_mode ) );
-    //        <Argus::AwbMode> _awb_mode);
+    status = auto_control_settings->setAwbMode(_awb_mode);
     if ( status != Argus::STATUS_OK ) {
         cout << "Couldn't auto white balance mode. Status: " << status << endl;
         return false;
     }
-#endif
 
     // Set white balance gains if white balance mode is manual
-    if ( _awb_mode == AutoWhiteBalanceMode::MANUAL ) {
+    if ( _awb_mode == Argus::AWB_MODE_MANUAL ) {
         status = auto_control_settings->setWbGains(
             Argus::BayerTuple<float>( _wb_gains[0],
                                       _wb_gains[1],
@@ -823,7 +818,7 @@ bool ArgusCamera::init()
     return _initialized = true;
 }
 
-ArgusReleaseData *ArgusCamera::request_frame()
+ArgusReleaseData *ArgusCamera::request_frame(bool &dropped_frame, uint64_t &frame_num)
 {
     if ( !is_initialized()) {
         cout << "Camera is not initialized."  << endl;
@@ -868,10 +863,13 @@ ArgusReleaseData *ArgusCamera::request_frame()
 
     static uint64_t last_frame_num = 0;
     uint64_t this_frame_num = frame->getNumber();
+    frame_num = this_frame_num;
+    dropped_frame = false;
     if((this_frame_num != last_frame_num + 1) &&
        (last_frame_num != 0))
     {
         cout << "Missed frame! last " << last_frame_num << " this " << this_frame_num << endl;
+        dropped_frame = true;
     }
     last_frame_num = this_frame_num;
   
@@ -943,9 +941,8 @@ ArgusReleaseData *ArgusCamera::request_frame()
     cv_frame_rgb = cv::Mat(params_rgb.height[0], params_rgb.width[0],
                            CV_8UC4, plane_buffer_rgb, params_rgb.pitch[0]);
   
-    //cv::cvtColor(plane, cv_frame, cv::COLOR_BGRA2BGR);
-    //plane.copyTo( cv_frame );
 
+    //TODO: exposure frame time?
     // Convert capture time in microseconds since epoch to seconds since epoch
 //  result->time = frame->getTime() * pow( 10, -6 );
 //  result->encoding = ImageEncoding::BGRA8;
@@ -953,9 +950,9 @@ ArgusReleaseData *ArgusCamera::request_frame()
     return new ArgusReleaseData(fd_rgb, plane_buffer_rgb, fd_yuv, plane_buffer_y, plane_buffer_u, plane_buffer_v);
 }
 
-FramePtr ArgusCamera::grab()
+FramePtr ArgusCamera::grab(bool &dropped_frame, uint64_t &frame_num)
 {
-    ArgusReleaseData *data = request_frame();
+    ArgusReleaseData *data = request_frame(dropped_frame, frame_num);
     return FramePtr(new Frame(cv_frame_rgb, data, argus_release_helper));
 }
 
