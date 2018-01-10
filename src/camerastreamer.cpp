@@ -9,12 +9,12 @@
 #include <exception>
 #include <boost/program_options.hpp>
 
-//#include "imx377camera.hpp"
 #include "ArgusCamera.hpp"
 
 #include "frame_processor.hpp"
 
 using namespace std;
+using namespace BoulderAI;
 
 namespace po = boost::program_options ;
 static bool verbose=false;
@@ -105,10 +105,10 @@ int run(int argc, char** argv)
         return ret;
     }
 
-    ArgusCameraPtr camera;
+    DNNCamPtr camera;
     std::cout << "Initializing camera. Frame size: " << W << "x" << H << std::endl;
     
-    camera.reset(new ArgusCamera(0, 0, W, H, W, H));
+    camera.reset(new DNNCamera(0, 0, W, H, W, H));
     camera->init();
         
     FrameProcessorPtr frame_proc;

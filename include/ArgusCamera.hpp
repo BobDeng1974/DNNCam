@@ -10,12 +10,12 @@
 
 namespace po = boost::program_options;
 
-//namespace amp {
-//namespace camera {
+namespace BoulderAI
+{
 
 struct ArgusReleaseData;
     
-class ArgusCamera
+class DNNCam
 {
 public:
     static const char *OPT_WIDTH;
@@ -41,7 +41,7 @@ public:
 
     static po::options_description GetOptions();
 
-    ArgusCamera(const uint32_t roi_x, const uint32_t roi_y,
+    DNNCam(const uint32_t roi_x, const uint32_t roi_y,
                 const uint32_t roi_width, const uint32_t roi_height,
                 const uint32_t output_width, const uint32_t output_height,
                 const double exposure_time_min = DEFAULT_EXPOSURE_TIME_MIN,
@@ -53,7 +53,7 @@ public:
                 const double framerate = DEFAULT_FRAMERATE,
                 const double timeout = DEFAULT_TIMEOUT,
                 const float exposure_compensation = DEFAULT_EXPOSURE_COMPENSATION );
-    ArgusCamera( const po::variables_map &vm );
+    DNNCam( const po::variables_map &vm );
 
 
     bool init(); // Must be called first
@@ -116,7 +116,6 @@ private:
     Argus::SensorMode *_sensor_mode_object = nullptr;
 };
 
-typedef std::shared_ptr < ArgusCamera > ArgusCameraPtr;
+typedef std::shared_ptr < DNNCam > DNNCamPtr;
 
-//}
-//}
+}

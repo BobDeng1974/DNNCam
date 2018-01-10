@@ -1,35 +1,33 @@
 #include <sstream>
 
-#include "ArgusCamera.hpp"
+#include "DNNCam.hpp"
 
 #include "EGLStream/NV/ImageNativeBuffer.h"
 
-//#include "amp_camera/argus_utils.hpp"
+namespace BoulderAI
+{
 
-//namespace amp {
-//namespace camera {
+const char *DNNCam::OPT_WIDTH = "argus-camera-width";
+const char *DNNCam::OPT_HEIGHT = "argus-camera-height";
+const char *DNNCam::OPT_EXPOSURE_TIME_MIN = "argus-camera-exposure-time-min";
+const char *DNNCam::OPT_EXPOSURE_TIME_MAX = "argus-camera-exposure-time-max";
+const char *DNNCam::OPT_GAIN_MIN = "argus-camera-gain-min";
+const char *DNNCam::OPT_GAIN_MAX = "argus-camera-gain-max";
+const char *DNNCam::OPT_AWB_MODE = "argus-camera-awb-mode";
+const char *DNNCam::OPT_WB_GAINS = "argus-camera-wb-gains";
+const char *DNNCam::OPT_FRAMERATE = "argus-camera-framerate";
+const char *DNNCam::OPT_TIMEOUT = "argus-camera-timeout";
+const char *DNNCam::OPT_EXPOSURE_COMPENSATION = "argus-camera-exposure-compensation";
 
-const char *ArgusCamera::OPT_WIDTH = "argus-camera-width";
-const char *ArgusCamera::OPT_HEIGHT = "argus-camera-height";
-const char *ArgusCamera::OPT_EXPOSURE_TIME_MIN = "argus-camera-exposure-time-min";
-const char *ArgusCamera::OPT_EXPOSURE_TIME_MAX = "argus-camera-exposure-time-max";
-const char *ArgusCamera::OPT_GAIN_MIN = "argus-camera-gain-min";
-const char *ArgusCamera::OPT_GAIN_MAX = "argus-camera-gain-max";
-const char *ArgusCamera::OPT_AWB_MODE = "argus-camera-awb-mode";
-const char *ArgusCamera::OPT_WB_GAINS = "argus-camera-wb-gains";
-const char *ArgusCamera::OPT_FRAMERATE = "argus-camera-framerate";
-const char *ArgusCamera::OPT_TIMEOUT = "argus-camera-timeout";
-const char *ArgusCamera::OPT_EXPOSURE_COMPENSATION = "argus-camera-exposure-compensation";
-
-const double ArgusCamera::DEFAULT_EXPOSURE_TIME_MIN = -1;
-const double ArgusCamera::DEFAULT_EXPOSURE_TIME_MAX = -1;
-const float ArgusCamera::DEFAULT_GAIN_MIN = -1;
-const float ArgusCamera::DEFAULT_GAIN_MAX = -1;
-const Argus::AwbMode ArgusCamera::DEFAULT_AWB_MODE = Argus::AWB_MODE_AUTO;
-const std::vector<float> ArgusCamera::DEFAULT_WB_GAINS = { 1, 1, 1, 1 };
-const double ArgusCamera::DEFAULT_FRAMERATE = 30;
-const double ArgusCamera::DEFAULT_TIMEOUT = -1;
-const float ArgusCamera::DEFAULT_EXPOSURE_COMPENSATION = 0;
+const double DNNCam::DEFAULT_EXPOSURE_TIME_MIN = -1;
+const double DNNCam::DEFAULT_EXPOSURE_TIME_MAX = -1;
+const float DNNCam::DEFAULT_GAIN_MIN = -1;
+const float DNNCam::DEFAULT_GAIN_MAX = -1;
+const Argus::AwbMode DNNCam::DEFAULT_AWB_MODE = Argus::AWB_MODE_AUTO;
+const std::vector<float> DNNCam::DEFAULT_WB_GAINS = { 1, 1, 1, 1 };
+const double DNNCam::DEFAULT_FRAMERATE = 30;
+const double DNNCam::DEFAULT_TIMEOUT = -1;
+const float DNNCam::DEFAULT_EXPOSURE_COMPENSATION = 0;
 
 using namespace std;
 
@@ -72,9 +70,9 @@ static void argus_release_helper(void *opaque)
     }
 }
 
-po::options_description ArgusCamera::GetOptions()
+po::options_description DNNCam::GetOptions()
 {
-    po::options_description desc( "ArgusCamera Options" );
+    po::options_description desc( "DNNCam Options" );
     desc.add_options()
         ( OPT_WIDTH, po::value<uint32_t>(), "Pixel width of output video" )
         ( OPT_HEIGHT, po::value<uint32_t>(), "Pixel height of output video" )
@@ -121,7 +119,7 @@ po::options_description ArgusCamera::GetOptions()
     return desc;
 }
 
-ArgusCamera::ArgusCamera(const uint32_t roi_x, const uint32_t roi_y,
+DNNCam::DNNCam(const uint32_t roi_x, const uint32_t roi_y,
                          const uint32_t roi_width, const uint32_t roi_height,
                          const uint32_t output_width, const uint32_t output_height,
                          const double exposure_time_min,
@@ -163,7 +161,7 @@ ArgusCamera::ArgusCamera(const uint32_t roi_x, const uint32_t roi_y,
     }
 }
 
-ArgusCamera::ArgusCamera( const po::variables_map &vm )
+DNNCam::DNNCam( const po::variables_map &vm )
     :
     _initialized(false),
     _roi_x(0),
@@ -211,14 +209,14 @@ ArgusCamera::ArgusCamera( const po::variables_map &vm )
     }
 }
 
-bool ArgusCamera::check_bounds()
+bool DNNCam::check_bounds()
 {
     if((_roi_x + _roi_width <= _sensor_width) && (_roi_y + _roi_height <= _sensor_height))
         return true;
     return false;
 }
 
-void ArgusCamera::set_auto_exposure(const bool auto_exp)
+void DNNCam::set_auto_exposure(const bool auto_exp)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -245,7 +243,7 @@ void ArgusCamera::set_auto_exposure(const bool auto_exp)
     capture_session->repeat(_request_object.get());
 }
 
-Argus::Range < uint64_t > ArgusCamera::get_exposure_time()
+Argus::Range < uint64_t > DNNCam::get_exposure_time()
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -271,7 +269,7 @@ Argus::Range < uint64_t > ArgusCamera::get_exposure_time()
     return exposure_range;
 }
 
-void ArgusCamera::set_exposure_time(const Argus::Range < uint64_t > exposure_range)
+void DNNCam::set_exposure_time(const Argus::Range < uint64_t > exposure_range)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -298,7 +296,7 @@ void ArgusCamera::set_exposure_time(const Argus::Range < uint64_t > exposure_ran
     capture_session->repeat(_request_object.get());
 }
 
-void ArgusCamera::set_exposure_compensation(const float comp)
+void DNNCam::set_exposure_compensation(const float comp)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -325,7 +323,7 @@ void ArgusCamera::set_exposure_compensation(const float comp)
     capture_session->repeat(_request_object.get());
 }
 
-float ArgusCamera::get_exposure_compensation()
+float DNNCam::get_exposure_compensation()
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -343,7 +341,7 @@ float ArgusCamera::get_exposure_compensation()
     return auto_control_settings->getExposureCompensation();
 }
 
-void ArgusCamera::set_frame_duration(const Argus::Range < uint64_t > frame_range)
+void DNNCam::set_frame_duration(const Argus::Range < uint64_t > frame_range)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -370,7 +368,7 @@ void ArgusCamera::set_frame_duration(const Argus::Range < uint64_t > frame_range
     capture_session->repeat(_request_object.get());
 }
 
-Argus::Range < uint64_t > ArgusCamera::get_frame_duration()
+Argus::Range < uint64_t > DNNCam::get_frame_duration()
 {
     Argus::Range < uint64_t > error(-1, -1);
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
@@ -389,7 +387,7 @@ Argus::Range < uint64_t > ArgusCamera::get_frame_duration()
     return source_settings->getFrameDurationRange();
 }
 
-void ArgusCamera::set_gain(const Argus::Range < float > gain_range)
+void DNNCam::set_gain(const Argus::Range < float > gain_range)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -416,7 +414,7 @@ void ArgusCamera::set_gain(const Argus::Range < float > gain_range)
     capture_session->repeat(_request_object.get());
 }
 
-Argus::Range < float > ArgusCamera::get_gain()
+Argus::Range < float > DNNCam::get_gain()
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -439,52 +437,52 @@ Argus::Range < float > ArgusCamera::get_gain()
     return gain_range;
 }
 
-void ArgusCamera::set_awb_mode(const Argus::AwbMode mode)
+void DNNCam::set_awb_mode(const Argus::AwbMode mode)
 {
     //TODO
 }
 
-Argus::AwbMode ArgusCamera::get_awb_mode()
+Argus::AwbMode DNNCam::get_awb_mode()
 {
     //TODO
 }
 
-void ArgusCamera::set_awb(const bool enabled)
+void DNNCam::set_awb(const bool enabled)
 {
     //TODO
 }
 
-void ArgusCamera::set_awb_gains()
+void DNNCam::set_awb_gains()
 {
     //TODO
 }
 
-void ArgusCamera::set_denoise_mode(const Argus::DenoiseMode mode)
+void DNNCam::set_denoise_mode(const Argus::DenoiseMode mode)
 {
     //TODO
 }
 
-Argus::DenoiseMode ArgusCamera::get_denoise_mode()
+Argus::DenoiseMode DNNCam::get_denoise_mode()
 {
     //TODO
 }
 
-void ArgusCamera::set_denoise_strength(const float strength)
+void DNNCam::set_denoise_strength(const float strength)
 {
     //TODO
 }
 
-float ArgusCamera::get_denoise_strength()
+float DNNCam::get_denoise_strength()
 {
     //TODO
 }
 
-bool ArgusCamera::is_initialized()
+bool DNNCam::is_initialized()
 {
     return _initialized;
 }
 
-bool ArgusCamera::init()
+bool DNNCam::init()
 {
     if ( is_initialized() ) {
         return true;
@@ -863,7 +861,7 @@ bool ArgusCamera::init()
     return _initialized = true;
 }
 
-ArgusReleaseData *ArgusCamera::request_frame(bool &dropped_frame, uint64_t &frame_num)
+ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num)
 {
     if ( !is_initialized()) {
         cout << "Camera is not initialized."  << endl;
@@ -996,26 +994,25 @@ ArgusReleaseData *ArgusCamera::request_frame(bool &dropped_frame, uint64_t &fram
     return new ArgusReleaseData(fd_rgb, plane_buffer_rgb, fd_yuv, plane_buffer_y, plane_buffer_u, plane_buffer_v);
 }
 
-FramePtr ArgusCamera::grab(bool &dropped_frame, uint64_t &frame_num)
+FramePtr DNNCam::grab(bool &dropped_frame, uint64_t &frame_num)
 {
     ArgusReleaseData *data = request_frame(dropped_frame, frame_num);
     return FramePtr(new Frame(cv_frame_rgb, data, argus_release_helper));
 }
 
-FramePtr ArgusCamera::grab_y()
+FramePtr DNNCam::grab_y()
 {
     return FramePtr(new Frame(cv_frame_y, NULL, argus_release_helper));
 }
 
-FramePtr ArgusCamera::grab_u()
+FramePtr DNNCam::grab_u()
 {
     return FramePtr(new Frame(cv_frame_u, NULL, argus_release_helper));
 }
 
-FramePtr ArgusCamera::grab_v()
+FramePtr DNNCam::grab_v()
 {
     return FramePtr(new Frame(cv_frame_v, NULL, argus_release_helper));
 }
 
-//}
-//}
+} // namespace BoulderAI
