@@ -44,7 +44,7 @@ add_library(config STATIC
 
 add_executable(camerastreamer
 		camerastreamer.cpp
-        ArgusCamera.cpp
+        DNNCam.cpp
 		frame_processor.cpp
 		stream.cpp
 )

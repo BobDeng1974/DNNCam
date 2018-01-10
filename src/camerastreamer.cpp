@@ -9,7 +9,7 @@
 #include <exception>
 #include <boost/program_options.hpp>
 
-#include "ArgusCamera.hpp"
+#include "DNNCam.hpp"
 
 #include "frame_processor.hpp"
 
@@ -108,7 +108,7 @@ int run(int argc, char** argv)
     DNNCamPtr camera;
     std::cout << "Initializing camera. Frame size: " << W << "x" << H << std::endl;
     
-    camera.reset(new DNNCamera(0, 0, W, H, W, H));
+    camera.reset(new DNNCam(0, 0, W, H, W, H));
     camera->init();
         
     FrameProcessorPtr frame_proc;
