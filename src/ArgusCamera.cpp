@@ -245,7 +245,7 @@ void ArgusCamera::set_auto_exposure(const bool auto_exp)
     capture_session->repeat(_request_object.get());
 }
 
-uint64_t ArgusCamera::get_exposure_time()
+Argus::Range < uint64_t > ArgusCamera::get_exposure_time()
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -268,10 +268,10 @@ uint64_t ArgusCamera::get_exposure_time()
     cout << "exp " << exposure_range.min() << " " << exposure_range.max() << endl;
     cout << "frame " << frame_range.min() << " " << frame_range.max() << endl;
     
-    return exposure_range.min();
+    return exposure_range;
 }
 
-void ArgusCamera::set_exposure_time(const float exp_time)
+void ArgusCamera::set_exposure_time(const Argus::Range < uint64_t > exposure_range)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -286,7 +286,6 @@ void ArgusCamera::set_exposure_time(const float exp_time)
         return;
     }
 
-    Argus::Range < uint64_t > exposure_range(exp_time, exp_time);
     source_settings->setExposureTimeRange(exposure_range);
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(
@@ -297,20 +296,9 @@ void ArgusCamera::set_exposure_time(const float exp_time)
     }
 
     capture_session->repeat(_request_object.get());
-    
 }
 
 void ArgusCamera::set_exposure_compensation(const float comp)
-{
-    //TODO
-}
-
-float ArgusCamera::get_exposure_compensation()
-{
-    //TODO
-}
-
-void ArgusCamera::set_frame_duration(const uint64_t frame_duration)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -318,15 +306,14 @@ void ArgusCamera::set_frame_duration(const uint64_t frame_duration)
         return;
     }
     
-    auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(
-        request->getSourceSettings() );
-    if ( source_settings == nullptr ) {
+    auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(
+        request->getAutoControlSettings() );
+    if ( auto_control_settings == nullptr ) {
         cout << "Interface cast to ISourceSettings failed." << endl;
         return;
     }
-
-    Argus::Range < uint64_t > frame_dur(frame_duration, frame_duration);
-    source_settings->setFrameDurationRange(frame_dur);
+    
+    auto_control_settings->setExposureCompensation(comp);
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(
         _capture_session_object );
@@ -338,12 +325,25 @@ void ArgusCamera::set_frame_duration(const uint64_t frame_duration)
     capture_session->repeat(_request_object.get());
 }
 
-uint64_t ArgusCamera::get_frame_duration()
+float ArgusCamera::get_exposure_compensation()
 {
-    //TODO
+    auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
+    if ( request == nullptr ) {
+        cout << "Interface cast to IRequest failed." << endl;
+        return -9999;
+    }
+    
+    auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(
+        request->getAutoControlSettings() );
+    if ( auto_control_settings == nullptr ) {
+        cout << "Interface cast to ISourceSettings failed." << endl;
+        return -9999;
+    }
+    
+    return auto_control_settings->getExposureCompensation();
 }
 
-void ArgusCamera::set_gain(const int gain)
+void ArgusCamera::set_frame_duration(const Argus::Range < uint64_t > frame_range)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -358,7 +358,52 @@ void ArgusCamera::set_gain(const int gain)
         return;
     }
 
-    Argus::Range < float > gain_range((float)gain / 10.0, (float)gain / 10.0);
+    source_settings->setFrameDurationRange(frame_range);
+
+    auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(
+        _capture_session_object );
+    if ( capture_session == nullptr ) {
+        cout << "Interface cast to ICaptureSession failed." << endl;
+        return;
+    }
+
+    capture_session->repeat(_request_object.get());
+}
+
+Argus::Range < uint64_t > ArgusCamera::get_frame_duration()
+{
+    Argus::Range < uint64_t > error(-1, -1);
+    auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
+    if ( request == nullptr ) {
+        cout << "Interface cast to IRequest failed." << endl;
+        return error;
+    }
+    
+    auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(
+        request->getSourceSettings() );
+    if ( source_settings == nullptr ) {
+        cout << "Interface cast to ISourceSettings failed." << endl;
+        return error;
+    }
+
+    return source_settings->getFrameDurationRange();
+}
+
+void ArgusCamera::set_gain(const Argus::Range < float > gain_range)
+{
+    auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
+    if ( request == nullptr ) {
+        cout << "Interface cast to IRequest failed." << endl;
+        return;
+    }
+    
+    auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(
+        request->getSourceSettings() );
+    if ( source_settings == nullptr ) {
+        cout << "Interface cast to ISourceSettings failed." << endl;
+        return;
+    }
+
     source_settings->setGainRange(gain_range);
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(
@@ -371,7 +416,7 @@ void ArgusCamera::set_gain(const int gain)
     capture_session->repeat(_request_object.get());
 }
 
-float ArgusCamera::get_gain()
+Argus::Range < float > ArgusCamera::get_gain()
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -391,7 +436,7 @@ float ArgusCamera::get_gain()
 
     cout << "gain " << gain_range.min() << " " << gain_range.max() << endl;
 
-    return gain_range.min();
+    return gain_range;
 }
 
 void ArgusCamera::set_awb_mode(const Argus::AwbMode mode)
@@ -885,7 +930,6 @@ ArgusReleaseData *ArgusCamera::request_frame(bool &dropped_frame, uint64_t &fram
     Argus::Size2D<uint32_t> image_size( _output_width, _output_height );
     int fd_yuv = image_native_buffer->createNvBuffer( image_size,
                                                       NvBufferColorFormat_YUV420,
-                                                      //NvBufferColorFormat_NV12,
                                                       NvBufferLayout_Pitch,
                                                       &status );
     if ( fd_yuv == -1 || status != Argus::STATUS_OK ) {
@@ -901,9 +945,6 @@ ArgusReleaseData *ArgusCamera::request_frame(bool &dropped_frame, uint64_t &fram
         cout << "Failed to create NvBuffer! Status: " << status << endl;
         return NULL;
     }
-
-    // Read image buffer into the final camera frame object
-//  CameraFrame::Shared result( std::make_shared<CameraFrame>() );
 
     NvBufferParams params_yuv;
     NvBufferGetParams( fd_yuv, &params_yuv );
@@ -940,7 +981,12 @@ ArgusReleaseData *ArgusCamera::request_frame(bool &dropped_frame, uint64_t &fram
     NvBufferMemSyncForCpu(fd_rgb, 0, &plane_buffer_rgb);
     cv_frame_rgb = cv::Mat(params_rgb.height[0], params_rgb.width[0],
                            CV_8UC4, plane_buffer_rgb, params_rgb.pitch[0]);
-  
+
+    // NOTE:
+    // In order to avoid coyping all the data here, the calls to NvBufferMemUnMap()
+    // and NvBufferDestroy() are deferred until the user is finished with the data.
+    // The provided 'Frame' class will call these as part of it's dtor through the
+    // release_callback.
 
     //TODO: exposure frame time?
     // Convert capture time in microseconds since epoch to seconds since epoch

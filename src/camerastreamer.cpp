@@ -136,13 +136,16 @@ int run(int argc, char** argv)
             
             if(!auto_exp)
             {
-                camera->set_exposure_time(2000000);
-                camera->set_gain(10);
+                Argus::Range < uint64_t > exp_range(2000000, 2000000);
+                camera->set_exposure_time(exp_range);
+                Argus::Range < float > gain_range(1, 1);
+                camera->set_gain(gain_range);
                 //_camera->set_frame_duration(30000);
             }
             else
             {
-                camera->set_gain(50);
+                Argus::Range < float > gain_range(5, 5);
+                camera->set_gain(gain_range);
                 //_camera->set_frame_duration(33333333);
             }
             

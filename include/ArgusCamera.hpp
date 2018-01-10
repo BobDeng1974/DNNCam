@@ -56,19 +56,26 @@ public:
     ArgusCamera( const po::variables_map &vm );
 
 
-    bool init();
+    bool init(); // Must be called first
     bool is_initialized();
     
+    // Grabs the RGB frame. This call must be made before any of the other grab_* calls
+    FramePtr grab(bool &dropped_frame, // return parameter: true if a frame was dropped since the last call
+                  uint64_t &frame_num); // return parameter: the frame number of the returned frame, according to libargus
+    FramePtr grab_y(); // Grabs just the 'Y' plane of a YUV image. This is equivalent to greyscale.
+    FramePtr grab_u(); // Grabs just the 'U' plane of a YUV image. NOTE: this is half the size of the full frame
+    FramePtr grab_v(); // Grabs just the 'V' plane of a YUV image. NOTE: this is half the size of the full frame
+    
     void set_auto_exposure(const bool enabled);
-    uint64_t get_exposure_time();
-    void set_exposure_time(const float exposure_time_ms);
+    Argus::Range < uint64_t > get_exposure_time();
+    void set_exposure_time(const Argus::Range < uint64_t > exposure_range);
     void set_exposure_compensation(const float comp);
     float get_exposure_compensation();
-    void set_frame_duration(const uint64_t frame_duration);
-    uint64_t get_frame_duration();
+    void set_frame_duration(const Argus::Range < uint64_t > frame_range);
+    Argus::Range < uint64_t > get_frame_duration();
     
-    void set_gain(const int gain);
-    float get_gain();
+    void set_gain(const Argus::Range < float > gain_range);
+    Argus::Range < float > get_gain();
 
     void set_awb_mode(const Argus::AwbMode mode);
     Argus::AwbMode get_awb_mode();
@@ -80,15 +87,8 @@ public:
     void set_denoise_strength(const float strength);
     float get_denoise_strength();
     
-    // Grabs the RGB frame. This call must be made before any of the other grab_* calls
-    FramePtr grab(bool &dropped_frame, // return parameter: true if a frame was dropped since the last call
-                  uint64_t &frame_num); // return parameter: the frame number of the returned frame, according to libargus
-    FramePtr grab_y(); // Grabs just the 'Y' plane of a YUV image. This is equivalent to grescale.
-    FramePtr grab_u();
-    FramePtr grab_v();
-    
 private:
-    virtual ArgusReleaseData *request_frame(bool &dropped_frame, uint64_t &frame_num);
+    ArgusReleaseData *request_frame(bool &dropped_frame, uint64_t &frame_num);
     bool check_bounds();
 
     bool _initialized;
