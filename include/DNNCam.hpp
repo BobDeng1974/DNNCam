@@ -54,6 +54,7 @@ public:
                 const double timeout = DEFAULT_TIMEOUT,
                 const float exposure_compensation = DEFAULT_EXPOSURE_COMPENSATION );
     DNNCam( const po::variables_map &vm );
+    ~DNNCam();
 
 
     bool init(); // Must be called first
@@ -80,7 +81,7 @@ public:
     void set_awb_mode(const Argus::AwbMode mode);
     Argus::AwbMode get_awb_mode();
     void set_awb(const bool enabled);
-    void set_awb_gains();
+    void set_awb_gains(const float wb_gains[Argus::BAYER_CHANNEL_COUNT]); // For use with AWB_MODE_MANUAL
     
     void set_denoise_mode(const Argus::DenoiseMode mode);
     Argus::DenoiseMode get_denoise_mode();
