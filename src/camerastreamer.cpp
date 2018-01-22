@@ -115,7 +115,7 @@ int run(int argc, char** argv)
     frame_proc.reset(new FrameProcessor(W, H));
     frame_proc->start_workers();
     
-    while(1)
+    while(running)
     {
         static bool auto_exp = true;
         static time_t last = time(NULL);
