@@ -115,6 +115,9 @@ private:
     Argus::UniqueObj<EGLStream::FrameConsumer> _frame_consumer_object;
     Argus::UniqueObj<Argus::Request>           _request_object;
     Argus::SensorMode *_sensor_mode_object = nullptr;
+
+  //Argus::UniqueObj < Argus::ICaptureSession > *capture_session;
+  EGLStream::IFrameConsumer *frame_consumer;
 };
 
 typedef std::shared_ptr < DNNCam > DNNCamPtr;

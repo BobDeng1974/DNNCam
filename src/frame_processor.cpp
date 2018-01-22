@@ -159,7 +159,7 @@ void FrameProcessor::do_stream(FrameCollection frame_col, const int frame_num, c
         SequentialSection ss("stream", frame_num, n_dropped_before);
         //if (frame_num % 2 == 0)
         {
-           _streamer->push_frame(frame_col);
+	  _streamer->push_frame(frame_col);
         }
     }
 }

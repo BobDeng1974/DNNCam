@@ -91,13 +91,16 @@ int run(int argc, char** argv)
 {
     srand(time(NULL));
 
+    //W=720;
+    //H=720;
+    
     // full hd
     W=1920;
     H=1080;
 
     // camera full res
-    //W = 3864;
-    //H = 2196;
+    //W = 3840;
+    //H = 2160;
 
     int ret = parse_arguments(argc, argv);
     if (ret != 0)
@@ -115,28 +118,43 @@ int run(int argc, char** argv)
     frame_proc.reset(new FrameProcessor(W, H));
     frame_proc->start_workers();
     
-    while(1)
+    static struct timeval last_tv;
+    gettimeofday(&last_tv, NULL);
+
+    /*Argus::Range < uint64_t > exp_range(16000, 16000);
+    camera->set_exposure_time(exp_range);
+    Argus::Range < float > gain_range(1, 1);
+    camera->set_gain(gain_range);
+    camera->set_frame_duration(exp_range);*/
+    //camera->set_auto_exposure(true);
+    
+    while(running)
     {
         static bool auto_exp = true;
-        static time_t last = time(NULL);
-        
+	struct timeval now_tv, result_tv;
+
+	gettimeofday(&now_tv, NULL);
+	timersub(&now_tv, &last_tv, &result_tv);
+	last_tv = now_tv;
+
+	cout << "Now: " << now_tv.tv_sec << "." << setfill('0') << setw(6) << now_tv.tv_usec << " Diff: " << result_tv.tv_sec << "." << setfill('0') << setw(6) << result_tv.tv_usec << endl;
+	
         FrameCollection col;
         bool was_frame_dropped;
         uint64_t frame_num;
         col.frame_rgb = camera->grab(was_frame_dropped, frame_num);  // This is a blocking call. Grab must be called before any grab_*
-        col.frame_y = camera->grab_y();
-        col.frame_u = camera->grab_u();
-        col.frame_v = camera->grab_v();
+        //col.frame_y = camera->grab_y();
+        //col.frame_u = camera->grab_u();
+        //col.frame_v = camera->grab_v();
 
-        time_t now = time(NULL);
-        if(now - last > 5)
+        /*if(now_tv.tv_sec - last_tv.tv_sec > 5)
         {
             auto_exp = !auto_exp;
             camera->set_auto_exposure(auto_exp);
             
             if(!auto_exp)
             {
-                Argus::Range < uint64_t > exp_range(2000000, 2000000);
+                Argus::Range < uint64_t > exp_range(2000, 2000);
                 camera->set_exposure_time(exp_range);
                 Argus::Range < float > gain_range(1, 1);
                 camera->set_gain(gain_range);
@@ -152,10 +170,11 @@ int run(int argc, char** argv)
             camera->get_exposure_time();
             camera->get_gain();
             cout << "Auto exposure is " << auto_exp << endl;
-            last = now;
-        }
+	    }*/
+
+	
         
-        frame_proc->process_frame(col);
+        //frame_proc->process_frame(col);
     }
     
     frame_proc->wait_for_queued_images();

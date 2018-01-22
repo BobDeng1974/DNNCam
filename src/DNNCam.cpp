@@ -25,7 +25,7 @@ const float DNNCam::DEFAULT_GAIN_MIN = -1;
 const float DNNCam::DEFAULT_GAIN_MAX = -1;
 const Argus::AwbMode DNNCam::DEFAULT_AWB_MODE = Argus::AWB_MODE_AUTO;
 const std::vector<float> DNNCam::DEFAULT_WB_GAINS = { 1, 1, 1, 1 };
-const double DNNCam::DEFAULT_FRAMERATE = 30;
+const double DNNCam::DEFAULT_FRAMERATE = 59;
 const double DNNCam::DEFAULT_TIMEOUT = -1;
 const float DNNCam::DEFAULT_EXPOSURE_COMPENSATION = 0;
 
@@ -606,7 +606,7 @@ bool DNNCam::init()
     // Get camera provider
     _camera_provider_object.reset( Argus::CameraProvider::create( &status ) );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Failed to create camera provider. Status: " << status << endl;
+      cout << "Failed to create camera provider. Status: " << status << endl;
         return false;
     }
 
@@ -663,6 +663,8 @@ bool DNNCam::init()
         cout << "Camera reports no sensor modes." << endl;
         return false;
     }
+
+    cout << "Found " << sensor_mode_objects.size() << " sensor modes" << endl;
 
     // TODO(#1436): Choose sensor mode based on closest resolution
     _sensor_mode_object = sensor_mode_objects[0];
@@ -786,7 +788,7 @@ bool DNNCam::init()
         cout << "Couldn't set the sensor mode. Status: " << status << endl;
         return false;
     }
-
+    
     // Set exposure time range
     Argus::Range<uint64_t> sensor_exposure_time = sensor_mode->getExposureTimeRange();
     uint64_t exposure_time_min = sensor_exposure_time.min();
@@ -829,6 +831,9 @@ bool DNNCam::init()
         exposure_time_max = static_cast<uint64_t>( _exposure_time_max * pow( 10, 9 ) );
     }
 
+    exposure_time_min = 16;
+    //exposure_time_max = 20000;
+    cout << "Exposure min " << exposure_time_min << " max " << exposure_time_max << endl;
     status = source_settings->setExposureTimeRange(Argus::Range<uint64_t>( exposure_time_min, exposure_time_max) );
     if ( status != Argus::STATUS_OK ) {
         cout << "Couldn't set exposure time range. Status: " << status << endl;
@@ -894,9 +899,12 @@ bool DNNCam::init()
             return false;
         }
 
+	cout << "Custom frame duration: " << requested_frame_duration << endl;
         frame_duration = static_cast<uint64_t>(requested_frame_duration);
     }
-
+    
+    frame_duration = 16;
+    cout << "Frame duration: " << frame_duration << endl;
     status = source_settings->setFrameDurationRange(Argus::Range<uint64_t>( frame_duration, frame_duration ));
     if ( status != Argus::STATUS_OK ) {
         cout << "Couldn't set frame duration range. Status: " << status << endl;
@@ -909,7 +917,13 @@ bool DNNCam::init()
         return false;
     }
     
-    // Set auto white balance mode
+    status = auto_control_settings->setAeLock(true);
+    if ( status != Argus::STATUS_OK ) {
+        cout << "Couldn't auto exposure lock. Status: " << status << endl;
+        return false;
+    }
+
+    // Set exposure time range    // Set auto white balance mode
     status = auto_control_settings->setAwbMode(_awb_mode);
     if ( status != Argus::STATUS_OK ) {
         cout << "Couldn't auto white balance mode. Status: " << status << endl;
@@ -950,6 +964,18 @@ bool DNNCam::init()
         return false;
     }
 
+    /*capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
+    if ( capture_session == nullptr ) {
+        cout << "Interface cast to ICaptureSession failed." << endl;
+        return NULL;
+	}*/
+
+    /*frame_consumer = Argus::interface_cast<EGLStream::IFrameConsumer>(_frame_consumer_object);
+    if ( frame_consumer == nullptr ) {
+        cout << "Interface cast to IFrameConsumer failed." << endl;
+        return NULL;
+	}*/
+    
     return _initialized = true;
 }
 
@@ -961,18 +987,18 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
     }
 
     // Obtain capture session
-    auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
+    /*auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
         cout << "Interface cast to ICaptureSession failed." << endl;
         return NULL;
-    }
+	}*/
 
     // Obtain frame consumer
     auto *frame_consumer = Argus::interface_cast<EGLStream::IFrameConsumer>(_frame_consumer_object);
     if ( frame_consumer == nullptr ) {
         cout << "Interface cast to IFrameConsumer failed." << endl;
         return NULL;
-    }
+	}
 
     // Acquire frame from frame consumer
     Argus::Status status;
@@ -1046,7 +1072,7 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
         return NULL;
     }
   
-    void *plane_buffer_y;
+    /*void *plane_buffer_y;
     void *plane_buffer_u;
     void *plane_buffer_v;
     NvBufferMemMap(fd_yuv, 0, NvBufferMem_Read, &plane_buffer_y);
@@ -1060,7 +1086,7 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
     cv_frame_u = cv::Mat(params_yuv.height[1], params_yuv.width[1],
                          CV_8U, plane_buffer_u, params_yuv.pitch[1]);
     cv_frame_v = cv::Mat(params_yuv.height[2], params_yuv.width[2],
-                         CV_8U, plane_buffer_v, params_yuv.pitch[2]);
+    CV_8U, plane_buffer_v, params_yuv.pitch[2]);*/
   
     void *plane_buffer_rgb;
     NvBufferMemMap(fd_rgb, 0, NvBufferMem_Read, &plane_buffer_rgb);
@@ -1068,24 +1094,36 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
     cv_frame_rgb = cv::Mat(params_rgb.height[0], params_rgb.width[0],
                            CV_8UC4, plane_buffer_rgb, params_rgb.pitch[0]);
 
+    /*NvBufferMemUnMap(fd_rgb, 0, &plane_buffer_rgb);
+    NvBufferDestroy(fd_rgb);
+
+    NvBufferMemUnMap(fd_yuv, 0, &plane_buffer_y);
+    NvBufferMemUnMap(fd_yuv, 1, &plane_buffer_u);
+    NvBufferMemUnMap(fd_yuv, 2, &plane_buffer_v);
+    NvBufferDestroy(fd_yuv);*/
+    
     // NOTE:
     // In order to avoid coyping all the data here, the calls to NvBufferMemUnMap()
     // and NvBufferDestroy() are deferred until the user is finished with the data.
     // The provided 'Frame' class will call these as part of it's dtor through the
     // release_callback.
+    //ArgusReleaseData *data = new ArgusReleaseData(fd_rgb, plane_buffer_rgb, fd_yuv, plane_buffer_y, plane_buffer_u, plane_buffer_v);
+    ArgusReleaseData *data = new ArgusReleaseData(fd_rgb, plane_buffer_rgb, fd_yuv, NULL, NULL, NULL);
 
     //TODO: exposure frame time?
     // Convert capture time in microseconds since epoch to seconds since epoch
 //  result->time = frame->getTime() * pow( 10, -6 );
 //  result->encoding = ImageEncoding::BGRA8;
 //  onSuccess( result );
-    return new ArgusReleaseData(fd_rgb, plane_buffer_rgb, fd_yuv, plane_buffer_y, plane_buffer_u, plane_buffer_v);
+    return data;
+    //return NULL;
 }
 
 FramePtr DNNCam::grab(bool &dropped_frame, uint64_t &frame_num)
 {
     ArgusReleaseData *data = request_frame(dropped_frame, frame_num);
     return FramePtr(new Frame(cv_frame_rgb, data, argus_release_helper));
+    //return FramePtr(new Frame(cv::Mat(), data, argus_release_helper));
 }
 
 FramePtr DNNCam::grab_y()
