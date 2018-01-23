@@ -9,7 +9,14 @@
 
 using namespace std;
 using namespace boost;
+using namespace BoulderAI;
+
 namespace po = boost::program_options;
+
+static void cout_log_handler(string output)
+{
+    cout << output << endl;
+}
 
 const char *convert_to_cstr(const std::string & s)
 {
@@ -23,7 +30,7 @@ const char *convert_to_cstr(const std::string & s)
 void interactive(MotorDriverPtr m) {
     char c;
     int num_steps = 1;
-    m.reset(new MotorDriver(true));
+    m.reset(new MotorDriver(true, cout_log_handler));
     std::cout << "Verson 1.1.3: Type help for commands." << std::endl;
     po::options_description desc("Options");
     desc.add_options()
@@ -181,7 +188,7 @@ void interactive(MotorDriverPtr m) {
 
 void rpcmode(MotorDriverPtr m)
 {
-    m.reset(new MotorDriver(true));
+    m.reset(new MotorDriver(true, cout_log_handler));
     XMLRPCServerPtr server;
     server.reset(new XMLRPCServer(m));
     server->run();

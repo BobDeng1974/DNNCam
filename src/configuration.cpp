@@ -1,3 +1,6 @@
+
+#include <fstream>
+
 #include "configuration.hpp"
 
 bool Configuration::_initialized;
@@ -54,15 +57,16 @@ void Configuration::_load_config_file(void)
     ifs.open(_config_filename);
     if (ifs.fail())
     {
-        bl_log_warn("Unable to open: " << _config_filename);
+        #warning TODO LOG REPLACEMENT
+        //bl_log_warn("Unable to open: " << _config_filename);
         ifs.open("./lensdriver.cfg");
         if (ifs.fail())
         {
-            bl_log_warn("Unable to open ./lensdriver.cfg either.");
+            //bl_log_warn("Unable to open ./lensdriver.cfg either.");
         }
         else
         {
-            bl_log_info("Opened ./lensdriver.cfg.");
+            //bl_log_info("Opened ./lensdriver.cfg.");
         }
     }
 
@@ -73,11 +77,11 @@ void Configuration::_load_config_file(void)
     }
     catch (po::error &e)
     {
-        bl_log_warn("Error parsing config file: " << e.what());
+        //bl_log_warn("Error parsing config file: " << e.what());
         exit(1);
     }
 
-    bl_log_info("Loaded config file.");
+    //bl_log_info("Loaded config file.");
     _initialized = true;
 }
 

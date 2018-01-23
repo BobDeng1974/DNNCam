@@ -13,6 +13,9 @@
 
 using namespace std;
 
+namespace BoulderAI
+{
+
 // Addresses of the chips on the I2C bus
 int MotorDriver::addr1 = 0x20;
 int MotorDriver::addr2 = 0x21;
@@ -93,16 +96,18 @@ int MotorDriver::addr2 = 0x21;
 #define REG_GPIOB_EXP2 0x00
 
 #define DO_WRITE(addr,reg,data)   \
-    {if (false == writeReg(addr,reg,data)) { bl_log_error("Write failed for addr: " << hex << addr << " reg: " << hex << reg << dec); return false;}}
+    {if (false == writeReg(addr,reg,data)) { ostringstream oss; oss << "Write failed for addr: " << hex << addr << " reg: " << hex << reg << dec; _log_callback(oss.str()); return false;}}
 
-MotorDriver::MotorDriver(bool doInit) : fd_(-1),
-                             zoom_init(false),
-                             zoom_abs_location(-1),
-                             focus_init(false),
-                             focus_abs_location(-1),
-                             iris_init(false),
-                             iris_abs_location(-1)
-
+    MotorDriver::MotorDriver(bool doInit, boost::function < void(std::string) > log_callback)
+        :
+        fd_(-1),
+        zoom_init(false),
+        zoom_abs_location(-1),
+        focus_init(false),
+        focus_abs_location(-1),
+        iris_init(false),
+        iris_abs_location(-1),
+        _log_callback(log_callback)
 {
     if (true == doInit) {
         init();
@@ -123,7 +128,7 @@ MotorDriver::MotorDriver(bool doInit) : fd_(-1),
             bl_log_error("Unable to focus to start position: " << Configuration::focus_start());
         }
         */
-        irisHome();
+        //irisHome();
     } else {
         zoom_init = true;
         zoom_abs_location = 0;
@@ -139,23 +144,25 @@ MotorDriver::~MotorDriver()
 
 bool MotorDriver::init()
 {
-    bl_log_info("Initializing i2c device");
+    _log_callback("Initializing i2c device");
     std::string devicename("/dev/i2c-6");
     if ((fd_ = open(devicename.c_str(), O_RDWR)) < 0) {
-        bl_log_error("Unable to open device: " << devicename);
+        ostringstream oss;
+        oss << "Unable to open device: " << devicename;
+        _log_callback(oss.str());
         return false;
     }
     uint64_t funcs;
     if (ioctl(fd_, I2C_FUNCS, &funcs) < 0) {
-        bl_log_error("Unable to get I2C_FUNCS");
+        _log_callback("Unable to get I2C_FUNCS");
         return false;
     }
     if (funcs & I2C_FUNC_I2C) {
-        bl_log_info("Supports I2C_RDWR");
+        _log_callback("Supports I2C_RDWR");
     } else if (funcs & I2C_FUNC_SMBUS_WORD_DATA) {
-        bl_log_info("Does not support I2C_RDWR");
+        _log_callback("Does not support I2C_RDWR");
     } else {
-        bl_log_error("Unable to get valid FUNC");
+        _log_callback("Unable to get valid FUNC");
         return false;
     }
     return initExpanders();
@@ -165,14 +172,16 @@ bool MotorDriver::writeReg(uint8_t addr, uint8_t regaddr, uint8_t data)
 {
     //bl_log_info(__FUNCTION__ << ": 0x" << hex << std::setw(2) << std::setfill('0') << (unsigned)addr << " reg 0x" << std::setw(2) << std::setfill('0') << (unsigned)regaddr << " val 0x" << std::setw(2) << std::setfill('0') << (unsigned)data << dec); 
     if (ioctl(fd_, I2C_SLAVE, addr) < 0) {
-        bl_log_error("Unable to access slave: " << addr);
+        ostringstream oss;
+        oss << "Unable to access slave: " << addr;
+        _log_callback(oss.str());
         return false;
     }
     char buf[10];
     buf[0] = regaddr;
     buf[1] = data;
     if (write(fd_, buf, 2) != 2) {
-        bl_log_error("Unable to write data");
+        _log_callback("Unable to write data");
         return false;
     }
     return true;
@@ -181,7 +190,9 @@ bool MotorDriver::writeReg(uint8_t addr, uint8_t regaddr, uint8_t data)
 bool MotorDriver::readReg(uint8_t addr, uint8_t regaddr, uint8_t& res)
 {
     if (ioctl(fd_, I2C_SLAVE, addr) < 0) {
-        bl_log_error("Unable to access slave: " << addr);
+        ostringstream oss;
+        oss << "Unable to access slave: " << addr;
+        _log_callback(oss.str());
         return false;
     }
     res = i2c_smbus_read_byte_data(fd_, regaddr);
@@ -192,7 +203,9 @@ bool MotorDriver::printReg(uint8_t addr, uint8_t regaddr)
 {
     uint8_t res = 0x00;
     bool ret = readReg(addr, regaddr, res);
-    bl_log_info("0x" << std::hex << res << std::dec);
+    ostringstream oss;
+    oss << "0x" << std::hex << res << std::dec;
+    _log_callback(oss.str());
     return ret;
 }
 
@@ -218,10 +231,10 @@ bool MotorDriver::printPower()
 
 bool MotorDriver::initExpanders()
 {
-    bl_log_info("IN initExpanders");
+    _log_callback("IN initExpanders");
     char buf[10] = {0};
     if (-1 == fd_) {
-        bl_log_error("i2c device not initialized");
+        _log_callback("i2c device not initialized");
         return false;
     }
 
@@ -249,7 +262,7 @@ bool MotorDriver::initExpanders()
     exp2_gpiob = REG_GPIOB_EXP2;
 
     if (false == enablePowerLines()) {
-        bl_log_error("Unable to enable power lines");
+        _log_callback("Unable to enable power lines");
         return false;
     }
     return true;
@@ -308,10 +321,12 @@ bool MotorDriver::zoomAbsolute(int loc)
 {
     bool ret = false;
     if (false == zoom_init) {
-        bl_log_error("Unable to zoom to absolute position, zoom not homed");
+        _log_callback("Unable to zoom to absolute position, zoom not homed");
         return false;
     } else if (loc < 0) {
-        bl_log_error("Invalid absolute zoom location: " << loc);
+        ostringstream oss;
+        oss << "Invalid absolute zoom location: " << loc;
+        _log_callback(oss.str());
         return false;
     } else if (loc == zoom_abs_location) {
         return true;
@@ -332,7 +347,7 @@ bool MotorDriver::zoomRelative(int steps)
 {
     bool ret = false;
     if (false == zoom_init) {
-        bl_log_error("Unable to zoom to relative position, zoom not homed");
+        _log_callback("Unable to zoom to relative position, zoom not homed");
         return false;
     } else if (steps == 0) {
         return true;
@@ -357,19 +372,27 @@ bool MotorDriver::zoomHome()
     const int stepsize = Configuration::zoom_home_step_size();
 //    enableZoom();
     int counter = 0;
-    bl_log_info("conf zoom limit: " << Configuration::zoom_has_limit() << " zoom limit pre while " << zoomLimit() << " stepsize " << stepsize);
+    ostringstream oss;
+    oss << "conf zoom limit: " << Configuration::zoom_has_limit() << " zoom limit pre while " << zoomLimit() << " stepsize " << stepsize;
+    _log_callback(oss.str());
     while ((!Configuration::zoom_has_limit() || !zoomLimit()) && (counter < steps)) {
-        bl_log_info("zoom limit during: " << zoomLimit());
+        oss.str("");
+        oss << "zoom limit during: " << zoomLimit();
+        _log_callback(oss.str());
         zoom(stepsize);
         counter += stepsize;
     }
-    bl_log_info("zoom limit after: " << zoomLimit());
+    oss.str("");
+    oss << "zoom limit after: " << zoomLimit();
+    _log_callback(oss.str());
     if (counter <= steps) {
-        bl_log_error("Reached zoom homing step limit of " << steps);
+        oss.str("");
+        oss << "Reached zoom homing step limit of " << steps;
+        _log_callback(oss.str());
         zoom_abs_location = -1;
         zoom_init = true;
     } else {
-        bl_log_info("Found zoom limit");
+        _log_callback("Found zoom limit");
         zoom_abs_location = 0;
         ret = true;
     }
@@ -381,7 +404,9 @@ bool MotorDriver::zoomLimit()
 {
     uint8_t res = 0x00;
     bool ret = readReg(addr1, REG_GPIOA, res);
-    bl_log_info("gpioa: 0x" << hex << (int)res << dec);
+    ostringstream oss;
+    oss << "gpioa: 0x" << hex << (int)res << dec;
+    _log_callback(oss.str());
     return (res & ZOOM_LIMIT);
 }
 
@@ -467,10 +492,12 @@ bool MotorDriver::focusAbsolute(int loc)
 {
     bool ret = false;
     if (false == focus_init) {
-        bl_log_error("Unable to focus to absolute position, focus not homed");
+        _log_callback("Unable to focus to absolute position, focus not homed");
         return false;
     } else if (loc < 0) {
-        bl_log_error("Invalid absolute focus location: " << loc);
+        ostringstream oss;
+        oss << "Invalid absolute focus location: " << loc;
+        _log_callback(oss.str());
         return false;
     } else if (loc == focus_abs_location) {
         return true;
@@ -491,7 +518,7 @@ bool MotorDriver::focusRelative(int steps)
 {
     bool ret = false;
     if (false == focus_init) {
-        bl_log_error("Unable to focus to relative position, focus not homed");
+        _log_callback("Unable to focus to relative position, focus not homed");
         return false;
     } else if (steps == 0) {
         return true;
@@ -526,11 +553,13 @@ bool MotorDriver::focusHome()
 	    counter += stepsize;
     }*/
     if (counter <= steps) {
-        bl_log_error("Reached focus homing step limit of " << steps);
+        ostringstream oss;
+        oss << "Reached focus homing step limit of " << steps;
+        _log_callback(oss.str());
         focus_abs_location = -1;
         focus_init = true;
     } else {
-        bl_log_info("Found focus limit");
+        _log_callback("Found focus limit");
         focus_abs_location = 0;
         ret = true;
     }
@@ -542,7 +571,9 @@ bool MotorDriver::focusLimit()
 {
     uint8_t res = 0x00;
     bool ret = readReg(addr1, REG_GPIOB, res);
-    bl_log_info("gpiob: 0x" << hex << (int)res << dec);
+    ostringstream oss;
+    oss << "gpiob: 0x" << hex << (int)res << dec;
+    _log_callback(oss.str());
     return (res & FOCUS_LIMIT);
 }
 
@@ -629,10 +660,12 @@ bool MotorDriver::irisAbsolute(int loc)
 {
     bool ret = false;
     if (false == iris_init) {
-        bl_log_error("Unable to adjust iris to absolute position, iris not homed");
+        _log_callback("Unable to adjust iris to absolute position, iris not homed");
         return false;
     } else if (loc < 0) {
-        bl_log_error("Invalid absolute iris location: " << loc);
+        ostringstream oss;
+        oss << "Invalid absolute iris location: " << loc;
+        _log_callback(oss.str());
         return false;
     } else if (loc == iris_abs_location) {
         return true;
@@ -652,7 +685,7 @@ bool MotorDriver::irisRelative(int steps)
 {
     bool ret = false;
     if (false == iris_init) {
-        bl_log_error("Unable to adjust iris to relative position, iris not homed");
+        _log_callback("Unable to adjust iris to relative position, iris not homed");
         return false;
     } else if (steps == 0) {
         return true;
@@ -684,15 +717,19 @@ bool MotorDriver::irisHome()
     while (/*(!Configuration::iris_has_limit() || !irisLimit()) &&*/ (counter < steps))
     {
         iris(stepsize);
-        bl_log_info("finding iris home " << counter << " " << stepsize);
+        ostringstream oss;
+        oss << "finding iris home " << counter << " " << stepsize;
+        _log_callback(oss.str());
         counter += stepsize;
     }
     if (counter <= steps) {
-        bl_log_error("Reached iris homing step limit of " << steps);
+        ostringstream oss;
+        oss << "Reached iris homing step limit of " << steps;
+        _log_callback(oss.str());
         iris_abs_location = -1;
         iris_init = true;
     } else {
-        bl_log_info("Found iris limit");
+        _log_callback("Found iris limit");
         iris_abs_location = 0;
         ret = true;
     }
@@ -758,3 +795,5 @@ bool MotorDriver::ircutOff()
 
 }
 
+
+}

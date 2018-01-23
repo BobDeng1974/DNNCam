@@ -34,7 +34,7 @@ set(XMLRPC_DEPS
 add_library(logger STATIC
         log.cpp)
 
-add_library(stepper STATIC
+add_library(motor STATIC
         motordriver.cpp
 )
 
@@ -45,12 +45,15 @@ add_library(config STATIC
 add_executable(camerastreamer
 		camerastreamer.cpp
         DNNCam.cpp
+        motordriver.cpp
 		frame_processor.cpp
 		stream.cpp
 )
 
 target_link_libraries(camerastreamer
 		${CAMERA_DEPS}
+        motor
+        config
 		logger
 		${BOOST_DEPS}
 		${OPENCV_DEPS}
@@ -64,7 +67,7 @@ install(TARGETS camerastreamer DESTINATION usr/local/bin COMPONENT camerastreame
 
 add_executable(lensDriver lensDriver.cpp)
 target_link_libraries(lensDriver
-    stepper
+    motor
     logger
     config 
     ${BOOST_DEPS}

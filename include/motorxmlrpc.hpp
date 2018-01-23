@@ -7,6 +7,9 @@
 #include "log.hpp"
 #include "configuration.hpp"
 
+namespace BoulderAI
+{
+
 class FocusHome : public xmlrpc_c::method {
 public:
     FocusHome(MotorDriverPtr md) : _md(md)
@@ -358,3 +361,5 @@ protected:
 };
 
 typedef std::shared_ptr<XMLRPCServer> XMLRPCServerPtr;
+
+}

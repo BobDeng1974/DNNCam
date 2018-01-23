@@ -6,6 +6,7 @@
 #include "Argus/Argus.h"
 #include "EGLStream/EGLStream.h"
 
+#include "motordriver.hpp"
 #include "frame.hpp"
 
 namespace po = boost::program_options;
@@ -14,6 +15,9 @@ namespace BoulderAI
 {
 
 struct ArgusReleaseData;
+
+// sample log handler using cout
+void cout_log_handler(std::string output);
     
 class DNNCam
 {
@@ -42,18 +46,20 @@ public:
     static po::options_description GetOptions();
 
     DNNCam(const uint32_t roi_x, const uint32_t roi_y,
-                const uint32_t roi_width, const uint32_t roi_height,
-                const uint32_t output_width, const uint32_t output_height,
-                const double exposure_time_min = DEFAULT_EXPOSURE_TIME_MIN,
-                const double exposure_time_max = DEFAULT_EXPOSURE_TIME_MAX,
-                const float gain_min = DEFAULT_GAIN_MIN,
-                const float gain_max = DEFAULT_GAIN_MAX,
-                const Argus::AwbMode awb_mode = DEFAULT_AWB_MODE,
-                const std::vector<float>& wb_gains = DEFAULT_WB_GAINS,
-                const double framerate = DEFAULT_FRAMERATE,
-                const double timeout = DEFAULT_TIMEOUT,
-                const float exposure_compensation = DEFAULT_EXPOSURE_COMPENSATION );
-    DNNCam( const po::variables_map &vm );
+           const uint32_t roi_width, const uint32_t roi_height,
+           const uint32_t output_width, const uint32_t output_height,
+           boost::function < void(std::string) > log_callback = cout_log_handler,
+           const double exposure_time_min = DEFAULT_EXPOSURE_TIME_MIN,
+           const double exposure_time_max = DEFAULT_EXPOSURE_TIME_MAX,
+           const float gain_min = DEFAULT_GAIN_MIN,
+           const float gain_max = DEFAULT_GAIN_MAX,
+           const Argus::AwbMode awb_mode = DEFAULT_AWB_MODE,
+           const std::vector<float>& wb_gains = DEFAULT_WB_GAINS,
+           const double framerate = DEFAULT_FRAMERATE,
+           const double timeout = DEFAULT_TIMEOUT,
+           const float exposure_compensation = DEFAULT_EXPOSURE_COMPENSATION );
+    DNNCam(const po::variables_map &vm,
+           boost::function < void(std::string) > log_callback = cout_log_handler);
     ~DNNCam();
 
 
@@ -87,6 +93,28 @@ public:
     Argus::DenoiseMode get_denoise_mode();
     void set_denoise_strength(const float strength);
     float get_denoise_strength();
+
+    //
+    // Lens control
+    // NOTE: The *_absolute(), *_home(), and *_location() functions do not work on the current hardware rev
+    //
+    
+    bool zoom_relative(const int steps);
+    bool zoom_absolute(const int pos);
+    bool zoom_home();
+    int get_zoom_location();
+
+    bool focus_relative(const int steps);
+    bool focus_absolute(const int pos);
+    bool focus_home();
+    int get_focus_location();
+
+    bool iris_relative(const int steps);
+    bool iris_absolute(const int pos);
+    bool iris_home();
+    int get_iris_location();
+
+    bool set_ir_cut(const bool enabled);
     
 private:
     ArgusReleaseData *request_frame(bool &dropped_frame, uint64_t &frame_num);
@@ -108,6 +136,10 @@ private:
     const double _framerate;
     const double _timeout;
     const float _exposure_compensation;
+
+    boost::function < void(std::string) > _log_callback;
+
+    MotorDriver _motor;
 
     Argus::UniqueObj<Argus::CameraProvider>    _camera_provider_object;
     Argus::UniqueObj<Argus::CaptureSession>    _capture_session_object;

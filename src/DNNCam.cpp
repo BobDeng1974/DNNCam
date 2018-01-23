@@ -69,7 +69,12 @@ static void argus_release_helper(void *opaque)
         delete data;
     }
 }
-
+    
+void cout_log_handler(string output)
+{
+    cout << output << endl;
+}
+    
 po::options_description DNNCam::GetOptions()
 {
     po::options_description desc( "DNNCam Options" );
@@ -120,17 +125,18 @@ po::options_description DNNCam::GetOptions()
 }
 
 DNNCam::DNNCam(const uint32_t roi_x, const uint32_t roi_y,
-                         const uint32_t roi_width, const uint32_t roi_height,
-                         const uint32_t output_width, const uint32_t output_height,
-                         const double exposure_time_min,
-                         const double exposure_time_max,
-                         const float gain_min,
-                         const float gain_max,
-                         const Argus::AwbMode awb_mode,
-                         const std::vector<float>& wb_gains,
-                         const double framerate,
-                         const double timeout,
-                         const float exposure_compensation )
+               const uint32_t roi_width, const uint32_t roi_height,
+               const uint32_t output_width, const uint32_t output_height,
+               boost::function < void(std::string) > log_callback,
+               const double exposure_time_min,
+               const double exposure_time_max,
+               const float gain_min,
+               const float gain_max,
+               const Argus::AwbMode awb_mode,
+               const std::vector<float>& wb_gains,
+               const double framerate,
+               const double timeout,
+               const float exposure_compensation )
 :
     _initialized(false),
     _roi_x(roi_x),
@@ -149,19 +155,22 @@ DNNCam::DNNCam(const uint32_t roi_x, const uint32_t roi_y,
     _wb_gains( wb_gains ),
     _framerate( framerate ),
     _timeout( timeout ),
-    _exposure_compensation( exposure_compensation )
+    _exposure_compensation( exposure_compensation ),
+    _log_callback(log_callback),
+    _motor(true, log_callback)
 {
     if(!check_bounds())
     {
         ostringstream oss;
         oss << "Bounds checking failed... SensorW " << _sensor_width << " SensorH " << _sensor_height << " roix " << _roi_x << " roiy " << _roi_y
             << " roiwidth " << _roi_width << " roiheight " << _roi_height;
-        cout << oss.str() << endl;
+        _log_callback(oss.str());
         throw runtime_error(oss.str());
     }
 }
 
-DNNCam::DNNCam( const po::variables_map &vm )
+DNNCam::DNNCam(const po::variables_map &vm,
+               boost::function < void(std::string) > log_callback)
     :
     _initialized(false),
     _roi_x(0),
@@ -186,7 +195,9 @@ DNNCam::DNNCam( const po::variables_map &vm )
     _wb_gains( vm[OPT_WB_GAINS].as<std::vector<float>>() ),
     _framerate( vm[OPT_FRAMERATE].as<double>() ),
     _timeout( vm[OPT_TIMEOUT].as<double>() ),
-    _exposure_compensation( vm[OPT_EXPOSURE_COMPENSATION].as<float>() )
+    _exposure_compensation( vm[OPT_EXPOSURE_COMPENSATION].as<float>() ),
+    _log_callback(log_callback),
+    _motor(true, log_callback)
 {
     //TODO ?
     //if ( !AutoWhiteBalanceModeFromString( _awb_mode,
@@ -204,7 +215,7 @@ DNNCam::DNNCam( const po::variables_map &vm )
         ostringstream oss;
         oss << "Bounds checking failed... SensorW " << _sensor_width << " SensorH " << _sensor_height << " roix " << _roi_x << " roiy " << _roi_y
             << " roiwidth " << _roi_width << " roiheight " << _roi_height;
-        cout << oss.str() << endl;
+        _log_callback(oss.str());
         throw runtime_error(oss.str());      
     }
 }
@@ -213,7 +224,9 @@ DNNCam::~DNNCam()
 {
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
-        cout << "Interface cast to ICaptureSession failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICaptureSession failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -232,13 +245,17 @@ void DNNCam::set_auto_exposure(const bool auto_exp)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());        
         return;
     }
     
     auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(request->getAutoControlSettings());
     if ( auto_control_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return;
     }
     
@@ -246,7 +263,9 @@ void DNNCam::set_auto_exposure(const bool auto_exp)
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
-        cout << "Interface cast to ICaptureSession failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICaptureSession failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -257,13 +276,17 @@ Argus::Range < uint64_t > DNNCam::get_exposure_time()
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
         return -1;
     }
     
     auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(request->getSourceSettings());
     if ( source_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return -1;
     }
 
@@ -282,13 +305,17 @@ void DNNCam::set_exposure_time(const Argus::Range < uint64_t > exposure_range)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
         return;
     }
     
     auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(request->getSourceSettings());
     if ( source_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -296,7 +323,9 @@ void DNNCam::set_exposure_time(const Argus::Range < uint64_t > exposure_range)
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
-        cout << "Interface cast to ICaptureSession failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICaptureSession failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -307,13 +336,17 @@ void DNNCam::set_exposure_compensation(const float comp)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
         return;
     }
     
     auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(request->getAutoControlSettings());
     if ( auto_control_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return;
     }
     
@@ -321,7 +354,9 @@ void DNNCam::set_exposure_compensation(const float comp)
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
-        cout << "Interface cast to ICaptureSession failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICaptureSession failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -332,13 +367,17 @@ float DNNCam::get_exposure_compensation()
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
         return -9999;
     }
     
     auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(request->getAutoControlSettings());
     if ( auto_control_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return -9999;
     }
     
@@ -349,13 +388,17 @@ void DNNCam::set_frame_duration(const Argus::Range < uint64_t > frame_range)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
         return;
     }
     
     auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(request->getSourceSettings());
     if ( source_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -363,7 +406,9 @@ void DNNCam::set_frame_duration(const Argus::Range < uint64_t > frame_range)
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
-        cout << "Interface cast to ICaptureSession failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICaptureSession failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -375,13 +420,17 @@ Argus::Range < uint64_t > DNNCam::get_frame_duration()
     Argus::Range < uint64_t > error(-1, -1);
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
         return error;
     }
     
     auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(request->getSourceSettings());
     if ( source_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return error;
     }
 
@@ -392,13 +441,17 @@ void DNNCam::set_gain(const Argus::Range < float > gain_range)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
         return;
     }
     
     auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(request->getSourceSettings());
     if ( source_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -406,7 +459,9 @@ void DNNCam::set_gain(const Argus::Range < float > gain_range)
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
-        cout << "Interface cast to ICaptureSession failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICaptureSession failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -417,13 +472,17 @@ Argus::Range < float > DNNCam::get_gain()
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
         return -1;
     }
     
     auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(request->getSourceSettings());
     if ( source_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return -1;
     }
 
@@ -439,13 +498,17 @@ void DNNCam::set_awb_mode(const Argus::AwbMode mode)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
         return;
     }
 
     auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(request->getAutoControlSettings());
     if ( auto_control_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -453,7 +516,9 @@ void DNNCam::set_awb_mode(const Argus::AwbMode mode)
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
-        cout << "Interface cast to ICaptureSession failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICaptureSession failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -464,13 +529,17 @@ Argus::AwbMode DNNCam::get_awb_mode()
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
         return Argus::AWB_MODE_OFF;
     }
 
     auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(request->getAutoControlSettings());
     if ( auto_control_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return Argus::AWB_MODE_OFF;
     }
 
@@ -481,13 +550,17 @@ void DNNCam::set_awb(const bool enabled)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
         return;
     }
     
     auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(request->getAutoControlSettings());
     if ( auto_control_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return;
     }
     
@@ -495,7 +568,9 @@ void DNNCam::set_awb(const bool enabled)
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
-        cout << "Interface cast to ICaptureSession failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICaptureSession failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -506,13 +581,17 @@ void DNNCam::set_awb_gains(const float wb_gains[Argus::BAYER_CHANNEL_COUNT])
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
         return;
     }
     
     auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(request->getAutoControlSettings());
     if ( auto_control_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -521,7 +600,9 @@ void DNNCam::set_awb_gains(const float wb_gains[Argus::BAYER_CHANNEL_COUNT])
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
-        cout << "Interface cast to ICaptureSession failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICaptureSession failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -533,7 +614,9 @@ void DNNCam::set_denoise_mode(const Argus::DenoiseMode mode)
     auto *denoise_settings = Argus::interface_cast<Argus::IDenoiseSettings>(_request_object);
     if (denoise_settings == nullptr)
     {
-        cout << "Interface cast to IDenoiseSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IDenoiseSettings failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -541,7 +624,9 @@ void DNNCam::set_denoise_mode(const Argus::DenoiseMode mode)
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
-        cout << "Interface cast to ICaptureSession failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICaptureSession failed.";
+        _log_callback(oss.str());
         return;
     }
     capture_session->repeat(_request_object.get());
@@ -552,7 +637,9 @@ Argus::DenoiseMode DNNCam::get_denoise_mode()
     auto *denoise_settings = Argus::interface_cast<Argus::IDenoiseSettings>(_request_object);
     if (denoise_settings == nullptr)
     {
-        cout << "Interface cast to IDenoiseSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IDenoiseSettings failed.";
+        _log_callback(oss.str());
         return Argus::DENOISE_MODE_OFF;
     }
 
@@ -564,7 +651,9 @@ void DNNCam::set_denoise_strength(const float strength)
     auto *denoise_settings = Argus::interface_cast<Argus::IDenoiseSettings>(_request_object);
     if (denoise_settings == nullptr)
     {
-        cout << "Interface cast to IDenoiseSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IDenoiseSettings failed.";
+        _log_callback(oss.str());
         return;
     }
 
@@ -572,7 +661,9 @@ void DNNCam::set_denoise_strength(const float strength)
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
-        cout << "Interface cast to ICaptureSession failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICaptureSession failed.";
+        _log_callback(oss.str());
         return;
     }
     capture_session->repeat(_request_object.get());
@@ -583,7 +674,9 @@ float DNNCam::get_denoise_strength()
     auto *denoise_settings = Argus::interface_cast<Argus::IDenoiseSettings>(_request_object);
     if (denoise_settings == nullptr)
     {
-        cout << "Interface cast to IDenoiseSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IDenoiseSettings failed.";
+        _log_callback(oss.str());
         return -9999;
     }
 
@@ -606,13 +699,17 @@ bool DNNCam::init()
     // Get camera provider
     _camera_provider_object.reset( Argus::CameraProvider::create( &status ) );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Failed to create camera provider. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Failed to create camera provider. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
     auto *camera_provider = Argus::interface_cast<Argus::ICameraProvider>(_camera_provider_object);
     if ( camera_provider == nullptr ) {
-        cout << "Interface cast to ICameraProvider failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICameraProvider failed.";
+        _log_callback(oss.str());
         return false;
     }
 
@@ -620,11 +717,15 @@ bool DNNCam::init()
     std::vector<Argus::CameraDevice *> devices;
     status = camera_provider->getCameraDevices( &devices );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Could not get available cameras. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Could not get available cameras. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
     if ( devices.empty() ) {
-        cout <<  "No devices available." << endl;
+        ostringstream oss;
+        oss <<  "No devices available.";
+        _log_callback(oss.str());
         return false;
     }
 
@@ -635,20 +736,26 @@ bool DNNCam::init()
     // Create a capture session
     _capture_session_object.reset( camera_provider->createCaptureSession(device, &status));
     if ( status != Argus::STATUS_OK ) {
-        cout << "Failed to create a capture session. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Failed to create a capture session. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
-        cout << "Interface cast to ICaptureSession failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICaptureSession failed.";
+        _log_callback(oss.str());
         return false;
     }
 
     // Get camera properties
     auto *camera_properties = Argus::interface_cast<Argus::ICameraProperties>(device);
     if ( camera_properties == nullptr ) {
-        cout << "Interface cast to ICameraProperties failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICameraProperties failed.";
+        _log_callback(oss.str());
         return false;
     }
 
@@ -656,11 +763,15 @@ bool DNNCam::init()
     std::vector<Argus::SensorMode *> sensor_mode_objects;
     status = camera_properties->getBasicSensorModes( &sensor_mode_objects );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Could not get available sensor modes. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Could not get available sensor modes. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
     if ( sensor_mode_objects.empty()) {
-        cout << "Camera reports no sensor modes." << endl;
+        ostringstream oss;
+        oss << "Camera reports no sensor modes.";
+        _log_callback(oss.str());
         return false;
     }
 
@@ -668,46 +779,60 @@ bool DNNCam::init()
     _sensor_mode_object = sensor_mode_objects[0];
     auto sensor_mode = Argus::interface_cast<Argus::ISensorMode>(_sensor_mode_object);
     if ( sensor_mode == nullptr ) {
-        cout << "Interface cast to ISensorMode failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISensorMode failed.";
+        _log_callback(oss.str());
         return false;
     }
 
     // Create settings object for the output stream
     Argus::UniqueObj<Argus::OutputStreamSettings> output_stream_settings_object(capture_session->createOutputStreamSettings( &status ));
     if ( status != Argus::STATUS_OK ) {
-        cout << "Failed to create output stream settings. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Failed to create output stream settings. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
     auto *output_stream_settings = Argus::interface_cast<Argus::IOutputStreamSettings>(output_stream_settings_object);
     if ( output_stream_settings == nullptr ) {
-        cout << "Interface cast to IOutputStreamSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IOutputStreamSettings failed.";
+        _log_callback(oss.str());
         return false;
     }
 
     // Configure stream settings
     status = output_stream_settings->setPixelFormat( Argus::PIXEL_FMT_YCbCr_420_888 );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Couldn't set the pixel format. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Couldn't set the pixel format. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
     status = output_stream_settings->setResolution( Argus::Size2D<uint32_t>( _roi_width,
                                                                              _roi_height ) );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Couldn't set the output resolution. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Couldn't set the output resolution. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
     status = output_stream_settings->setMetadataEnable( true );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Couldn't enable metadata output. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Couldn't enable metadata output. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
     status = output_stream_settings->setMode( Argus::STREAM_MODE_MAILBOX );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Couldn't make the stream operate in mailbox mode. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Couldn't make the stream operate in mailbox mode. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
@@ -715,52 +840,68 @@ bool DNNCam::init()
     _output_stream_object.reset( capture_session->createOutputStream(
                                      output_stream_settings_object.get(), &status ) );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Failed to create output stream. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Failed to create output stream. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
     auto *output_stream = Argus::interface_cast<Argus::IStream>(_output_stream_object);
     if ( output_stream == nullptr ) {
-        cout << "Interface cast to IStream failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IStream failed.";
+        _log_callback(oss.str());
         return false;
     }
 
     // Create frame consumer
     _frame_consumer_object.reset(EGLStream::FrameConsumer::create(_output_stream_object.get(), 1, &status));
     if ( status != Argus::STATUS_OK ) {
-        cout << "Failed to create frame consumer. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Failed to create frame consumer. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
     auto *frame_consumer = Argus::interface_cast<EGLStream::IFrameConsumer>(_frame_consumer_object);
     if ( frame_consumer == nullptr ) {
-        cout << "Interface cast to IFrameConsumer failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IFrameConsumer failed.";
+        _log_callback(oss.str());
         return false;
     }
 
     // Construct capture request
     _request_object.reset(capture_session->createRequest(Argus::CAPTURE_INTENT_STILL_CAPTURE, &status));
     if ( status != Argus::STATUS_OK ) {
-        cout << "Failed to create capture request. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Failed to create capture request. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
-        cout << "Interface cast to IRequest failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
         return false;
     }
 
     status = request->enableOutputStream( _output_stream_object.get() );
     if ( status != Argus::STATUS_OK ) {
-        cout <<"Couldn't set the output stream. Status: " << status << endl;
+        ostringstream oss;
+        oss <<"Couldn't set the output stream. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
     auto stream_settings = Argus::interface_cast < Argus::IStreamSettings > (request->getStreamSettings(_output_stream_object.get()));
     if(stream_settings == nullptr)
     {
-        cout << "Interface cast to IStreamSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IStreamSettings failed.";
+        _log_callback(oss.str());
         return false;
     }
 
@@ -770,20 +911,26 @@ bool DNNCam::init()
     status = stream_settings->setSourceClipRect(rect);
     if(status != Argus::STATUS_OK)
     {
-        cout << "Couldn't set the clipping rect, status: " << status << endl;
+        ostringstream oss;
+        oss << "Couldn't set the clipping rect, status: " << status;
+        _log_callback(oss.str());
         return false;
     }
   
     // Set capture settings
     auto source_settings = Argus::interface_cast<Argus::ISourceSettings>(request->getSourceSettings());
     if ( source_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return false;
     }
 
     status = source_settings->setSensorMode( _sensor_mode_object );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Couldn't set the sensor mode. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Couldn't set the sensor mode. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
@@ -797,10 +944,12 @@ bool DNNCam::init()
 
         if ( sensor_exposure_time.max() < exposure_time_min_ns ||
              sensor_exposure_time.min() > exposure_time_min_ns ) {
-            cout << "Minimum exposure time value (" << _exposure_time_min << ") is"
+            ostringstream oss;
+            oss << "Minimum exposure time value (" << _exposure_time_min << ") is"
                  << " outside the range supported by the sensor. Allowed range is ["
                  << sensor_exposure_time.min() * pow( 10 , -9 ) << ", "
-                 << sensor_exposure_time.max() * pow( 10 , -9 ) << "]." << endl;
+                 << sensor_exposure_time.max() * pow( 10 , -9 ) << "].";
+            _log_callback(oss.str());
             return false;
         }
 
@@ -812,17 +961,21 @@ bool DNNCam::init()
 
         if ( sensor_exposure_time.max() < exposure_time_max_ns ||
              sensor_exposure_time.min() > exposure_time_max_ns ) {
-            cout << "Maximum exposure time value (" << _exposure_time_max << ") is"
+            ostringstream oss;
+            oss << "Maximum exposure time value (" << _exposure_time_max << ") is"
                  << " outside the range supported by the sensor. Allowed range is ["
                  << sensor_exposure_time.min() * pow( 10 , -9 ) << ", "
-                 << sensor_exposure_time.max() * pow( 10 , -9 ) << "]." << endl;
+                 << sensor_exposure_time.max() * pow( 10 , -9 ) << "].";
+            _log_callback(oss.str());
             return false;
         }
 
         if ( exposure_time_max_ns < exposure_time_min ) {
-            cout << "Maximum exposure time value (" << _exposure_time_max
+            ostringstream oss;
+            oss << "Maximum exposure time value (" << _exposure_time_max
                  << ") cannot be less than the minimum value ("
-                 << exposure_time_min * pow( 10 , -9 ) << ")." << endl;
+                 << exposure_time_min * pow( 10 , -9 ) << ").";
+            _log_callback(oss.str());
             return false;
         }
 
@@ -831,7 +984,9 @@ bool DNNCam::init()
 
     status = source_settings->setExposureTimeRange(Argus::Range<uint64_t>( exposure_time_min, exposure_time_max) );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Couldn't set exposure time range. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Couldn't set exposure time range. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
@@ -842,10 +997,12 @@ bool DNNCam::init()
 
     if ( _gain_min >= 0 ) {
         if ( sensor_gain.max() < _gain_min || sensor_gain.min() > _gain_min ) {
-            cout << "Minimum gain value (" << _gain_min
+            ostringstream oss;
+            oss << "Minimum gain value (" << _gain_min
                  << ") is outside the range supported by the sensor. "
                  << "Allowed range is [" << sensor_gain.min() << ", "
-                 << sensor_gain.max() << "]." << endl;
+                 << sensor_gain.max() << "].";
+            _log_callback(oss.str());
             return false;
         }
 
@@ -854,17 +1011,21 @@ bool DNNCam::init()
 
     if ( _gain_max >= 0 ) {
         if ( sensor_gain.max() < _gain_max || sensor_gain.min() > _gain_max ) {
-            cout << "Maximum gain value (" << _gain_max
+            ostringstream oss;
+            oss << "Maximum gain value (" << _gain_max
                  << ") is outside the range supported by the sensor. "
                  << "Allowed range is [" << sensor_gain.min() << ", "
-                 << sensor_gain.max() << "]." << endl;
+                 << sensor_gain.max() << "].";
+            _log_callback(oss.str());
             return false;
         }
 
         if ( _gain_max < gain_min ) {
-            cout << "Maximum gain value (" << _gain_max
+            ostringstream oss;
+            oss << "Maximum gain value (" << _gain_max
                  << ") cannot be less than the minimum value ("
-                 << gain_min << ")." << endl;
+                 << gain_min << ").";
+            _log_callback(oss.str());
             return false;
         }
 
@@ -873,7 +1034,9 @@ bool DNNCam::init()
 
     status = source_settings->setGainRange( Argus::Range<float>(gain_min, gain_max) );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Couldn't set gain range. Status: "  << status << endl;
+        ostringstream oss;
+        oss << "Couldn't set gain range. Status: "  << status;
+        _log_callback(oss.str());
         return false;
     }
 
@@ -886,11 +1049,13 @@ bool DNNCam::init()
 
         if ( sensor_frame_duration.max() < requested_frame_duration ||
              sensor_frame_duration.min() > requested_frame_duration ) {
-            cout << "Framerate value (" << _framerate
+            ostringstream oss;
+            oss << "Framerate value (" << _framerate
                  << ") is outside the range supported by the sensor. "
                  << "Allowed range is ["
                  << 1 / ( sensor_frame_duration.max() * pow( 10, -9 ) ) << ", "
-                 << 1 / ( sensor_frame_duration.min() * pow( 10, -9 ) ) << "]." << endl;
+                 << 1 / ( sensor_frame_duration.min() * pow( 10, -9 ) ) << "].";
+            _log_callback(oss.str());
             return false;
         }
 
@@ -899,20 +1064,26 @@ bool DNNCam::init()
 
     status = source_settings->setFrameDurationRange(Argus::Range<uint64_t>( frame_duration, frame_duration ));
     if ( status != Argus::STATUS_OK ) {
-        cout << "Couldn't set frame duration range. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Couldn't set frame duration range. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
     auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(request->getAutoControlSettings());
     if ( auto_control_settings == nullptr ) {
-        cout << "Interface cast to ISourceSettings failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
         return false;
     }
     
     // Set auto white balance mode
     status = auto_control_settings->setAwbMode(_awb_mode);
     if ( status != Argus::STATUS_OK ) {
-        cout << "Couldn't auto white balance mode. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Couldn't auto white balance mode. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
@@ -925,7 +1096,9 @@ bool DNNCam::init()
                                       _wb_gains[3] )
             );
         if ( status != Argus::STATUS_OK ) {
-            cout << "Couldn't set white balance gains. Status: " << status << endl;
+            ostringstream oss;
+            oss << "Couldn't set white balance gains. Status: " << status;
+            _log_callback(oss.str());
             return false;
         }
     }
@@ -933,20 +1106,26 @@ bool DNNCam::init()
     // Set exposure compensation
     status = auto_control_settings->setExposureCompensation( _exposure_compensation );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Couldn't set exposure compensation. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Couldn't set exposure compensation. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
     // Submit capture request on repeat
     status = capture_session->repeat( _request_object.get() );
     if ( status != Argus::STATUS_OK ) {
-        cout << "Failed to submit repeating capture request. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Failed to submit repeating capture request. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
     status = output_stream->waitUntilConnected();
     if ( status != Argus::STATUS_OK ) {
-        cout << "Failed to connect output stream. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Failed to connect output stream. Status: " << status;
+        _log_callback(oss.str());
         return false;
     }
 
@@ -956,21 +1135,27 @@ bool DNNCam::init()
 ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num)
 {
     if ( !is_initialized()) {
-        cout << "Camera is not initialized."  << endl;
+        ostringstream oss;
+        oss << "Camera is not initialized.";
+        _log_callback(oss.str());
         return NULL;
     }
 
     // Obtain capture session
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
-        cout << "Interface cast to ICaptureSession failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to ICaptureSession failed.";
+        _log_callback(oss.str());
         return NULL;
     }
 
     // Obtain frame consumer
     auto *frame_consumer = Argus::interface_cast<EGLStream::IFrameConsumer>(_frame_consumer_object);
     if ( frame_consumer == nullptr ) {
-        cout << "Interface cast to IFrameConsumer failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IFrameConsumer failed.";
+        _log_callback(oss.str());
         return NULL;
     }
 
@@ -983,13 +1168,17 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
 
     Argus::UniqueObj<EGLStream::Frame> frame_object( frame_consumer->acquireFrame(timeout, &status));
     if ( status != Argus::STATUS_OK ) {
-        cout << "Failed to acquire frame. Status: " << status << endl;
+        ostringstream oss;
+        oss << "Failed to acquire frame. Status: " << status;
+        _log_callback(oss.str());
         return NULL;
     }
 
     auto frame = Argus::interface_cast<EGLStream::IFrame>( frame_object );
     if ( frame == nullptr ) {
-        cout << "Interface cast to IFrame failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IFrame failed.";
+        _log_callback(oss.str());
         return NULL;
     }
 
@@ -999,7 +1188,9 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
     dropped_frame = false;
     if((this_frame_num != last_frame_num + 1) && (last_frame_num != 0))
     {
-        cout << "Missed frame! last " << last_frame_num << " this " << this_frame_num << endl;
+        ostringstream oss;
+        oss << "Missed frame! last " << last_frame_num << " this " << this_frame_num;
+        _log_callback(oss.str());
         dropped_frame = true;
     }
     last_frame_num = this_frame_num;
@@ -1009,7 +1200,9 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
     auto *image_native_buffer =
         Argus::interface_cast<EGLStream::NV::IImageNativeBuffer>( image_object );
     if ( image_native_buffer == nullptr ) {
-        cout << "Interface cast to IImageNativeBuffer failed." << endl;
+        ostringstream oss;
+        oss << "Interface cast to IImageNativeBuffer failed.";
+        _log_callback(oss.str());
         return NULL;
     }
 
@@ -1019,7 +1212,9 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
                                                       NvBufferLayout_Pitch,
                                                       &status );
     if ( fd_yuv == -1 || status != Argus::STATUS_OK ) {
-        cout << "Failed to create NvBuffer! Status: " << status << endl;
+        ostringstream oss;
+        oss << "Failed to create NvBuffer! Status: " << status;
+        _log_callback(oss.str());
         return NULL;
     }
 
@@ -1028,7 +1223,9 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
                                                       NvBufferLayout_Pitch,
                                                       &status );
     if ( fd_rgb == -1 || status != Argus::STATUS_OK ) {
-        cout << "Failed to create NvBuffer! Status: " << status << endl;
+        ostringstream oss;
+        oss << "Failed to create NvBuffer! Status: " << status;
+        _log_callback(oss.str());
         return NULL;
     }
 
@@ -1038,11 +1235,15 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
     NvBufferGetParams( fd_rgb, &params_rgb );
 
     if (params_yuv.num_planes != 3) {
-        cout << "Buffer doesn't have the correct number of planes. (" << params_yuv.num_planes << " != 3)" << endl;
+        ostringstream oss;
+        oss << "Buffer doesn't have the correct number of planes. (" << params_yuv.num_planes << " != 3)";
+        _log_callback(oss.str());
         return NULL;
     }
     if (params_rgb.num_planes != 1) {
-        cout << "Buffer doesn't have the correct number of planes. (" << params_rgb.num_planes << " != 1)" << endl;
+        ostringstream oss;
+        oss << "Buffer doesn't have the correct number of planes. (" << params_rgb.num_planes << " != 1)";
+        _log_callback(oss.str());
         return NULL;
     }
   
@@ -1103,4 +1304,72 @@ FramePtr DNNCam::grab_v()
     return FramePtr(new Frame(cv_frame_v, NULL, argus_release_helper));
 }
 
+bool DNNCam::zoom_relative(const int steps)
+{
+    return _motor.zoomRelative(steps);
+}
+    
+bool DNNCam::zoom_absolute(const int pos)
+{
+    return _motor.zoomAbsolute(pos);
+}
+
+bool DNNCam::zoom_home()
+{
+    return _motor.zoomHome();
+}
+
+int DNNCam::get_zoom_location()
+{
+    return _motor.zoomAbsoluteLocation();
+}
+
+bool DNNCam::focus_relative(const int steps)
+{
+    return _motor.focusRelative(steps);
+}
+
+bool DNNCam::focus_absolute(const int pos)
+{
+    return _motor.focusAbsolute(pos);
+}
+
+bool DNNCam::focus_home()
+{
+    return _motor.focusHome();
+}
+
+int DNNCam::get_focus_location()
+{
+    return _motor.focusAbsoluteLocation();
+}    
+
+bool DNNCam::iris_relative(const int steps)
+{
+    return _motor.irisRelative(steps);
+}
+    
+bool DNNCam::iris_absolute(const int pos)
+{
+    return _motor.irisAbsolute(pos);
+}
+
+bool DNNCam::iris_home()
+{
+    return _motor.irisHome();
+}
+
+int DNNCam::get_iris_location()
+{
+    return _motor.irisAbsoluteLocation();
+}
+
+bool DNNCam::set_ir_cut(const bool enabled)
+{
+    if(enabled)
+        return _motor.ircutOn();
+    else
+        return _motor.ircutOff();
+}
+    
 } // namespace BoulderAI
