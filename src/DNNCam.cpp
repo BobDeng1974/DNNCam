@@ -1,4 +1,7 @@
 #include <sstream>
+#include <iostream>
+#include <iomanip>
+#include <sys/time.h>
 
 #include "DNNCam.hpp"
 
@@ -981,6 +984,10 @@ bool DNNCam::init()
 
 ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num)
 {
+    struct timeval last_tv;
+    struct timeval now_tv, result_tv;
+    gettimeofday(&last_tv, NULL);
+    
     if ( !is_initialized()) {
         cout << "Camera is not initialized."  << endl;
         return NULL;
@@ -1006,13 +1013,23 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
     if ( _timeout > 0 ) {
         timeout = static_cast<uint64_t>( _timeout * pow( 10, 9 ) );
     }
+    
+	gettimeofday(&now_tv, NULL);
+	timersub(&now_tv, &last_tv, &result_tv);
+    cout << "begin Diff: " << result_tv.tv_sec << "." << setfill('0') << setw(6) << result_tv.tv_usec << endl;
 
+    gettimeofday(&last_tv, NULL);
+    
     Argus::UniqueObj<EGLStream::Frame> frame_object( frame_consumer->acquireFrame(timeout, &status));
     if ( status != Argus::STATUS_OK ) {
         cout << "Failed to acquire frame. Status: " << status << endl;
         return NULL;
     }
 
+	gettimeofday(&now_tv, NULL);
+	timersub(&now_tv, &last_tv, &result_tv);
+    cout << "acquireFrame Diff: " << result_tv.tv_sec << "." << setfill('0') << setw(6) << result_tv.tv_usec << endl;
+    
     auto frame = Argus::interface_cast<EGLStream::IFrame>( frame_object );
     if ( frame == nullptr ) {
         cout << "Interface cast to IFrame failed." << endl;
@@ -1039,6 +1056,8 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
         return NULL;
     }
 
+    gettimeofday(&last_tv, NULL);
+    
     Argus::Size2D<uint32_t> image_size( _output_width, _output_height );
     int fd_yuv = image_native_buffer->createNvBuffer( image_size,
                                                       NvBufferColorFormat_YUV420,
@@ -1057,6 +1076,10 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
         cout << "Failed to create NvBuffer! Status: " << status << endl;
         return NULL;
     }
+
+	gettimeofday(&now_tv, NULL);
+	timersub(&now_tv, &last_tv, &result_tv);
+    cout << "createNvBuffer Diff: " << result_tv.tv_sec << "." << setfill('0') << setw(6) << result_tv.tv_usec << endl;
 
     NvBufferParams params_yuv;
     NvBufferGetParams( fd_yuv, &params_yuv );
@@ -1088,9 +1111,17 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
     cv_frame_v = cv::Mat(params_yuv.height[2], params_yuv.width[2],
     CV_8U, plane_buffer_v, params_yuv.pitch[2]);*/
   
+    gettimeofday(&last_tv, NULL);
+    
     void *plane_buffer_rgb;
     NvBufferMemMap(fd_rgb, 0, NvBufferMem_Read, &plane_buffer_rgb);
     NvBufferMemSyncForCpu(fd_rgb, 0, &plane_buffer_rgb);
+
+	gettimeofday(&now_tv, NULL);
+	timersub(&now_tv, &last_tv, &result_tv);
+    cout << "rest Diff: " << result_tv.tv_sec << "." << setfill('0') << setw(6) << result_tv.tv_usec << endl;
+
+    
     cv_frame_rgb = cv::Mat(params_rgb.height[0], params_rgb.width[0],
                            CV_8UC4, plane_buffer_rgb, params_rgb.pitch[0]);
 
@@ -1115,6 +1146,9 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
 //  result->time = frame->getTime() * pow( 10, -6 );
 //  result->encoding = ImageEncoding::BGRA8;
 //  onSuccess( result );
+
+
+    
     return data;
     //return NULL;
 }
