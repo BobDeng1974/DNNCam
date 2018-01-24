@@ -60,6 +60,7 @@ target_link_libraries(camerastreamer
 		${STREAMER_DEPS}
 		${GSTREAMER_LIBRARIES}
 		${ARGUS_DEPS}
+        ${XMLRPC_DEPS}
 		gstrtspserver-1.0
 )
 

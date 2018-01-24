@@ -5,7 +5,7 @@
 #include <readline/history.h>
 
 #include "motordriver.hpp"
-#include "motorxmlrpc.hpp"
+#include "DNNCamServer.hpp"
 
 using namespace std;
 using namespace boost;
@@ -13,7 +13,7 @@ using namespace BoulderAI;
 
 namespace po = boost::program_options;
 
-static void cout_log_handler(string output)
+static void lens_cout_log_handler(string output)
 {
     cout << output << endl;
 }
@@ -30,7 +30,7 @@ const char *convert_to_cstr(const std::string & s)
 void interactive(MotorDriverPtr m) {
     char c;
     int num_steps = 1;
-    m.reset(new MotorDriver(true, cout_log_handler));
+    m.reset(new MotorDriver(true, lens_cout_log_handler));
     std::cout << "Verson 1.1.3: Type help for commands." << std::endl;
     po::options_description desc("Options");
     desc.add_options()
@@ -56,8 +56,6 @@ void interactive(MotorDriverPtr m) {
         ("irislocation", "prints iris location")
         ("ircuton", "flips the ir-cut filter on")
         ("ircutoff", "flips the ir-cut filter off")
-
-
     ;
     std::istringstream iss;
     std::vector<std::string> args;
@@ -186,33 +184,31 @@ void interactive(MotorDriverPtr m) {
     }
 }
 
-void rpcmode(MotorDriverPtr m)
+/*void rpcmode(DNNCamPtr dnncam)
 {
-    m.reset(new MotorDriver(true, cout_log_handler));
-    XMLRPCServerPtr server;
-    server.reset(new XMLRPCServer(m));
+    dnncam.reset(new DNNCam(true, cout_log_handler));
+    DNNCamServerPtr server(new DNNCamServer(dnncam));
     server->run();
-}
+    }*/
 
 int main(int argc, const char* argv[])
 {
     MotorDriverPtr m;
     po::options_description desc{"Options"};
     desc.add_options()
-        ("help,h", "Help screen")
-        ("xmlrpc", "Run as xmlrpc client");
+        ("help,h", "Help screen");
+    //("xmlrpc", "Run as xmlrpc client");
     try
     {
-
         po::variables_map vm;
         store(parse_command_line(argc, argv, desc), vm);
         notify(vm);
 
         if (vm.count("help")) {
             std::cout << desc << '\n';
-        } else if (vm.count("xmlrpc")) {
+        }/* else if (vm.count("xmlrpc")) {
             rpcmode(m);
-        } else {
+            }*/ else {
             interactive(m);
         }
     } catch (const std::exception &e) {

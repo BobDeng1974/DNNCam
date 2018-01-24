@@ -10,6 +10,7 @@
 #include <boost/program_options.hpp>
 
 #include "DNNCam.hpp"
+#include "DNNCamServer.hpp"
 
 #include "frame_processor.hpp"
 
@@ -110,6 +111,9 @@ int run(int argc, char** argv)
     
     camera.reset(new DNNCam(0, 0, W, H, W, H));
     camera->init();
+
+    DNNCamServerPtr server(new DNNCamServer(camera));
+    boost::thread *server_thread(new boost::thread(boost::bind(&DNNCamServer::run, server)));
         
     FrameProcessorPtr frame_proc;
     frame_proc.reset(new FrameProcessor(W, H));
@@ -157,8 +161,11 @@ int run(int argc, char** argv)
         
         frame_proc->process_frame(col);
     }
-    
+
     frame_proc->wait_for_queued_images();
+    
+    server->stop();
+    delete server_thread;
     
     return ret; 
 }
