@@ -9,6 +9,9 @@
 #include "new_worker.hpp"
 #include "stream.hpp"
 
+namespace BoulderAI
+{
+
 typedef bl::NewWorker < bl::Logexc_policy > BoundedWorkerBase;
 class BoundedWorker : public BoundedWorkerBase
 {
@@ -203,3 +206,5 @@ protected:
 } ;
 
 typedef boost::shared_ptr < FrameProcessor > FrameProcessorPtr;
+
+} // namespace BoulderAI

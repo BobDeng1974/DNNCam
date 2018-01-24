@@ -13,6 +13,9 @@
 
 namespace pt=boost::posix_time;
 
+namespace BoulderAI
+{
+
 static const size_t PREBUFFERED_FRAMES = 20; // number of frames to 'prebuffer' -- the prebuffer is
                                              // a small queue of frames that we can go back to after
                                              // we notice a new object for tracking, and dynamically turn
@@ -204,3 +207,5 @@ void FrameProcessor::increment_dropped_frames(void)
 {
     _dropped_frames++;
 }
+
+} // namespace BoulderAI

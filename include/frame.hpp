@@ -5,6 +5,9 @@
 #include <boost/function.hpp>
 #include <opencv2/opencv.hpp>
 
+namespace BoulderAI
+{
+
 class Frame
 {
 public:
@@ -103,3 +106,4 @@ typedef std::deque < FrameCollection > FrameQueue;
 typedef FrameQueue::iterator FrameQueueIter;
 typedef FrameQueue::reverse_iterator FrameQueueRIter;
 
+} // namespace BoulderAI

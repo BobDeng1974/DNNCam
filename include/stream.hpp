@@ -13,6 +13,9 @@
 
 namespace pt = boost::posix_time;
 
+namespace BoulderAI
+{
+
 class Stream
 {
 public:
@@ -50,3 +53,5 @@ protected:
 };
 
 typedef boost::shared_ptr < Stream > StreamPtr;
+
+} // namespace BoulderAI

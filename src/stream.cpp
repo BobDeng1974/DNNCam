@@ -15,6 +15,9 @@
 #include "stream.hpp"
 #include "log.hpp"
 
+namespace BoulderAI
+{
+
 std::mutex Stream::_context_mutex;
 
 Stream::Stream(const int width, const int height, const std::string host, const int port) :
@@ -187,3 +190,5 @@ Stream::~Stream()
     }
     g_main_loop_unref(_loop);
 }
+
+} // namespace BoulderAI
