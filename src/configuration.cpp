@@ -3,6 +3,9 @@
 
 #include "configuration.hpp"
 
+namespace BoulderAI
+{
+
 bool Configuration::_initialized;
 
 int Configuration::_zoom_start;
@@ -85,3 +88,5 @@ void Configuration::_load_config_file(void)
     _initialized = true;
 }
 
+
+} // namespace BoulderAI

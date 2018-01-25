@@ -4,6 +4,9 @@
 
 namespace po=boost::program_options;
 
+namespace BoulderAI
+{
+
 class Configuration
 {
 public:
@@ -68,3 +71,4 @@ protected:
     static bool _iris_has_limit;
 };
 
+} // namepsace BoulderAI
