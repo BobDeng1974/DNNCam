@@ -1,0 +1,6 @@
+#!/bin/sh
+
+echo Content-type: text/plain
+echo
+REQ=`echo $REQUEST_URI | awk -F'request=' '{ print $2 }'|sed 's/+/ /g'`
+xmlrpc http://localhost:7000/RPC2 $REQ | tail -n +2 | sed -e 's/[^ ]* //' -e 's/'\''//g'

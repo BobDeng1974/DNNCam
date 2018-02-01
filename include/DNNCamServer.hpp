@@ -311,6 +311,7 @@ public:
         const bool value(paramList.getBoolean(0));
         bl_log_info("XMLRPC: SetAutoExposure");
         _dnncam->set_auto_exposure(value);
+        *retvalP = xmlrpc_c::value_nil();
     }
 
 protected:
@@ -355,6 +356,7 @@ public:
         bl_log_info("XMLRPC: SetExposureTime");
         Argus::Range < uint64_t > param(value_min, value_max);
         _dnncam->set_exposure_time(param);
+        *retvalP = xmlrpc_c::value_nil();
     }
 
 protected:
@@ -393,6 +395,7 @@ public:
         const bool param(paramList.getDouble(0));
         bl_log_info("XMLRPC: SetExposureCompensation");
         _dnncam->set_exposure_compensation(param);
+        *retvalP = xmlrpc_c::value_nil();
     }
 
 protected:
@@ -437,6 +440,7 @@ public:
         bl_log_info("XMLRPC: SetFrameDuration");
         Argus::Range < uint64_t > param(value_min, value_max);
         _dnncam->set_frame_duration(param);
+        *retvalP = xmlrpc_c::value_nil();
     }
 
 protected:
@@ -481,6 +485,7 @@ public:
         bl_log_info("XMLRPC: SetGain");
         Argus::Range < float > param(value_min, value_max);
         _dnncam->set_gain(param);
+        *retvalP = xmlrpc_c::value_nil();
     }
 
 protected:
@@ -621,6 +626,11 @@ public:
         // runOnce() call (a blocking method) to return, which will allow our thread
         // to exit and the program to exit cleanly.
         _server->terminate();
+    }
+
+    void add_method(const std::string &name, xmlrpc_c::methodPtr method)
+    {
+        _registry.addMethod(name, method);
     }
 
 protected:

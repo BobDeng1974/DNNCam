@@ -1,0 +1,15 @@
+#!/bin/sh
+
+REQ=`echo $REQUEST_URI | awk -F'file=' '{ print $2 }'|sed 's/+/ /g'`
+rm /var/www/export/"$REQ"
+RET=$?
+
+echo Content-type: text/plain
+echo
+if [ "$RET" -eq "0" ]; then 
+    echo Delete succeeded 
+else 
+    echo Delete failed
+fi
+
+return $RET

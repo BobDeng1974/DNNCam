@@ -1,4 +1,4 @@
-project(CameraStreamer)
+project(DNNCam)
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -61,10 +61,17 @@ add_subdirectory(src)
 install(PROGRAMS ${files} DESTINATION usr/local/camerastreamer/bin COMPONENT camerastreamer)
 install(FILES ${PROJECT_SOURCE_DIR}/package/camerastreamer.service DESTINATION etc/systemd/system COMPONENT camerastreamer)
 
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/web/finder.css
+  ${CMAKE_CURRENT_SOURCE_DIR}/web/index.html
+  DESTINATION /var/www/html)
+FILE(GLOB images "${CMAKE_CURRENT_SOURCE_DIR}/web/images/*.png")
+install(FILES ${images} DESTINATION /var/www/html/images)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cgi-bin/list ${CMAKE_CURRENT_SOURCE_DIR}/cgi-bin/delete ${CMAKE_CURRENT_SOURCE_DIR}/cgi-bin/rpc ${CMAKE_CURRENT_SOURCE_DIR}/cgi-bin/temps ${CMAKE_CURRENT_SOURCE_DIR}/cgi-bin/setroi DESTINATION /usr/lib/cgi-bin PERMISSIONS WORLD_READ WORLD_EXECUTE)
+
 include("Version.cmake")
 
-SET(CPACK_PACKAGE_NAME "camerastreamer")
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Camera Streaming Application")
+SET(CPACK_PACKAGE_NAME "dnncam")
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "DNNCam convenience library")
 set(CPACK_GENERATOR "DEB")
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "andreas@boulderlabs.com")
 SET(CPACK_PACKAGE_VERSION "${VERSION}")

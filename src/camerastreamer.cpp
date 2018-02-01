@@ -132,7 +132,7 @@ int run(int argc, char** argv)
         col.frame_u = camera->grab_u();
         col.frame_v = camera->grab_v();
 
-        time_t now = time(NULL);
+        /*time_t now = time(NULL);
         if(now - last > 5)
         {
             auto_exp = !auto_exp;
@@ -157,7 +157,7 @@ int run(int argc, char** argv)
             camera->get_gain();
             cout << "Auto exposure is " << auto_exp << endl;
             last = now;
-        }
+            }*/
         
         frame_proc->process_frame(col);
     }

@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Serial File contents
+# Temp (F),
+# humidity (%R)
+# Pressure (raw), [psi = (raw/1023)*15], [depth (ft) = psi*2.3106]
+# Accelerometer x (raw) [deg = ((raw-275)/139-0.5)*180]
+# Accelerometer y (raw) [deg = ((raw-265)/139-0.5)*180]
+# Accelerometer z (raw) [deg = ((raw-278)/134-0.5)*180]
+# Gyro x (raw),
+# Gyro y (raw),
+# Gyro z (raw),
+# Water sensor (1,0) active low, active=water greater than 1/4" deep pool in
+# bottom of device.
+
+echo Content-type: text/plain
+echo
+#SERIAL=($(awk -F, '{ printf("%0.1f %0.1f %0.1f %0.1f %0.1f %0.1f %0.1f %0.1f %0.1f %d", $2, ($1-32)*5/9, 15*2.3106*$3/1023, (($4-275)/139-0.5)*180, (($5-265)/139-0.5)*180, (($6-278)/134-0.5)*180, $7, $8, $9, $10) }' /var/www/export/serial.txt))
+#SENSOR=($(sensors |grep TIN|cut -c15,16,17,18))
+#if [ ${SERIAL[9]} == 0 ]; then
+#  FLOOD="<b>DEVICE FLOODED</b>"
+#else
+#  FLOOD="Normal"
+#fi
+
+echo "<table>"
+echo "<tr><th>Time</th><td>"`date +%H:%M:%S`"</td></tr>"
+#echo "<tr><th>Water Sensor</th><td>$FLOOD</td></tr>"
+#echo "<tr><th>Depth</th><td>${SERIAL[2]}ft</td></tr>"
+#echo "<tr><th>Accelerometer</th><td>(${SERIAL[3]}&deg;, ${SERIAL[4]}&deg;, ${SERIAL[5]}&deg;)</td>"
+#echo "<tr><th>Gyro</th><td>(${SERIAL[6]}, ${SERIAL[7]}, ${SERIAL[8]})</td>"
+#echo "<tr><th>Relative Humidity</th><td>${SERIAL[0]}%</td></tr>"
+#echo "<tr><th>Case Temp</th><td>${SERIAL[1]}&deg;C</td></tr>" 
+#echo "<tr><th>System Temp</th><td>${SENSOR[0]}&deg;C</td></tr>" 
+#echo "<tr><th>CPU Temp</th><td>${SENSOR[1]}&deg;C</td></tr>" 
+#echo "<tr><th>Aux Temp</th><td>${SENSOR[2]}&deg;C</td></tr>"
+#echo "</table><br/>"
+echo

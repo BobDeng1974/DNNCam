@@ -1,0 +1,367 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"> 
+<head> 
+    <title>DNNCam Web Control</title> 
+    <link rel="stylesheet" href="finder.css" />
+<script type="text/javascript">
+
+(function() {
+"use strict";
+
+var supportsMultiple = self.HTMLInputElement && "valueLow" in HTMLInputElement.prototype;
+
+var descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+
+self.multirange = function(input) {
+	if (supportsMultiple || input.classList.contains("multirange")) {
+		return;
+	}
+
+	var value = input.getAttribute("value");
+	var values = value === null ? [] : value.split(",");
+	var min = +(input.min || 0);
+	var max = +(input.max || 100);
+	var ghost = input.cloneNode();
+
+	input.classList.add("multirange", "original");
+	ghost.classList.add("multirange", "ghost");
+
+	input.value = values[0] || min + (max - min) / 2;
+	ghost.value = values[1] || min + (max - min) / 2;
+
+	input.parentNode.insertBefore(ghost, input.nextSibling);
+
+	Object.defineProperty(input, "originalValue", descriptor.get ? descriptor : {
+		// Fuck you Safari >:(
+		get: function() { return this.value; },
+		set: function(v) { this.value = v; }
+	});
+
+	Object.defineProperties(input, {
+		valueLow: {
+			get: function() { return Math.min(this.originalValue, ghost.value); },
+			set: function(v) { this.originalValue = v; },
+			enumerable: true
+		},
+		valueHigh: {
+			get: function() { return Math.max(this.originalValue, ghost.value); },
+			set: function(v) { ghost.value = v; },
+			enumerable: true
+		}
+	});
+
+	if (descriptor.get) {
+		// Again, fuck you Safari
+		Object.defineProperty(input, "value", {
+			get: function() { return this.valueLow + "," + this.valueHigh; },
+			set: function(v) {
+				var values = v.split(",");
+				this.valueLow = values[0];
+				this.valueHigh = values[1];
+				update();
+			},
+			enumerable: true
+		});
+	}
+
+	if (typeof input.oninput === "function") {
+		ghost.oninput = input.oninput.bind(input);
+	}
+
+	function update() {
+		ghost.style.setProperty("--low", 100 * ((input.valueLow - min) / (max - min)) + 1 + "%");
+		ghost.style.setProperty("--high", 100 * ((input.valueHigh - min) / (max - min)) - 1 + "%");
+	}
+
+	input.addEventListener("input", update);
+	ghost.addEventListener("input", update);
+
+	update();
+}
+
+multirange.init = function() {
+	[].slice.call(document.querySelectorAll("input[type=range][multiple]:not(.multirange)")).forEach(multirange);
+}
+
+if (document.readyState == "loading") {
+	document.addEventListener("DOMContentLoaded", multirange.init);
+}
+else {
+	multirange.init();
+}
+
+})();
+  
+/***********************************************
+* Dynamic Ajax Content- © Dynamic Drive DHTML code library (www.dynamicdrive.com)
+* This notice MUST stay intact for legal use
+* Visit Dynamic Drive at http://www.dynamicdrive.com/ for full source code
+***********************************************/
+     
+var bustcachevar=0 //bust potential caching of external pages after initial request? (1=yes, 0=no)
+var loadedobjects=""
+var rootdomain="http://"+window.location.hostname
+var bustcacheparameter=""
+     
+function ajaxpage(url, containerid)
+{
+    var page_request = false;
+    if (window.XMLHttpRequest) // if Mozilla, Safari etc
+        page_request = new XMLHttpRequest();
+    else if (window.ActiveXObject){ // if IE
+        try {
+            page_request = new ActiveXObject("Msxml2.XMLHTTP");
+        } 
+        catch (e){
+            try{
+                page_request = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            catch (e){}
+        }
+    }
+    else
+        return false;
+    page_request.onreadystatechange=function(){
+        loadpage(page_request, containerid)
+    }
+    if (bustcachevar) //if bust caching of external page
+        bustcacheparameter=(url.indexOf("?")!=-1)? "&"+new Date().getTime() : "?"+new Date().getTime();
+    page_request.open('GET', url+bustcacheparameter, true);
+    page_request.send(null)
+}
+     
+function loadpage(page_request, containerid){
+    if (page_request.readyState == 4 && (page_request.status==200 || window.location.href.indexOf("http")==-1))
+        document.getElementById(containerid).innerHTML=page_request.responseText;
+}
+
+function loadobjs()
+{
+    if (!document.getElementById)
+    {
+        return;
+    }
+
+    for (i=0; i<arguments.length; i++)
+    {
+        var file=arguments[i]
+            var fileref=""
+            if (loadedobjects.indexOf(file)==-1)
+            { //Check to see if this object has not already been added to page before proceeding
+                if (file.indexOf(".js")!=-1){ //If object is a js file
+                    fileref=document.createElement('script')
+                    fileref.setAttribute("type","text/javascript");
+                    fileref.setAttribute("src", file);
+                }
+                else if (file.indexOf(".css")!=-1){ //If object is a css file
+                    fileref=document.createElement("link")
+                    fileref.setAttribute("rel", "stylesheet");
+                    fileref.setAttribute("type", "text/css");
+                    fileref.setAttribute("href", file);
+                }
+            }
+        if (fileref!=""){
+            document.getElementsByTagName("head").item(0).appendChild(fileref);
+            loadedobjects+=file+" ";//Remember this object as being already added to page
+        }
+    }
+}
+
+function getPageAsString(url)
+{
+    oxmlhttp = null;
+    try
+    {
+        oxmlhttp = new XMLHttpRequest();
+        oxmlhttp.overrideMimeType("text/xml");
+    }
+    catch(e)
+    {
+        try
+        {
+            oxmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+        }
+        catch(e) { return null; }
+    }
+    if(!oxmlhttp) return null;
+    try
+    {
+        oxmlhttp.open("GET",url,false);
+        oxmlhttp.send(null);
+    }
+    catch(e) { return null; }
+    return oxmlhttp.responseText;
+}
+                              
+
+var set_buttons = function()
+{
+    status = getPageAsString('/cgi-bin/rpc?request=system_status');
+
+                                  
+    document.getElementsByName("btn_trackingoff")[0].disabled = ~status.indexOf('Tracking: Off');
+    document.getElementsByName("btn_trackingon")[0].disabled = ~status.indexOf('Tracking: On');
+}
+
+var get_config = function()
+{
+    /* alert("get_config"); */
+    ajaxpage('/cgi-bin/rpc?request=get_config', 'cam_config');
+    ajaxpage('/cgi-bin/temps', 'temps');
+    ajaxpage('/cgi-bin/rpc?request=get_timing', 'timing_data');
+}
+
+var set_tracking=function(val)
+{
+    /* alert("set tracking: "+val); */
+    ajaxpage('/cgi-bin/rpc?request=set_tracking+i/'+val, 'result');
+    document.getElementsByName("btn_trackingoff")[0].disabled = (val==0)
+    document.getElementsByName("btn_trackingon")[0].disabled = (val==1)
+}
+
+var set_auto_exposure=function(val)
+{
+                                  alert("set auto exposure: " + val)
+                                  if(val == 0)
+                                  {
+                                  val="false"
+                                  }
+                                  else
+                                  {
+                                  val="true"
+                                  }
+    ajaxpage('/cgi-bin/rpc?request=set_auto_exposure+b/'+val, 'result');
+    document.getElementsByName("btn_autoexposureoff")[0].disabled = (val==0)
+    document.getElementsByName("btn_autoexposureon")[0].disabled = (val==1)
+}
+                                  
+var set_stream_selection=function(val)
+{
+  //alert("set stream selection: "+val);
+  ajaxpage('/cgi-bin/rpc?request=set_stream_selection+s/'+val, 'result');
+}
+
+var set_exposure = function()
+{
+    var value = document.getElementsByName("exposure")[0].value
+    if(value < 56)
+        value = 56
+    if(value > 16506)
+        value = 16506
+    ajaxpage('/cgi-bin/rpc?request=set_exposure+i/'+value, 'result');
+    get_config();
+}
+
+var set_gain = function()
+{
+    var value = document.getElementsByName("gain")[0].value
+    if(value < 0)
+        value = 0
+    if(value > 120)
+        value = 120
+    ajaxpage('/cgi-bin/rpc?request=set_gain+i/'+value, 'result');
+    get_config();
+}
+                                  
+var refresh = function()
+{
+    get_config();
+    set_buttons();
+    setTimeout("refresh();",3000);
+}
+
+if (document.addEventListener) {
+  document.addEventListener("DOMContentLoaded", refresh, false);
+}
+  
+</script>      
+
+</head> 
+<body> 
+<div id="container"> 
+    <div id="header"> 
+        <!-- <img src="images/sureworks-alpha.png"/> -->
+        <h2>DNNCam Controller</h2>
+    </div> 
+    <div id="content">
+    <div id="video">
+      <h2>Video</h2>
+      <!-- doesn't look like any browsers support embedded rtsp -->
+      <!-- <video autoplay controls> -->
+      <!--        <source src="rtsp://dnncam:8554/stream"> -->
+      <!--   Your browser may not support HTML5 RTSP video. -->
+      <!-- </video> -->
+      <a href="rtsp://dnncam:8554/stream">Link to Video Stream</a>
+    </div> 
+    <div id="control_panel"> 
+      <h2>Control</h2>
+      <div>
+        <button type="submit" name="btn_autoexposureoff" class="imagebutton" onclick="javascript:set_auto_exposure(0);">
+          <br>
+          Auto-Exposure<br>Off
+        </button>
+        <button type="submit" name="btn_autoexposureon" class="imagebutton" onclick="javascript:set_auto_exposure(1);">
+          <br>
+          Auto-Exposure<br>On
+        </button>
+        <button type="submit" name="btn_trackingoff" class="imagebutton" onclick="javascript:set_tracking(0);">
+          <img src="images/track-off.png" width="48" height="48" ><br>
+          Tracking<br>Off
+        </button>
+        <button type="submit" name="btn_trackingon" class="imagebutton" onclick="javascript:set_tracking(1);">
+          <img src="images/track-on.png" width="48" height="48" ><br>
+          Tracking<br>On
+        </button>  
+
+        <button type="submit" name="btn_stream_input" class="imagebutton" onclick="javascript:set_stream_selection(&quot;input&quot;);">
+          <img src="images/stream-input.png" width="48" height="48" ><br>
+          Show<br>Input
+        </button>
+
+        <button type="submit" name="btn_stream_thresh" class="imagebutton" onclick="javascript:set_stream_selection(&quot;thresh&quot;);">
+          <img src="images/stream-thresh.png" width="48" height="48" ><br>
+          Show<br>Threshold
+        </button>
+
+        <button type="submit" name="btn_stream_water_level" class="imagebutton" onclick="javascript:set_stream_selection(&quot;waterlevel&quot;);">
+          <img src="images/stream-water-level.png" width="48" height="48" ><br>
+          Show<br>Water Level
+        </button>
+
+      </div>
+    <div id="configuration">
+      <h2>Configuration</h2>
+      <span id="cam_config"><p>Loading...</p></span>
+      <table>
+	<tr>
+	  <td>Exposure:</td>
+	  <td>
+	    <input id="exposure_input" type="range" multiple
+	    name="exposure" min="16000" max="20000000" value="16000,16000000"></input>
+        <button type="submit" name="exp" onclick="javascript:set_exposure();">Set</button>
+	  </td>
+	</tr>
+	<tr>
+	  <td>Gain:</td>
+	  <td>
+        <input id="gain_input" type="text" name="gain" size="8"></input>
+        <button type="submit" name="exp" onclick="javascript:set_gain();">Set</button>
+      </td>
+    </tr>
+      </table>
+   </div>
+   <div id="status">
+     <h2>System Status</h2>
+      <span id="temps"></span>
+    </div>
+    
+    <div id="timing">
+      <h2>Timing Information</h2>
+      <span id="timing_data"></span>
+    </div>
+    </div> 
+    <div id="footer"> 
+        Development by <a href="https://www.boulderai.com">Boulder AI</a> in cooperation with <a href="http://boulderlabs.com">Boulder Labs</a>.
+    </div> 
+</div> 
+</body> 
+</html> 

@@ -1,0 +1,197 @@
+#container
+{
+    width: 100%;
+    background:#fff;
+}
+
+#header
+{
+    background:#eee;
+    border-bottom: 2px solid #ccc;
+    width:100%;
+}
+
+#header h1 { margin: 0; }
+
+#header img
+{ 
+    /*float: center;*/
+    margin: 0px 0px 10px 20px;
+    width: 400px;
+}
+
+#configuration_table
+{
+}
+
+#configuration_table th
+{
+    text-align: right;
+}
+
+#configuration_table td
+{
+    text-align: right;
+}
+
+#captureslink
+{
+    clear: left;
+    padding: 10px;
+}
+
+#imagebutton
+{
+    float:left;
+    padding: 5px;
+    width:64px;
+    height:90px;
+}
+
+#navigation
+{
+    float: left;
+    width: 700px;
+    background:#333;
+}
+
+#navigation ul
+{
+    margin: 0;
+    padding: 0;
+}
+
+#navigation ul li
+{
+    list-style-type: none;
+    display: inline;
+}
+
+#navigation li a
+{
+    display: block;
+    float: left;
+    padding: 5px 10px;
+    color:#fff;
+    text-decoration: none;
+    border-right: 1px solid#fff;
+}
+
+#navigation li a:hover { background:#5785ca; }
+
+#content
+{
+    float: left;
+    background: #eee;
+    width:100%;
+    font-family: sans-serif;
+}
+
+#video
+{
+    float: left;
+    padding: 10px;
+    background: #eee;
+    font-family: sans-serif;
+}
+
+#configuration
+{
+    float: left;
+    padding: 10px;
+    background: #eee;
+    font-family: sans-serif;
+}
+
+#status
+{
+    float: left;
+    padding: 10px;
+    background: #eee;
+    font-family: sans-serif;
+}
+
+#content h2
+{
+    font-size: 125%;
+    color: #023075;
+}
+
+#content h3
+{
+    font-size: 90%;
+    color: #245297;
+}
+
+#content p
+{
+    margin-left: 10px;
+}
+
+#address
+{
+    font-family: monospace;
+    font-weight: bold;
+    text-align: center;
+}
+
+#timing
+{
+    clear: left;
+}
+
+#footer
+{
+    clear: left;
+    background:#ccc;
+    text-align: right;
+    padding: 0px;
+    width:100%;
+    height: 3%;
+}
+
+@supports (--css: variables) {
+	input[type="range"].multirange {
+		padding: 0;
+		margin: 0;
+		display: inline-block;
+		vertical-align: top;
+	}
+
+	input[type="range"].multirange.original {
+		position: absolute;
+	}
+
+		input[type="range"].multirange.original::-webkit-slider-thumb {
+			position: relative;
+			z-index: 2;
+		}
+
+		input[type="range"].multirange.original::-moz-range-thumb {
+			transform: scale(1); /* FF doesn't apply position it seems */
+			z-index: 1;
+		}
+
+		input[type="range"].multirange::-moz-range-track {
+			border-color: transparent; /* needed to switch FF to "styleable" control */
+		}
+
+	input[type="range"].multirange.ghost {
+		position: relative;
+		background: var(--track-background);
+		--track-background: linear-gradient(to right,
+				transparent var(--low), var(--range-color) 0,
+				var(--range-color) var(--high), transparent 0
+			) no-repeat 0 45% / 100% 40%;
+		--range-color: hsl(190, 80%, 40%);
+	}
+
+		input[type="range"].multirange.ghost::-webkit-slider-runnable-track {
+			background: var(--track-background);
+		}
+
+		input[type="range"].multirange.ghost::-moz-range-track {
+			background: var(--track-background);
+		}
+
+}
