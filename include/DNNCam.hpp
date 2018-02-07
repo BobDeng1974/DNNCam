@@ -116,6 +116,8 @@ public:
 
     bool set_ir_cut(const bool enabled);
     
+    boost::function < void(std::string) > _log_callback;
+
 private:
     ArgusReleaseData *request_frame(bool &dropped_frame, uint64_t &frame_num);
     bool check_bounds();
@@ -136,8 +138,6 @@ private:
     const double _framerate;
     const double _timeout;
     const float _exposure_compensation;
-
-    boost::function < void(std::string) > _log_callback;
 
     MotorDriver _motor;
 

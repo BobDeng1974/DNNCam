@@ -31,9 +31,6 @@ set(XMLRPC_DEPS
         xmlrpc_server_abyss++
 )
 
-add_library(logger STATIC
-        log.cpp)
-
 add_library(motor STATIC
         motordriver.cpp
 )
@@ -54,7 +51,6 @@ target_link_libraries(camerastreamer
 		${CAMERA_DEPS}
         motor
         config
-		logger
 		${BOOST_DEPS}
 		${OPENCV_DEPS}
 		${STREAMER_DEPS}
@@ -69,7 +65,6 @@ install(TARGETS camerastreamer DESTINATION usr/local/bin COMPONENT camerastreame
 add_executable(lensDriver lensDriver.cpp)
 target_link_libraries(lensDriver
     motor
-    logger
     config 
     ${BOOST_DEPS}
     ${XMLRPC_DEPS}

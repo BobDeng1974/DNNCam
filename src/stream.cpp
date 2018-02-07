@@ -13,7 +13,6 @@
 #include <opencv/highgui.h>
 
 #include "stream.hpp"
-#include "log.hpp"
 
 namespace BoulderAI
 {

@@ -7,6 +7,7 @@
 #include <chrono>
 #include <thread>
 #include <iostream>
+#include <iomanip>
 
 #include "motordriver.hpp"
 #include "configuration.hpp"
@@ -116,16 +117,16 @@ int MotorDriver::addr2 = 0x21;
         /*
         // Home our zoom and then move to start position
         if (false == (zoom_init = zoomHome())) {
-            bl_log_error("Unable to home zoom");
+            log_callback("Unable to home zoom");
         } else if (false == zoomAbsolute(Configuration::zoom_start())) {
-            bl_log_error("Unable to zoom to start position: " << Configuration::zoom_start());
+            log_callback("Unable to zoom to start position: " << Configuration::zoom_start());
         }
 
         // Home our focus and then move to start position
         if (false == (focus_init = focusHome())) {
-            bl_log_error("Unable to home focus");
+            log_callback("Unable to home focus");
         } else if (false == focusAbsolute(Configuration::focus_start())) {
-            bl_log_error("Unable to focus to start position: " << Configuration::focus_start());
+            log_callback("Unable to focus to start position: " << Configuration::focus_start());
         }
         */
         //irisHome();
@@ -170,7 +171,9 @@ bool MotorDriver::init()
 
 bool MotorDriver::writeReg(uint8_t addr, uint8_t regaddr, uint8_t data)
 {
-    //bl_log_info(__FUNCTION__ << ": 0x" << hex << std::setw(2) << std::setfill('0') << (unsigned)addr << " reg 0x" << std::setw(2) << std::setfill('0') << (unsigned)regaddr << " val 0x" << std::setw(2) << std::setfill('0') << (unsigned)data << dec); 
+    ostringstream oss;
+    oss << ": 0x" << hex << std::setw(2) << std::setfill('0') << (unsigned)addr << " reg 0x" << std::setw(2) << std::setfill('0') << (unsigned)regaddr << " val 0x" << std::setw(2) << std::setfill('0') << (unsigned)data << dec;
+    _log_callback(oss.str());
     if (ioctl(fd_, I2C_SLAVE, addr) < 0) {
         ostringstream oss;
         oss << "Unable to access slave: " << addr;

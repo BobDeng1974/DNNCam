@@ -292,11 +292,6 @@ Argus::Range < uint64_t > DNNCam::get_exposure_time()
 
     Argus::Range < uint64_t > exposure_range;
     exposure_range = source_settings->getExposureTimeRange();
-    Argus::Range < uint64_t > frame_range;
-    frame_range = source_settings->getFrameDurationRange();
-    
-    cout << "exp " << exposure_range.min() << " " << exposure_range.max() << endl;
-    cout << "frame " << frame_range.min() << " " << frame_range.max() << endl;
     
     return exposure_range;
 }
@@ -320,6 +315,13 @@ void DNNCam::set_exposure_time(const Argus::Range < uint64_t > exposure_range)
     }
 
     source_settings->setExposureTimeRange(exposure_range);
+
+    Argus::Range < uint64_t > frame_range, exposure_range2;
+    frame_range = source_settings->getFrameDurationRange();
+    exposure_range2 = source_settings->getExposureTimeRange();
+    
+    cout << "exp " << exposure_range2.min() << " " << exposure_range2.max() << endl;
+    cout << "frame " << frame_range.min() << " " << frame_range.max() << endl;
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
@@ -403,6 +405,14 @@ void DNNCam::set_frame_duration(const Argus::Range < uint64_t > frame_range)
     }
 
     source_settings->setFrameDurationRange(frame_range);
+    
+
+    Argus::Range < uint64_t > exposure_range, frame_range2;
+    frame_range2 = source_settings->getFrameDurationRange();
+    exposure_range = source_settings->getExposureTimeRange();
+    
+    cout << "exp " << exposure_range.min() << " " << exposure_range.max() << endl;
+    cout << "frame " << frame_range2.min() << " " << frame_range2.max() << endl;
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
     if ( capture_session == nullptr ) {
@@ -1070,6 +1080,11 @@ bool DNNCam::init()
         return false;
     }
 
+    ostringstream oss;
+    oss << "exp range " << sensor_exposure_time.min() << " " << sensor_exposure_time.max() << endl << "frame range" << sensor_frame_duration.min() << " " << sensor_frame_duration.max() << endl
+        << "gain range " << sensor_gain.min() << " " << sensor_gain.max() << endl;
+    _log_callback(oss.str());
+    
     auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(request->getAutoControlSettings());
     if ( auto_control_settings == nullptr ) {
         ostringstream oss;

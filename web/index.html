@@ -4,6 +4,29 @@
     <link rel="stylesheet" href="finder.css" />
 <script type="text/javascript">
 
+<!-- pulled from https://github.com/LeaVerou/multirange/blob/gh-pages/LICENSE -->
+<!-- The MIT License (MIT) -->
+
+<!-- Copyright (c) 2016 Lea Verou -->
+
+<!-- Permission is hereby granted, free of charge, to any person obtaining a copy -->
+<!-- of this software and associated documentation files (the "Software"), to deal -->
+<!-- in the Software without restriction, including without limitation the rights -->
+<!-- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell -->
+<!-- copies of the Software, and to permit persons to whom the Software is -->
+<!-- furnished to do so, subject to the following conditions: -->
+
+<!-- The above copyright notice and this permission notice shall be included in all -->
+<!-- copies or substantial portions of the Software. -->
+
+<!-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR -->
+<!-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, -->
+<!-- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE -->
+<!-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER -->
+<!-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, -->
+<!-- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE -->
+<!-- SOFTWARE. -->
+  
 (function() {
 "use strict";
 
@@ -196,10 +219,6 @@ function getPageAsString(url)
 var set_buttons = function()
 {
     status = getPageAsString('/cgi-bin/rpc?request=system_status');
-
-                                  
-    document.getElementsByName("btn_trackingoff")[0].disabled = ~status.indexOf('Tracking: Off');
-    document.getElementsByName("btn_trackingon")[0].disabled = ~status.indexOf('Tracking: On');
 }
 
 var get_config = function()
@@ -210,17 +229,9 @@ var get_config = function()
     ajaxpage('/cgi-bin/rpc?request=get_timing', 'timing_data');
 }
 
-var set_tracking=function(val)
+var set_auto_exposure = function(val)
 {
-    /* alert("set tracking: "+val); */
-    ajaxpage('/cgi-bin/rpc?request=set_tracking+i/'+val, 'result');
-    document.getElementsByName("btn_trackingoff")[0].disabled = (val==0)
-    document.getElementsByName("btn_trackingon")[0].disabled = (val==1)
-}
-
-var set_auto_exposure=function(val)
-{
-                                  alert("set auto exposure: " + val)
+                                  alert("set auto exposure: " + val) 
                                   if(val == 0)
                                   {
                                   val="false"
@@ -234,7 +245,7 @@ var set_auto_exposure=function(val)
     document.getElementsByName("btn_autoexposureon")[0].disabled = (val==1)
 }
                                   
-var set_stream_selection=function(val)
+var set_stream_selection = function(val)
 {
   //alert("set stream selection: "+val);
   ajaxpage('/cgi-bin/rpc?request=set_stream_selection+s/'+val, 'result');
@@ -242,23 +253,52 @@ var set_stream_selection=function(val)
 
 var set_exposure = function()
 {
-    var value = document.getElementsByName("exposure")[0].value
-    if(value < 56)
-        value = 56
-    if(value > 16506)
-        value = 16506
-    ajaxpage('/cgi-bin/rpc?request=set_exposure+i/'+value, 'result');
+    var value_low = document.getElementsByName("exposure")[0].valueLow
+    var value_high = document.getElementsByName("exposure")[0].valueHigh
+    document.getElementById("exposure_text_low").value = value_low
+    document.getElementById("exposure_text_high").value = value_high
+    ajaxpage('/cgi-bin/rpc?request=set_exposure_time+I/'+value_low+'+I/'+value_high, 'result');
+    get_config();
+}
+
+var set_frame_duration = function()
+{
+    var value_low = document.getElementsByName("frame_duration")[0].valueLow
+    var value_high = document.getElementsByName("frame_duration")[0].valueHigh
+    document.getElementById("frame_duration_text_low").value = value_low
+    document.getElementById("frame_duration_text_high").value = value_high
+    ajaxpage('/cgi-bin/rpc?request=set_frame_duration+I/'+value_low+'+I/'+value_high, 'result');
+    get_config();
+}
+
+var set_focus_relative = function(val)
+{
+    var value = document.getElementsByName("focus_relative")[0].value
+    ajaxpage('/cgi-bin/rpc?request=focus_relative+i/'+value*val, 'result');
+    get_config();
+}
+
+var set_zoom_relative = function(val)
+{
+    var value = document.getElementsByName("zoom_relative")[0].value
+    ajaxpage('/cgi-bin/rpc?request=zoom_relative+i/'+value*val, 'result');
+    get_config();
+}
+
+var set_iris_relative = function(val)
+{
+    var value = document.getElementsByName("iris_relative")[0].value
+    ajaxpage('/cgi-bin/rpc?request=zoom_relative+i/'+value*val, 'result');
     get_config();
 }
 
 var set_gain = function()
 {
-    var value = document.getElementsByName("gain")[0].value
-    if(value < 0)
-        value = 0
-    if(value > 120)
-        value = 120
-    ajaxpage('/cgi-bin/rpc?request=set_gain+i/'+value, 'result');
+    var value_low = document.getElementsByName("gain")[0].valueLow
+    var value_high = document.getElementsByName("gain")[0].valueHigh
+    document.getElementById("gain_text_low").value = value_low
+    document.getElementById("gain_text_high").value = value_high
+    ajaxpage('/cgi-bin/rpc?request=set_gain+I/'+value_low+'+I/'+value_high, 'result');
     get_config();
 }
                                   
@@ -296,21 +336,12 @@ if (document.addEventListener) {
       <h2>Control</h2>
       <div>
         <button type="submit" name="btn_autoexposureoff" class="imagebutton" onclick="javascript:set_auto_exposure(0);">
-          <br>
           Auto-Exposure<br>Off
         </button>
+        
         <button type="submit" name="btn_autoexposureon" class="imagebutton" onclick="javascript:set_auto_exposure(1);">
-          <br>
           Auto-Exposure<br>On
         </button>
-        <button type="submit" name="btn_trackingoff" class="imagebutton" onclick="javascript:set_tracking(0);">
-          <img src="images/track-off.png" width="48" height="48" ><br>
-          Tracking<br>Off
-        </button>
-        <button type="submit" name="btn_trackingon" class="imagebutton" onclick="javascript:set_tracking(1);">
-          <img src="images/track-on.png" width="48" height="48" ><br>
-          Tracking<br>On
-        </button>  
 
         <button type="submit" name="btn_stream_input" class="imagebutton" onclick="javascript:set_stream_selection(&quot;input&quot;);">
           <img src="images/stream-input.png" width="48" height="48" ><br>
@@ -332,21 +363,64 @@ if (document.addEventListener) {
       <h2>Configuration</h2>
       <span id="cam_config"><p>Loading...</p></span>
       <table>
+        
 	<tr>
 	  <td>Exposure:</td>
 	  <td>
-	    <input id="exposure_input" type="range" multiple
-	    name="exposure" min="16000" max="20000000" value="16000,16000000"></input>
+	    <input id="exposure_input" type="range" multiple name="exposure" min="16000" max="165770000" value="16000,165770000"></input>
+        Low<input type="text" id="exposure_text_low" value=""></input>
+        High<input type="text" id="exposure_text_high" value=""></input>
         <button type="submit" name="exp" onclick="javascript:set_exposure();">Set</button>
 	  </td>
 	</tr>
+        
+	<tr>
+	  <td>Frame Duration:</td>
+	  <td>
+	    <input id="frame_duration_input" type="range" multiple name="frame_duration" min="16666667" max="1462525056" value="16666667,1462525056"></input>
+        Low<input type="text" id="frame_duration_text_low" value=""></input>
+        High<input type="text" id="frame_duration_text_high" value=""></input>
+        <button type="submit" name="frame_dur" onclick="javascript:set_frame_duration();">Set</button>
+	  </td>
+	</tr>
+        
 	<tr>
 	  <td>Gain:</td>
 	  <td>
-        <input id="gain_input" type="text" name="gain" size="8"></input>
-        <button type="submit" name="exp" onclick="javascript:set_gain();">Set</button>
+	    <input id="gain" type="range" multiple name="gain" min="1" max="180" value="1,180"></input>
+        Low<input type="text" id="gain_text_low" value=""></input>
+        High<input type="text" id="gain_text_high" value=""></input>
+        <button type="submit" name="gain" onclick="javascript:set_gain();">Set</button>
       </td>
     </tr>
+    
+	<tr>
+	  <td>Focus Relative:</td>
+	  <td>
+	    <input id="focus_relative" type="text" name="focus_relative" size="8"></input>
+        <button type="submit" name="focus_up" onclick="javascript:set_focus_relative(1);">Set</button>
+        <button type="submit" name="focus_down" onclick="javascript:set_focus_relative(-1);">Set</button>
+	  </td>
+	</tr>
+        
+	<tr>
+	  <td>Zoom Relative:</td>
+	  <td>
+	    <input id="zoom_relative" type="text" name="zoom_relative" size="8"></input>
+        <button type="submit" name="zoom_up" onclick="javascript:set_zoom_relative(1);">Set</button>
+        <button type="submit" name="zoom_down" onclick="javascript:set_zoom_relative(-1);">Set</button>
+	  </td>
+	</tr>
+        
+	<tr>
+	  <td>Iris Relative:</td>
+	  <td>
+	    <input id="iris_relative" type="text" name="iris_relative" size="8"></input>
+        <button type="submit" name="iris_up" onclick="javascript:set_iris_relative(1);">Set</button>
+        <button type="submit" name="iris_down" onclick="javascript:set_iris_relative(-1);">Set</button>
+	  </td>
+	</tr>
+    
       </table>
    </div>
    <div id="status">
@@ -358,7 +432,9 @@ if (document.addEventListener) {
       <h2>Timing Information</h2>
       <span id="timing_data"></span>
     </div>
-    </div> 
+    </div>
+    <div id="result">
+      </div>
     <div id="footer"> 
         Development by <a href="https://www.boulderai.com">Boulder AI</a> in cooperation with <a href="http://boulderlabs.com">Boulder Labs</a>.
     </div> 

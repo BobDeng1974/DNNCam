@@ -1,6 +1,7 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 #include <boost/iterator/transform_iterator.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <readline/readline.h>
 #include <readline/history.h>
 

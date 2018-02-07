@@ -8,8 +8,6 @@
 #include "DNNCam.hpp"
 #include "configuration.hpp"
 
-#include "log.hpp"
-
 namespace BoulderAI
 {
 
@@ -24,7 +22,7 @@ public:
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
         int ret = 0;
-        bl_log_info("XMLRPC: FocusHome");
+        _dnncam->_log_callback("XMLRPC: FocusHome");
         if (false == _dnncam->focus_home()) {
             ret = -1;
         }
@@ -47,7 +45,7 @@ public:
     {
         int ret = 0;
         const int value(paramList.getInt(0));
-        bl_log_info("XMLRPC: FocusAbsolute");
+        _dnncam->_log_callback("XMLRPC: FocusAbsolute");
         if (false == _dnncam->focus_absolute(value)) {
            ret = -1;
         }
@@ -70,7 +68,7 @@ public:
     {
         int ret = 0;
         const int value(paramList.getInt(0));
-        bl_log_info("XMLRPC: FocusRelative");
+        _dnncam->_log_callback("XMLRPC: FocusRelative");
         if (false == _dnncam->focus_relative(value)) {
            ret = -1;
         }
@@ -92,7 +90,7 @@ public:
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
         int ret = 0;
-        bl_log_info("XMLRPC: FocusGetLocation");
+        _dnncam->_log_callback("XMLRPC: FocusGetLocation");
         ret = _dnncam->get_focus_location();
         *retvalP = xmlrpc_c::value_int(ret);
     }
@@ -112,7 +110,7 @@ public:
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
         int ret = 0;
-        bl_log_info("XMLRPC: ZoomHome");
+        _dnncam->_log_callback("XMLRPC: ZoomHome");
         if (false == _dnncam->zoom_home()) {
             ret = -1;
         }
@@ -135,7 +133,7 @@ public:
     {
         int ret = 0;
         const int value(paramList.getInt(0));
-        bl_log_info("XMLRPC: ZoomAbsolute");
+        _dnncam->_log_callback("XMLRPC: ZoomAbsolute");
         if (false == _dnncam->zoom_absolute(value)) {
            ret = -1;
         }
@@ -158,7 +156,7 @@ public:
     {
         int ret = 0;
         const int value(paramList.getInt(0));
-        bl_log_info("XMLRPC: ZoomRelative");
+        _dnncam->_log_callback("XMLRPC: ZoomRelative");
         if (false == _dnncam->zoom_relative(value)) {
            ret = -1;
         }
@@ -180,7 +178,7 @@ public:
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
         int ret = 0;
-        bl_log_info("XMLRPC: ZoomGetLocation");
+        _dnncam->_log_callback("XMLRPC: ZoomGetLocation");
         ret = _dnncam->get_zoom_location();
         *retvalP = xmlrpc_c::value_int(ret);
     }
@@ -200,7 +198,7 @@ public:
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
         int ret = 0;
-        bl_log_info("XMLRPC: IrisHome");
+        _dnncam->_log_callback("XMLRPC: IrisHome");
         if (false == _dnncam->iris_home()) {
             ret = -1;
         }
@@ -223,7 +221,7 @@ public:
     {
         int ret = 0;
         const int value(paramList.getInt(0));
-        bl_log_info("XMLRPC: IrisAbsolute");
+        _dnncam->_log_callback("XMLRPC: IrisAbsolute");
         if (false == _dnncam->iris_absolute(value)) {
            ret = -1;
         }
@@ -246,7 +244,7 @@ public:
     {
         int ret = 0;
         const int value(paramList.getInt(0));
-        bl_log_info("XMLRPC: IrisRelative");
+        _dnncam->_log_callback("XMLRPC: IrisRelative");
         if (false == _dnncam->iris_relative(value)) {
            ret = -1;
         }
@@ -268,7 +266,7 @@ public:
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
         int ret = 0;
-        bl_log_info("XMLRPC: IrisGetLocation");
+        _dnncam->_log_callback("XMLRPC: IrisGetLocation");
         ret = _dnncam->get_iris_location();
         *retvalP = xmlrpc_c::value_int(ret);
     }
@@ -289,7 +287,7 @@ public:
     {
         int ret = 0;
         const bool value(paramList.getBoolean(0));
-        bl_log_info("XMLRPC: IRCut");
+        _dnncam->_log_callback("XMLRPC: IRCut");
         ret = _dnncam->set_ir_cut(value);
         *retvalP = xmlrpc_c::value_int(ret);
     }
@@ -309,7 +307,7 @@ public:
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
         const bool value(paramList.getBoolean(0));
-        bl_log_info("XMLRPC: SetAutoExposure");
+        _dnncam->_log_callback("XMLRPC: SetAutoExposure");
         _dnncam->set_auto_exposure(value);
         *retvalP = xmlrpc_c::value_nil();
     }
@@ -328,7 +326,7 @@ public:
 
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
-        bl_log_info("XMLRPC: GetExposureTime");
+        _dnncam->_log_callback("XMLRPC: GetExposureTime");
         Argus::Range < uint64_t > ret;
         ret = _dnncam->get_exposure_time();
         xmlrpc_c::carray ret_array;
@@ -353,7 +351,7 @@ public:
     {
         const uint64_t value_min(paramList.getI8(0));
         const uint64_t value_max(paramList.getI8(1));
-        bl_log_info("XMLRPC: SetExposureTime");
+        _dnncam->_log_callback("XMLRPC: SetExposureTime");
         Argus::Range < uint64_t > param(value_min, value_max);
         _dnncam->set_exposure_time(param);
         *retvalP = xmlrpc_c::value_nil();
@@ -373,7 +371,7 @@ public:
 
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
-        bl_log_info("XMLRPC: GetExposureCompensation");
+        _dnncam->_log_callback("XMLRPC: GetExposureCompensation");
         const float ret = _dnncam->get_exposure_compensation();
         *retvalP = xmlrpc_c::value_double(ret);
     }
@@ -393,7 +391,7 @@ public:
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
         const bool param(paramList.getDouble(0));
-        bl_log_info("XMLRPC: SetExposureCompensation");
+        _dnncam->_log_callback("XMLRPC: SetExposureCompensation");
         _dnncam->set_exposure_compensation(param);
         *retvalP = xmlrpc_c::value_nil();
     }
@@ -412,7 +410,7 @@ public:
 
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
-        bl_log_info("XMLRPC: GetFrameDuration");
+        _dnncam->_log_callback("XMLRPC: GetFrameDuration");
         Argus::Range < uint64_t > ret;
         ret = _dnncam->get_frame_duration();
         xmlrpc_c::carray ret_array;
@@ -437,7 +435,7 @@ public:
     {
         const uint64_t value_min(paramList.getI8(0));
         const uint64_t value_max(paramList.getI8(1));
-        bl_log_info("XMLRPC: SetFrameDuration");
+        _dnncam->_log_callback("XMLRPC: SetFrameDuration");
         Argus::Range < uint64_t > param(value_min, value_max);
         _dnncam->set_frame_duration(param);
         *retvalP = xmlrpc_c::value_nil();
@@ -457,7 +455,7 @@ public:
 
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
-        bl_log_info("XMLRPC: GetGain");
+        _dnncam->_log_callback("XMLRPC: GetGain");
         Argus::Range < float > ret;
         ret = _dnncam->get_gain();
         xmlrpc_c::carray ret_array;
@@ -482,7 +480,7 @@ public:
     {
         const float value_min(paramList.getI8(0));
         const float value_max(paramList.getI8(1));
-        bl_log_info("XMLRPC: SetGain");
+        _dnncam->_log_callback("XMLRPC: SetGain");
         Argus::Range < float > param(value_min, value_max);
         _dnncam->set_gain(param);
         *retvalP = xmlrpc_c::value_nil();
