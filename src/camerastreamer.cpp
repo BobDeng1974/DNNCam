@@ -19,8 +19,8 @@ using namespace BoulderAI;
 
 namespace po = boost::program_options ;
 static bool verbose=false;
-static int W = -1;
-static int H = -1;
+static int W = 1920;
+static int H = 1080;
 
 static bool running = true;
 
@@ -93,8 +93,8 @@ int run(int argc, char** argv)
     srand(time(NULL));
 
     // full hd
-    W=1920;
-    H=1080;
+    //W=1920;
+    //H=1080;
 
     // camera full res
     //W = 3864;
@@ -132,33 +132,6 @@ int run(int argc, char** argv)
         col.frame_u = camera->grab_u();
         col.frame_v = camera->grab_v();
 
-        /*time_t now = time(NULL);
-        if(now - last > 5)
-        {
-            auto_exp = !auto_exp;
-            camera->set_auto_exposure(auto_exp);
-            
-            if(!auto_exp)
-            {
-                Argus::Range < uint64_t > exp_range(2000000, 2000000);
-                camera->set_exposure_time(exp_range);
-                Argus::Range < float > gain_range(1, 1);
-                camera->set_gain(gain_range);
-                //_camera->set_frame_duration(30000);
-            }
-            else
-            {
-                Argus::Range < float > gain_range(5, 5);
-                camera->set_gain(gain_range);
-                //_camera->set_frame_duration(33333333);
-            }
-            
-            camera->get_exposure_time();
-            camera->get_gain();
-            cout << "Auto exposure is " << auto_exp << endl;
-            last = now;
-            }*/
-        
         frame_proc->process_frame(col);
     }
 

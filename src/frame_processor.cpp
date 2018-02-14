@@ -173,7 +173,7 @@ void FrameProcessor::process_frame_task(FrameCollection frame_col, const int fra
     const bool skip_processing = (queue_size > 350) && frame_num % 2 == 1;
     if (skip_processing)
     {
-        std::cout << "Skipping frame " << frame_num << " because frame queue contains " << queue_size << " frames.";
+        std::cout << "Skipping frame " << frame_num << " because frame queue contains " << queue_size << " frames." << std::endl;
     }
 
     do_stream(frame_col, frame_num, n_dropped_before);

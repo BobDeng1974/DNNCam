@@ -3,6 +3,7 @@
 #include "DNNCam.hpp"
 
 #include "EGLStream/NV/ImageNativeBuffer.h"
+#include "Argus/Ext/InternalFrameCount.h"
 
 namespace BoulderAI
 {
@@ -157,6 +158,7 @@ DNNCam::DNNCam(const uint32_t roi_x, const uint32_t roi_y,
     _timeout( timeout ),
     _exposure_compensation( exposure_compensation ),
     _log_callback(log_callback),
+    _dropped_frames(0),
     _motor(true, log_callback)
 {
     if(!check_bounds())
@@ -197,6 +199,7 @@ DNNCam::DNNCam(const po::variables_map &vm,
     _timeout( vm[OPT_TIMEOUT].as<double>() ),
     _exposure_compensation( vm[OPT_EXPOSURE_COMPENSATION].as<float>() ),
     _log_callback(log_callback),
+    _dropped_frames(0),
     _motor(true, log_callback)
 {
     //TODO ?
@@ -232,6 +235,44 @@ DNNCam::~DNNCam()
 
     capture_session->stopRepeat();
     capture_session->waitForIdle();
+}
+
+std::string DNNCam::awb_mode_to_string(const Argus::AwbMode mode)
+{
+    if(mode == Argus::AWB_MODE_OFF)
+        return "Off";
+    else if(mode ==Argus::AWB_MODE_AUTO)
+        return "Auto";
+    else if(mode == Argus::AWB_MODE_INCANDESCENT)
+        return "Incandescent";
+    else if(mode == Argus::AWB_MODE_FLUORESCENT)
+        return "Fluorescent";
+    else if(mode == Argus::AWB_MODE_WARM_FLUORESCENT)
+        return "Warm Fluorescent";
+    else if(mode == Argus::AWB_MODE_DAYLIGHT)
+        return "Daylight";
+    else if(mode == Argus::AWB_MODE_CLOUDY_DAYLIGHT)
+        return "Cloudy Daylight";
+    else if(mode == Argus::AWB_MODE_TWILIGHT)
+        return "Twilight";
+    else if(mode == Argus::AWB_MODE_SHADE)
+        return "Shade";
+    else if(mode == Argus::AWB_MODE_MANUAL)
+        return "Manual";
+    else
+        return "Unknown AWB Mode";
+}
+    
+std::string DNNCam::denoise_mode_to_string(const Argus::DenoiseMode mode)
+{
+    if(mode == Argus::DENOISE_MODE_OFF)
+        return "Off";
+    else if(mode == Argus::DENOISE_MODE_FAST)
+        return "Fast";
+    else if(mode == Argus::DENOISE_MODE_HIGH_QUALITY)
+        return "High Quality";
+    else
+        return "Unknown Denoise Mode";
 }
 
 bool DNNCam::check_bounds()
@@ -270,6 +311,27 @@ void DNNCam::set_auto_exposure(const bool auto_exp)
     }
 
     capture_session->repeat(_request_object.get());
+}
+
+bool DNNCam::get_auto_exposure()
+{
+    auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
+    if ( request == nullptr ) {
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());        
+        return false;
+    }
+    
+    auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(request->getAutoControlSettings());
+    if ( auto_control_settings == nullptr ) {
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
+        return false;
+    }
+    
+    return auto_control_settings->getAeLock();
 }
 
 Argus::Range < uint64_t > DNNCam::get_exposure_time()
@@ -499,8 +561,6 @@ Argus::Range < float > DNNCam::get_gain()
     Argus::Range < float > gain_range;
     gain_range = source_settings->getGainRange();
 
-    cout << "gain " << gain_range.min() << " " << gain_range.max() << endl;
-
     return gain_range;
 }
 
@@ -587,6 +647,27 @@ void DNNCam::set_awb(const bool enabled)
     capture_session->repeat(_request_object.get());
 }
 
+bool DNNCam::get_awb()
+{
+    auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
+    if ( request == nullptr ) {
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
+        return false;
+    }
+    
+    auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(request->getAutoControlSettings());
+    if ( auto_control_settings == nullptr ) {
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
+        return false;
+    }
+    
+    return auto_control_settings->getAwbLock();
+}
+    
 void DNNCam::set_awb_gains(const float wb_gains[Argus::BAYER_CHANNEL_COUNT])
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
@@ -1197,14 +1278,30 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
         return NULL;
     }
 
+    EGLStream::IArgusCaptureMetadata *iArgusCaptureMetadata = Argus::interface_cast<EGLStream::IArgusCaptureMetadata>(frame_object);
+    if(!iArgusCaptureMetadata)
+    {
+        _log_callback("Interface cast to Iarguscapturemetadata failed.");
+        return NULL;
+    }
+    Argus::CaptureMetadata *metadata = iArgusCaptureMetadata->getMetadata();
+    Argus::ICaptureMetadata *iMetadata = Argus::interface_cast<Argus::ICaptureMetadata>(metadata);
+    
+    auto *frame_count = Argus::interface_cast < Argus::Ext::IInternalFrameCount >(metadata);
+    if(frame_count == nullptr)
+    {
+        _log_callback("Interface cast to IInternalFrameCount failed.");
+        return NULL;
+    }
     static uint64_t last_frame_num = 0;
-    uint64_t this_frame_num = frame->getNumber();
+    uint64_t this_frame_num = frame_count->getInternalFrameCount();
     frame_num = this_frame_num;
     dropped_frame = false;
     if((this_frame_num != last_frame_num + 1) && (last_frame_num != 0))
     {
         ostringstream oss;
-        oss << "Missed frame! last " << last_frame_num << " this " << this_frame_num;
+        _dropped_frames += this_frame_num - last_frame_num - 1;
+        oss << "Missed frame! last " << last_frame_num << " this " << this_frame_num << " dropped " << _dropped_frames;
         _log_callback(oss.str());
         dropped_frame = true;
     }
@@ -1290,14 +1387,14 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
     // The provided 'Frame' class will call these as part of it's dtor through the
     // release_callback.
 
-    //TODO: exposure frame time?
-    // Convert capture time in microseconds since epoch to seconds since epoch
-//  result->time = frame->getTime() * pow( 10, -6 );
-//  result->encoding = ImageEncoding::BGRA8;
-//  onSuccess( result );
     return new ArgusReleaseData(fd_rgb, plane_buffer_rgb, fd_yuv, plane_buffer_y, plane_buffer_u, plane_buffer_v);
 }
 
+uint64_t DNNCam::get_dropped_frames()
+{
+    return _dropped_frames;
+}
+    
 FramePtr DNNCam::grab(bool &dropped_frame, uint64_t &frame_num)
 {
     ArgusReleaseData *data = request_frame(dropped_frame, frame_num);

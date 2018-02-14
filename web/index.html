@@ -2,442 +2,180 @@
 <head> 
     <title>DNNCam Web Control</title> 
     <link rel="stylesheet" href="finder.css" />
-<script type="text/javascript">
-
-<!-- pulled from https://github.com/LeaVerou/multirange/blob/gh-pages/LICENSE -->
-<!-- The MIT License (MIT) -->
-
-<!-- Copyright (c) 2016 Lea Verou -->
-
-<!-- Permission is hereby granted, free of charge, to any person obtaining a copy -->
-<!-- of this software and associated documentation files (the "Software"), to deal -->
-<!-- in the Software without restriction, including without limitation the rights -->
-<!-- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell -->
-<!-- copies of the Software, and to permit persons to whom the Software is -->
-<!-- furnished to do so, subject to the following conditions: -->
-
-<!-- The above copyright notice and this permission notice shall be included in all -->
-<!-- copies or substantial portions of the Software. -->
-
-<!-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR -->
-<!-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, -->
-<!-- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE -->
-<!-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER -->
-<!-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, -->
-<!-- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE -->
-<!-- SOFTWARE. -->
-  
-(function() {
-"use strict";
-
-var supportsMultiple = self.HTMLInputElement && "valueLow" in HTMLInputElement.prototype;
-
-var descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
-
-self.multirange = function(input) {
-	if (supportsMultiple || input.classList.contains("multirange")) {
-		return;
-	}
-
-	var value = input.getAttribute("value");
-	var values = value === null ? [] : value.split(",");
-	var min = +(input.min || 0);
-	var max = +(input.max || 100);
-	var ghost = input.cloneNode();
-
-	input.classList.add("multirange", "original");
-	ghost.classList.add("multirange", "ghost");
-
-	input.value = values[0] || min + (max - min) / 2;
-	ghost.value = values[1] || min + (max - min) / 2;
-
-	input.parentNode.insertBefore(ghost, input.nextSibling);
-
-	Object.defineProperty(input, "originalValue", descriptor.get ? descriptor : {
-		// Fuck you Safari >:(
-		get: function() { return this.value; },
-		set: function(v) { this.value = v; }
-	});
-
-	Object.defineProperties(input, {
-		valueLow: {
-			get: function() { return Math.min(this.originalValue, ghost.value); },
-			set: function(v) { this.originalValue = v; },
-			enumerable: true
-		},
-		valueHigh: {
-			get: function() { return Math.max(this.originalValue, ghost.value); },
-			set: function(v) { ghost.value = v; },
-			enumerable: true
-		}
-	});
-
-	if (descriptor.get) {
-		// Again, fuck you Safari
-		Object.defineProperty(input, "value", {
-			get: function() { return this.valueLow + "," + this.valueHigh; },
-			set: function(v) {
-				var values = v.split(",");
-				this.valueLow = values[0];
-				this.valueHigh = values[1];
-				update();
-			},
-			enumerable: true
-		});
-	}
-
-	if (typeof input.oninput === "function") {
-		ghost.oninput = input.oninput.bind(input);
-	}
-
-	function update() {
-		ghost.style.setProperty("--low", 100 * ((input.valueLow - min) / (max - min)) + 1 + "%");
-		ghost.style.setProperty("--high", 100 * ((input.valueHigh - min) / (max - min)) - 1 + "%");
-	}
-
-	input.addEventListener("input", update);
-	ghost.addEventListener("input", update);
-
-	update();
-}
-
-multirange.init = function() {
-	[].slice.call(document.querySelectorAll("input[type=range][multiple]:not(.multirange)")).forEach(multirange);
-}
-
-if (document.readyState == "loading") {
-	document.addEventListener("DOMContentLoaded", multirange.init);
-}
-else {
-	multirange.init();
-}
-
-})();
-  
-/***********************************************
-* Dynamic Ajax Content- © Dynamic Drive DHTML code library (www.dynamicdrive.com)
-* This notice MUST stay intact for legal use
-* Visit Dynamic Drive at http://www.dynamicdrive.com/ for full source code
-***********************************************/
-     
-var bustcachevar=0 //bust potential caching of external pages after initial request? (1=yes, 0=no)
-var loadedobjects=""
-var rootdomain="http://"+window.location.hostname
-var bustcacheparameter=""
-     
-function ajaxpage(url, containerid)
-{
-    var page_request = false;
-    if (window.XMLHttpRequest) // if Mozilla, Safari etc
-        page_request = new XMLHttpRequest();
-    else if (window.ActiveXObject){ // if IE
-        try {
-            page_request = new ActiveXObject("Msxml2.XMLHTTP");
-        } 
-        catch (e){
-            try{
-                page_request = new ActiveXObject("Microsoft.XMLHTTP");
-            }
-            catch (e){}
-        }
-    }
-    else
-        return false;
-    page_request.onreadystatechange=function(){
-        loadpage(page_request, containerid)
-    }
-    if (bustcachevar) //if bust caching of external page
-        bustcacheparameter=(url.indexOf("?")!=-1)? "&"+new Date().getTime() : "?"+new Date().getTime();
-    page_request.open('GET', url+bustcacheparameter, true);
-    page_request.send(null)
-}
-     
-function loadpage(page_request, containerid){
-    if (page_request.readyState == 4 && (page_request.status==200 || window.location.href.indexOf("http")==-1))
-        document.getElementById(containerid).innerHTML=page_request.responseText;
-}
-
-function loadobjs()
-{
-    if (!document.getElementById)
-    {
-        return;
-    }
-
-    for (i=0; i<arguments.length; i++)
-    {
-        var file=arguments[i]
-            var fileref=""
-            if (loadedobjects.indexOf(file)==-1)
-            { //Check to see if this object has not already been added to page before proceeding
-                if (file.indexOf(".js")!=-1){ //If object is a js file
-                    fileref=document.createElement('script')
-                    fileref.setAttribute("type","text/javascript");
-                    fileref.setAttribute("src", file);
-                }
-                else if (file.indexOf(".css")!=-1){ //If object is a css file
-                    fileref=document.createElement("link")
-                    fileref.setAttribute("rel", "stylesheet");
-                    fileref.setAttribute("type", "text/css");
-                    fileref.setAttribute("href", file);
-                }
-            }
-        if (fileref!=""){
-            document.getElementsByTagName("head").item(0).appendChild(fileref);
-            loadedobjects+=file+" ";//Remember this object as being already added to page
-        }
-    }
-}
-
-function getPageAsString(url)
-{
-    oxmlhttp = null;
-    try
-    {
-        oxmlhttp = new XMLHttpRequest();
-        oxmlhttp.overrideMimeType("text/xml");
-    }
-    catch(e)
-    {
-        try
-        {
-            oxmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
-        }
-        catch(e) { return null; }
-    }
-    if(!oxmlhttp) return null;
-    try
-    {
-        oxmlhttp.open("GET",url,false);
-        oxmlhttp.send(null);
-    }
-    catch(e) { return null; }
-    return oxmlhttp.responseText;
-}
-                              
-
-var set_buttons = function()
-{
-    status = getPageAsString('/cgi-bin/rpc?request=system_status');
-}
-
-var get_config = function()
-{
-    /* alert("get_config"); */
-    ajaxpage('/cgi-bin/rpc?request=get_config', 'cam_config');
-    ajaxpage('/cgi-bin/temps', 'temps');
-    ajaxpage('/cgi-bin/rpc?request=get_timing', 'timing_data');
-}
-
-var set_auto_exposure = function(val)
-{
-                                  alert("set auto exposure: " + val) 
-                                  if(val == 0)
-                                  {
-                                  val="false"
-                                  }
-                                  else
-                                  {
-                                  val="true"
-                                  }
-    ajaxpage('/cgi-bin/rpc?request=set_auto_exposure+b/'+val, 'result');
-    document.getElementsByName("btn_autoexposureoff")[0].disabled = (val==0)
-    document.getElementsByName("btn_autoexposureon")[0].disabled = (val==1)
-}
-                                  
-var set_stream_selection = function(val)
-{
-  //alert("set stream selection: "+val);
-  ajaxpage('/cgi-bin/rpc?request=set_stream_selection+s/'+val, 'result');
-}
-
-var set_exposure = function()
-{
-    var value_low = document.getElementsByName("exposure")[0].valueLow
-    var value_high = document.getElementsByName("exposure")[0].valueHigh
-    document.getElementById("exposure_text_low").value = value_low
-    document.getElementById("exposure_text_high").value = value_high
-    ajaxpage('/cgi-bin/rpc?request=set_exposure_time+I/'+value_low+'+I/'+value_high, 'result');
-    get_config();
-}
-
-var set_frame_duration = function()
-{
-    var value_low = document.getElementsByName("frame_duration")[0].valueLow
-    var value_high = document.getElementsByName("frame_duration")[0].valueHigh
-    document.getElementById("frame_duration_text_low").value = value_low
-    document.getElementById("frame_duration_text_high").value = value_high
-    ajaxpage('/cgi-bin/rpc?request=set_frame_duration+I/'+value_low+'+I/'+value_high, 'result');
-    get_config();
-}
-
-var set_focus_relative = function(val)
-{
-    var value = document.getElementsByName("focus_relative")[0].value
-    ajaxpage('/cgi-bin/rpc?request=focus_relative+i/'+value*val, 'result');
-    get_config();
-}
-
-var set_zoom_relative = function(val)
-{
-    var value = document.getElementsByName("zoom_relative")[0].value
-    ajaxpage('/cgi-bin/rpc?request=zoom_relative+i/'+value*val, 'result');
-    get_config();
-}
-
-var set_iris_relative = function(val)
-{
-    var value = document.getElementsByName("iris_relative")[0].value
-    ajaxpage('/cgi-bin/rpc?request=zoom_relative+i/'+value*val, 'result');
-    get_config();
-}
-
-var set_gain = function()
-{
-    var value_low = document.getElementsByName("gain")[0].valueLow
-    var value_high = document.getElementsByName("gain")[0].valueHigh
-    document.getElementById("gain_text_low").value = value_low
-    document.getElementById("gain_text_high").value = value_high
-    ajaxpage('/cgi-bin/rpc?request=set_gain+I/'+value_low+'+I/'+value_high, 'result');
-    get_config();
-}
-                                  
-var refresh = function()
-{
-    get_config();
-    set_buttons();
-    setTimeout("refresh();",3000);
-}
-
-if (document.addEventListener) {
-  document.addEventListener("DOMContentLoaded", refresh, false);
-}
-  
+<script src="dnncam.js" type="text/javascript">  
 </script>      
 
 </head> 
 <body> 
-<div id="container"> 
+  <div id="container"> 
     <div id="header"> 
-        <!-- <img src="images/sureworks-alpha.png"/> -->
-        <h2>DNNCam Controller</h2>
+      <!-- <img src="images/sureworks-alpha.png"/> -->
+      <h2>DNNCam Controller</h2>
     </div> 
     <div id="content">
-    <div id="video">
-      <h2>Video</h2>
-      <!-- doesn't look like any browsers support embedded rtsp -->
-      <!-- <video autoplay controls> -->
-      <!--        <source src="rtsp://dnncam:8554/stream"> -->
-      <!--   Your browser may not support HTML5 RTSP video. -->
-      <!-- </video> -->
-      <a href="rtsp://dnncam:8554/stream">Link to Video Stream</a>
-    </div> 
-    <div id="control_panel"> 
-      <h2>Control</h2>
-      <div>
-        <button type="submit" name="btn_autoexposureoff" class="imagebutton" onclick="javascript:set_auto_exposure(0);">
-          Auto-Exposure<br>Off
-        </button>
-        
-        <button type="submit" name="btn_autoexposureon" class="imagebutton" onclick="javascript:set_auto_exposure(1);">
-          Auto-Exposure<br>On
-        </button>
-
-        <button type="submit" name="btn_stream_input" class="imagebutton" onclick="javascript:set_stream_selection(&quot;input&quot;);">
-          <img src="images/stream-input.png" width="48" height="48" ><br>
-          Show<br>Input
-        </button>
-
-        <button type="submit" name="btn_stream_thresh" class="imagebutton" onclick="javascript:set_stream_selection(&quot;thresh&quot;);">
-          <img src="images/stream-thresh.png" width="48" height="48" ><br>
-          Show<br>Threshold
-        </button>
-
-        <button type="submit" name="btn_stream_water_level" class="imagebutton" onclick="javascript:set_stream_selection(&quot;waterlevel&quot;);">
-          <img src="images/stream-water-level.png" width="48" height="48" ><br>
-          Show<br>Water Level
-        </button>
-
+      <div id="video">
+        <h2>Video</h2>
+        <!-- doesn't look like any browsers support embedded rtsp -->
+        <!-- <video autoplay controls> -->
+        <!--        <source src="rtsp://dnncam:8554/stream"> -->
+        <!--   Your browser may not support HTML5 RTSP video. -->
+        <!-- </video> -->
+        <a href="rtsp://dnncam:8554/stream">Link to Video Stream</a>
       </div>
-    <div id="configuration">
-      <h2>Configuration</h2>
-      <span id="cam_config"><p>Loading...</p></span>
-      <table>
-        
-	<tr>
-	  <td>Exposure:</td>
-	  <td>
-	    <input id="exposure_input" type="range" multiple name="exposure" min="16000" max="165770000" value="16000,165770000"></input>
-        Low<input type="text" id="exposure_text_low" value=""></input>
-        High<input type="text" id="exposure_text_high" value=""></input>
-        <button type="submit" name="exp" onclick="javascript:set_exposure();">Set</button>
-	  </td>
-	</tr>
-        
-	<tr>
-	  <td>Frame Duration:</td>
-	  <td>
-	    <input id="frame_duration_input" type="range" multiple name="frame_duration" min="16666667" max="1462525056" value="16666667,1462525056"></input>
-        Low<input type="text" id="frame_duration_text_low" value=""></input>
-        High<input type="text" id="frame_duration_text_high" value=""></input>
-        <button type="submit" name="frame_dur" onclick="javascript:set_frame_duration();">Set</button>
-	  </td>
-	</tr>
-        
-	<tr>
-	  <td>Gain:</td>
-	  <td>
-	    <input id="gain" type="range" multiple name="gain" min="1" max="180" value="1,180"></input>
-        Low<input type="text" id="gain_text_low" value=""></input>
-        High<input type="text" id="gain_text_high" value=""></input>
-        <button type="submit" name="gain" onclick="javascript:set_gain();">Set</button>
-      </td>
-    </tr>
-    
-	<tr>
-	  <td>Focus Relative:</td>
-	  <td>
-	    <input id="focus_relative" type="text" name="focus_relative" size="8"></input>
-        <button type="submit" name="focus_up" onclick="javascript:set_focus_relative(1);">Set</button>
-        <button type="submit" name="focus_down" onclick="javascript:set_focus_relative(-1);">Set</button>
-	  </td>
-	</tr>
-        
-	<tr>
-	  <td>Zoom Relative:</td>
-	  <td>
-	    <input id="zoom_relative" type="text" name="zoom_relative" size="8"></input>
-        <button type="submit" name="zoom_up" onclick="javascript:set_zoom_relative(1);">Set</button>
-        <button type="submit" name="zoom_down" onclick="javascript:set_zoom_relative(-1);">Set</button>
-	  </td>
-	</tr>
-        
-	<tr>
-	  <td>Iris Relative:</td>
-	  <td>
-	    <input id="iris_relative" type="text" name="iris_relative" size="8"></input>
-        <button type="submit" name="iris_up" onclick="javascript:set_iris_relative(1);">Set</button>
-        <button type="submit" name="iris_down" onclick="javascript:set_iris_relative(-1);">Set</button>
-	  </td>
-	</tr>
-    
-      </table>
-   </div>
-   <div id="status">
-     <h2>System Status</h2>
-      <span id="temps"></span>
-    </div>
-    
-    <div id="timing">
-      <h2>Timing Information</h2>
-      <span id="timing_data"></span>
-    </div>
-    </div>
-    <div id="result">
+      <div id="control_panel"> 
+        <h2>Control</h2>
+        <div>
+          <table>
+            <tr>
+              <td>
+                <button type="submit" name="btn_autoexposureoff" class="imagebutton" onclick="javascript:set_auto_exposure(0);">
+                  Auto-Exposure<br>Off
+                </button>
+              </td>
+              <td>
+                <button type="submit" name="btn_awboff" class="imagebutton" onclick="javascript:set_awb(0);">
+                  Auto-White Balance<br>Off
+                </button>
+              </td>
+              <!-- <td>
+                <button type="submit" name="btn_denoiseoff" class="imagebutton" onclick="javascript:set_denoise(0);">
+                  Denoise<br>Off
+                </button>
+              </td> -->
+            </tr>
+
+            <tr>
+              <td>
+                <button type="submit" name="btn_autoexposureon" class="imagebutton" onclick="javascript:set_auto_exposure(1);">
+                  Auto-Exposure<br>On
+                </button>
+              </td>
+
+              <td>
+                <button type="submit" name="btn_awbon" class="imagebutton" onclick="javascript:set_awb(1);">
+                  Auto-White Balance<br>On
+                </button>
+              </td>
+              <!-- <td>
+                <button type="submit" name="btn_denoisefast" class="imagebutton" onclick="javascript:set_denoise(1);">
+                  Denoise<br>Fast
+                </button>
+              </td> -->
+            </tr>
+
+            <!-- <tr>
+              <td/>
+              <td/>
+              <td>
+                <button type="submit" name="btn_denoisehq" class="imagebutton" onclick="javascript:set_denoise(2);">
+                  Denoise<br>High Quality
+                </button>
+              </td>
+            </tr>          -->
+          </table>
+          <!-- TODO: AWB Mode, Denoise -->
+
+          <!--
+              <button type="submit" name="btn_stream_input" class="imagebutton" onclick="javascript:set_stream_selection(&quot;input&quot;);">
+                <img src="images/stream-input.png" width="48" height="48" ><br>
+                Show<br>Input
+              </button>
+
+              <button type="submit" name="btn_stream_thresh" class="imagebutton" onclick="javascript:set_stream_selection(&quot;thresh&quot;);">
+                <img src="images/stream-thresh.png" width="48" height="48" ><br>
+                Show<br>Threshold
+              </button>
+
+              <button type="submit" name="btn_stream_water_level" class="imagebutton" onclick="javascript:set_stream_selection(&quot;waterlevel&quot;);">
+                <img src="images/stream-water-level.png" width="48" height="48" ><br>
+                Show<br>Water Level
+              </button> -->
+
+        </div>
+        <div id="configuration">
+          <h2>Configuration</h2>
+          <span id="cam_config"><p>Loading from server...</p></span>
+          <hr>
+          <table>
+            
+	        <tr>
+	          <td>Exposure:</td>
+	          <td>
+                Low<input type="text" id="exposure_text_low" value=""></input>
+                High<input type="text" id="exposure_text_high" value=""></input>
+                <button type="submit" name="exp" onclick="javascript:set_exposure();">Set</button>
+	          </td>
+	        </tr>
+            
+	        <tr>
+	          <td>Exposure Compensation:</td>
+	          <td>
+                <input type="text" id="exposure_comp_text" value=""></input>
+                <button type="submit" name="exp_comp" onclick="javascript:set_exposure_compensation();">Set</button>
+	          </td>
+	        </tr>
+            
+	        <tr>
+	          <td>Frame Duration:</td>
+	          <td>
+                Low<input type="text" id="frame_duration_text_low" value=""></input>
+                High<input type="text" id="frame_duration_text_high" value=""></input>
+                <button type="submit" name="frame_dur" onclick="javascript:set_frame_duration();">Set</button>
+	          </td>
+	        </tr>
+            
+	        <tr>
+	          <td>Gain:</td>
+	          <td>
+                Low<input type="text" id="gain_text_low" value=""></input>
+                High<input type="text" id="gain_text_high" value=""></input>
+                <button type="submit" name="gain" onclick="javascript:set_gain();">Set</button>
+              </td>
+            </tr>
+            
+	        <tr>
+	          <td>Denoise Strength:</td>
+	          <td>
+                <input type="text" id="denoise_strength_text" value=""></input>
+                <button type="submit" name="denoise_strength" onclick="javascript:set_denoise_strength();">Set</button>
+	          </td>
+	        </tr>
+            
+	        <tr>
+	          <td>Focus Relative:</td>
+	          <td>
+	            <input id="focus_relative" type="text" name="focus_relative" size="8"></input>
+                <button type="submit" name="focus_up" onclick="javascript:set_focus_relative(1);">Focus Out</button>
+                <button type="submit" name="focus_down" onclick="javascript:set_focus_relative(-1);">Focus In</button>
+	          </td>
+	        </tr>
+            
+	        <tr>
+	          <td>Zoom Relative:</td>
+	          <td>
+	            <input id="zoom_relative" type="text" name="zoom_relative" size="8"></input>
+                <button type="submit" name="zoom_up" onclick="javascript:set_zoom_relative(1);">Zoom Out</button>
+                <button type="submit" name="zoom_down" onclick="javascript:set_zoom_relative(-1);">Zoom In</button>
+	          </td>
+	        </tr>
+            
+	        <tr>
+	          <td>Iris Relative:</td>
+	          <td>
+	            <input id="iris_relative" type="text" name="iris_relative" size="8"></input>
+                <button type="submit" name="iris_up" onclick="javascript:set_iris_relative(1);">Iris Open</button>
+                <button type="submit" name="iris_down" onclick="javascript:set_iris_relative(-1);">Iris Close</button>
+	          </td>
+	        </tr>
+            
+          </table>
+        </div>
       </div>
-    <div id="footer"> 
+      <div id="result">
+      </div>
+      <div id="footer"> 
         Development by <a href="https://www.boulderai.com">Boulder AI</a> in cooperation with <a href="http://boulderlabs.com">Boulder Labs</a>.
+      </div> 
     </div> 
-</div> 
 </body> 
 </html> 

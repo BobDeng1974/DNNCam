@@ -63,6 +63,7 @@ install(FILES ${PROJECT_SOURCE_DIR}/package/camerastreamer.service DESTINATION e
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/web/finder.css
   ${CMAKE_CURRENT_SOURCE_DIR}/web/index.html
+  ${CMAKE_CURRENT_SOURCE_DIR}/web/dnncam.js
   DESTINATION /var/www/html)
 FILE(GLOB images "${CMAKE_CURRENT_SOURCE_DIR}/web/images/*.png")
 install(FILES ${images} DESTINATION /var/www/html/images)

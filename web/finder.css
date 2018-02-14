@@ -81,7 +81,6 @@
 
 #content
 {
-    float: left;
     background: #eee;
     width:100%;
     font-family: sans-serif;
@@ -89,7 +88,6 @@
 
 #video
 {
-    float: left;
     padding: 10px;
     background: #eee;
     font-family: sans-serif;

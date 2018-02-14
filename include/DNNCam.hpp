@@ -47,7 +47,8 @@ public:
 
     DNNCam(const uint32_t roi_x, const uint32_t roi_y,
            const uint32_t roi_width, const uint32_t roi_height,
-           const uint32_t output_width, const uint32_t output_height,
+           const uint32_t output_width, const uint32_t output_height, // NOTE: if the output resolution is different than the
+                                                                      //       ROI resolution, Argus scales to the output res
            boost::function < void(std::string) > log_callback = cout_log_handler,
            const double exposure_time_min = DEFAULT_EXPOSURE_TIME_MIN,
            const double exposure_time_max = DEFAULT_EXPOSURE_TIME_MAX,
@@ -62,6 +63,8 @@ public:
            boost::function < void(std::string) > log_callback = cout_log_handler);
     ~DNNCam();
 
+    static std::string awb_mode_to_string(const Argus::AwbMode mode);
+    static std::string denoise_mode_to_string(const Argus::DenoiseMode mode);
 
     bool init(); // Must be called first
     bool is_initialized();
@@ -74,8 +77,9 @@ public:
     FramePtr grab_v(); // Grabs just the 'V' plane of a YUV image. NOTE: this is half the size of the full frame
     
     void set_auto_exposure(const bool enabled);
-    Argus::Range < uint64_t > get_exposure_time();
+    bool get_auto_exposure();
     void set_exposure_time(const Argus::Range < uint64_t > exposure_range);
+    Argus::Range < uint64_t > get_exposure_time();
     void set_exposure_compensation(const float comp);
     float get_exposure_compensation();
     void set_frame_duration(const Argus::Range < uint64_t > frame_range);
@@ -84,9 +88,10 @@ public:
     void set_gain(const Argus::Range < float > gain_range);
     Argus::Range < float > get_gain();
 
+    void set_awb(const bool enabled);
+    bool get_awb();
     void set_awb_mode(const Argus::AwbMode mode);
     Argus::AwbMode get_awb_mode();
-    void set_awb(const bool enabled);
     void set_awb_gains(const float wb_gains[Argus::BAYER_CHANNEL_COUNT]); // For use with AWB_MODE_MANUAL
     
     void set_denoise_mode(const Argus::DenoiseMode mode);
@@ -94,6 +99,9 @@ public:
     void set_denoise_strength(const float strength);
     float get_denoise_strength();
 
+    // if the camera is producing frames faster than we can read them, this counter will increase
+    uint64_t get_dropped_frames();
+    
     //
     // Lens control
     // NOTE: The *_absolute(), *_home(), and *_location() functions do not work on the current hardware rev
@@ -138,6 +146,7 @@ private:
     const double _framerate;
     const double _timeout;
     const float _exposure_compensation;
+    uint64_t _dropped_frames;
 
     MotorDriver _motor;
 

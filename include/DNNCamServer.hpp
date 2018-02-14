@@ -316,6 +316,25 @@ protected:
     DNNCamPtr _dnncam;
 };
 
+class GetAutoExposure : public xmlrpc_c::method {
+public:
+    GetAutoExposure(DNNCamPtr dnncam) : _dnncam(dnncam)
+    {
+        this->_signature = "b:";
+        this->_help = "Gets auto exposure.";
+    }
+
+    void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
+    {
+        _dnncam->_log_callback("XMLRPC: GetAutoExposure");
+        const bool ret = _dnncam->get_auto_exposure();
+        *retvalP = xmlrpc_c::value_boolean(ret);
+    }
+
+protected:
+    DNNCamPtr _dnncam;
+};
+
 class GetExposureTime : public xmlrpc_c::method {
 public:
     GetExposureTime(DNNCamPtr dnncam) : _dnncam(dnncam)
@@ -489,6 +508,247 @@ public:
 protected:
     DNNCamPtr _dnncam;
 };
+
+class SetAWB : public xmlrpc_c::method {
+public:
+    SetAWB(DNNCamPtr dnncam) : _dnncam(dnncam)
+    {
+        this->_signature = "n:b";
+        this->_help = "Sets auto white balance.";
+    }
+
+    void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
+    {
+        const bool value(paramList.getBoolean(0));
+        _dnncam->_log_callback("XMLRPC: SetAWB");
+        _dnncam->set_awb(value);
+        *retvalP = xmlrpc_c::value_nil();
+    }
+
+protected:
+    DNNCamPtr _dnncam;
+};
+
+class GetAWB : public xmlrpc_c::method {
+public:
+    GetAWB(DNNCamPtr dnncam) : _dnncam(dnncam)
+    {
+        this->_signature = "b:";
+        this->_help = "Gets auto white balance.";
+    }
+
+    void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
+    {
+        _dnncam->_log_callback("XMLRPC: GetAWB");
+        const bool ret = _dnncam->get_awb();
+        *retvalP = xmlrpc_c::value_boolean(ret);
+    }
+
+protected:
+    DNNCamPtr _dnncam;
+};
+
+class GetAWBMode : public xmlrpc_c::method {
+public:
+    GetAWBMode(DNNCamPtr dnncam) : _dnncam(dnncam)
+    {
+        this->_signature = "s:";
+        this->_help = "Gets auto white balance mode.";
+    }
+
+    void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
+    {
+        _dnncam->_log_callback("XMLRPC: GetAWBMode");
+        const Argus::AwbMode mode = _dnncam->get_awb_mode();
+        const std::string ret = _dnncam->awb_mode_to_string(mode);
+        *retvalP = xmlrpc_c::value_string(ret);
+    }
+
+protected:
+    DNNCamPtr _dnncam;
+};
+
+class SetAWBGains : public xmlrpc_c::method {
+public:
+    SetAWBGains(DNNCamPtr dnncam) : _dnncam(dnncam)
+    {
+        this->_signature = "n:dddd";
+        this->_help = "Sets auto white balance.";
+    }
+
+    void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
+    {
+        float wb_gains[Argus::BAYER_CHANNEL_COUNT];
+        wb_gains[0] = paramList.getDouble(0);
+        wb_gains[1] = paramList.getDouble(1);
+        wb_gains[2] = paramList.getDouble(2);
+        wb_gains[3] = paramList.getDouble(3);
+        _dnncam->_log_callback("XMLRPC: SetAWBGains");
+        _dnncam->set_awb(wb_gains);
+        *retvalP = xmlrpc_c::value_nil();
+    }
+
+protected:
+    DNNCamPtr _dnncam;
+};
+
+class GetDenoiseMode : public xmlrpc_c::method {
+public:
+    GetDenoiseMode(DNNCamPtr dnncam) : _dnncam(dnncam)
+    {
+        this->_signature = "s:";
+        this->_help = "Gets denoise mode.";
+    }
+
+    void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
+    {
+        _dnncam->_log_callback("XMLRPC: GetDenoiseMode");
+        const Argus::DenoiseMode mode = _dnncam->get_denoise_mode();
+        const std::string ret = _dnncam->denoise_mode_to_string(mode);
+        *retvalP = xmlrpc_c::value_string(ret);
+    }
+
+protected:
+    DNNCamPtr _dnncam;
+};
+
+class SetDenoiseStrength : public xmlrpc_c::method {
+public:
+    SetDenoiseStrength(DNNCamPtr dnncam) : _dnncam(dnncam)
+    {
+        this->_signature = "n:d";
+        this->_help = "Sets denoise strength.";
+    }
+
+    void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
+    {
+        const float strength(paramList.getDouble(0));
+        _dnncam->_log_callback("XMLRPC: SetDenoiseStrength");
+        _dnncam->set_denoise_strength(strength);
+        *retvalP = xmlrpc_c::value_nil();
+    }
+
+protected:
+    DNNCamPtr _dnncam;
+};
+
+class GetDenoiseStrength : public xmlrpc_c::method {
+public:
+    GetDenoiseStrength(DNNCamPtr dnncam) : _dnncam(dnncam)
+    {
+        this->_signature = "d:";
+        this->_help = "Gets denoise strength.";
+    }
+
+    void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
+    {
+        _dnncam->_log_callback("XMLRPC: GetDenoiseStrength");
+        const float ret = _dnncam->get_denoise_strength();
+        *retvalP = xmlrpc_c::value_double(ret);
+    }
+
+protected:
+    DNNCamPtr _dnncam;
+};
+
+class GetDroppedFrames : public xmlrpc_c::method {
+public:
+    GetDroppedFrames(DNNCamPtr dnncam) : _dnncam(dnncam)
+    {
+        this->_signature = "i8:";
+        this->_help = "Gets number of dropped frames.";
+    }
+
+    void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
+    {
+        _dnncam->_log_callback("XMLRPC: GetDroppedFrames");
+        const uint64_t ret = _dnncam->get_dropped_frames();
+        *retvalP = xmlrpc_c::value_i8(ret);
+    }
+
+protected:
+    DNNCamPtr _dnncam;
+};
+    
+class GetConfig : public xmlrpc_c::method {
+public:
+    GetConfig(DNNCamPtr dnncam) : _dnncam(dnncam)
+    {
+        this->_signature = "s:";
+        this->_help = "Gets camera configuration as HTML table.";
+    }
+
+    void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
+    {
+        std::string ret = "<table>";
+        // auto exposure
+        ret += table_chunk("Auto Exposure", _dnncam->get_auto_exposure(), "");
+        // exposure time
+        ret += table_chunk("Exposure Time", _dnncam->get_exposure_time(), "nS");
+        // exposure compensation
+        ret += table_chunk("Exposure Compensation", _dnncam->get_exposure_compensation(), "");
+        // frame duration
+        ret += table_chunk("Frame Duration", _dnncam->get_frame_duration(), "nS");
+        // gain
+        ret += table_chunk("Gain", _dnncam->get_gain(), "");
+        // awb
+        ret += table_chunk("AWB", _dnncam->get_awb(), "");
+        // awb_mode
+        ret += table_chunk("AWB Mode", _dnncam->get_awb_mode(), "");
+        // denoise_mode
+        ret += table_chunk("Denoise Mode", _dnncam->get_denoise_mode(), "");
+        // denoise_strength
+        ret += table_chunk("Denoise Strength", _dnncam->get_denoise_strength(), "");
+        // dropped frames
+        ret += table_chunk("Dropped Frames", _dnncam->get_dropped_frames(), "");
+
+        ret += "</table><br>";
+        *retvalP = xmlrpc_c::value_string(ret);
+    }
+    
+protected:
+    template < typename T >
+    std::string table_chunk(const std::string name, const T value, const std::string unit)
+    {
+        std::ostringstream ret;
+        ret << "<tr><th>" << name << "</th><td>" << value << " " << unit << "</td></tr>";
+        return ret.str();
+    }
+    
+    std::string table_chunk(const std::string name, const Argus::Range < uint64_t > value, const std::string unit)
+    {
+        std::ostringstream ret;
+        ret << "<tr><th>" << name << "</th><td>" << value.min() << "-" << value.max() << " " << unit << "</td></tr>";
+        return ret.str();
+    }
+    
+    std::string table_chunk(const std::string name, const Argus::Range < float > value, const std::string unit)
+    {
+        std::ostringstream ret;
+        ret << "<tr><th>" << name << "</th><td>" << value.min() << "-" << value.max() << " " << unit << "</td></tr>";
+        return ret.str();
+    }
+    
+    std::string table_chunk(const std::string name, const Argus::AwbMode value, const std::string unit)
+    {
+        std::ostringstream ret;
+        ret << "<tr><th>" << name << "</th><td>";
+        ret << DNNCam::awb_mode_to_string(value);
+        ret << " " << unit << "</td></tr>";
+        return ret.str();
+    }
+    
+    std::string table_chunk(const std::string name, const Argus::DenoiseMode value, const std::string unit)
+    {
+        std::ostringstream ret;
+        ret << "<tr><th>" << name << "</th><td>";
+        ret << DNNCam::denoise_mode_to_string(value);
+        ret << " " << unit << "</td></tr>";
+        return ret.str();
+    }
+    
+    DNNCamPtr _dnncam;
+};
     
 class DNNCamServer
 {
@@ -543,6 +803,9 @@ public:
         xmlrpc_c::methodPtr const setAutoExposure(new SetAutoExposure(dnncam));
         _registry.addMethod("set_auto_exposure", setAutoExposure);
         
+        xmlrpc_c::methodPtr const getAutoExposure(new GetAutoExposure(dnncam));
+        _registry.addMethod("get_auto_exposure", getAutoExposure);
+        
         xmlrpc_c::methodPtr const getExposureTime(new GetExposureTime(dnncam));
         _registry.addMethod("get_exposure_time", getExposureTime);
         
@@ -567,30 +830,40 @@ public:
         xmlrpc_c::methodPtr const getGain(new GetGain(dnncam));
         _registry.addMethod("get_gain", getGain);
         
-        /*xmlrpc_c::methodPtr const irCut(new IRCut(dnncam));
-        _registry.addMethod("set_awb_mode", setAWBMode);
-        
-        xmlrpc_c::methodPtr const irCut(new IRCut(dnncam));
-        _registry.addMethod("get_awb_mode", getAWBMode);
-        
-        xmlrpc_c::methodPtr const irCut(new IRCut(dnncam));
+        xmlrpc_c::methodPtr const setAWB(new SetAWB(dnncam));
         _registry.addMethod("set_awb", setAWB);
         
-        xmlrpc_c::methodPtr const irCut(new IRCut(dnncam));
+        xmlrpc_c::methodPtr const getAWB(new GetAWB(dnncam));
+        _registry.addMethod("get_awb", getAWB);
+        
+        xmlrpc_c::methodPtr const getAWBMode(new GetAWBMode(dnncam));
+        _registry.addMethod("get_awb_mode", getAWBMode);
+
+        // TODO: currently the numbers of gains is hardcoded so we don't have
+        //       to expose Argus::BAYER_CHANNEL_COUNT through XMLRPC...
+        xmlrpc_c::methodPtr const setAWBGains(new SetAWBGains(dnncam));
         _registry.addMethod("set_awb_gains", setAWBGains);
         
-        xmlrpc_c::methodPtr const irCut(new IRCut(dnncam));
-        _registry.addMethod("set_denoise_mode", setDenoiseMode);
-        
-        xmlrpc_c::methodPtr const irCut(new IRCut(dnncam));
+        xmlrpc_c::methodPtr const getDenoiseMode(new GetDenoiseMode(dnncam));
         _registry.addMethod("get_denoise_mode", getDenoiseMode);
         
-        xmlrpc_c::methodPtr const irCut(new IRCut(dnncam));
+        xmlrpc_c::methodPtr const setDenoiseStrength(new SetDenoiseStrength(dnncam));
         _registry.addMethod("set_denoise_strength", setDenoiseStrength);
         
-        xmlrpc_c::methodPtr const irCut(new IRCut(dnncam));
-        _registry.addMethod("get_denoise_strength", getDenoiseStrength);*/
+        xmlrpc_c::methodPtr const getDenoiseStrength(new GetDenoiseStrength(dnncam));
+        _registry.addMethod("get_denoise_strength", getDenoiseStrength);
 
+        xmlrpc_c::methodPtr const getConfig(new GetConfig(dnncam));
+        _registry.addMethod("get_config", getConfig);
+        
+        /* TODO: how do we input these modes through XMLRPC? strings?
+          xmlrpc_c::methodPtr const irCut(new IRCut(dnncam));
+        _registry.addMethod("set_awb_mode", setAWBMode);
+        
+        xmlrpc_c::methodPtr const setDenoiseMode(new SetDenoiseMode(dnncam));
+        _registry.addMethod("set_denoise_mode", setDenoiseMode);
+        */
+        
         _server = new xmlrpc_c::serverAbyss(xmlrpc_c::serverAbyss::constrOpt()
                         .registryP(&_registry)
                         .portNumber(7000)
@@ -606,7 +879,6 @@ public:
 
     void run()
     {
-        std::cout << "HELLO FROM SERVER" << std::endl;
         while (!_done)
         {
             // Loop over runOnce to run serially. Note that this is a blocking call;
