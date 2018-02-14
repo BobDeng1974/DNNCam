@@ -114,7 +114,7 @@ int MotorDriver::addr2 = 0x21;
         init();
         enablePowerLines();
 
-        /*
+        /* TODO: update this when limits switches are working
         // Home our zoom and then move to start position
         if (false == (zoom_init = zoomHome())) {
             log_callback("Unable to home zoom");
@@ -130,13 +130,6 @@ int MotorDriver::addr2 = 0x21;
         }
         */
         //irisHome();
-    } else {
-        zoom_init = true;
-        zoom_abs_location = 0;
-        focus_init = true;
-        focus_abs_location = 0;
-        iris_init = true;
-        iris_abs_location = 0;
     }
 }
 
@@ -349,10 +342,7 @@ bool MotorDriver::zoomAbsolute(int loc)
 bool MotorDriver::zoomRelative(int steps)
 {
     bool ret = false;
-    if (false == zoom_init) {
-        _log_callback("Unable to zoom to relative position, zoom not homed");
-        return false;
-    } else if (steps == 0) {
+    if (steps == 0) {
         return true;
     } else if (steps < 0) {
         ret = zoomDown(abs(steps));
@@ -520,10 +510,7 @@ bool MotorDriver::focusAbsolute(int loc)
 bool MotorDriver::focusRelative(int steps)
 {
     bool ret = false;
-    if (false == focus_init) {
-        _log_callback("Unable to focus to relative position, focus not homed");
-        return false;
-    } else if (steps == 0) {
+    if (steps == 0) {
         return true;
     } else if (steps < 0) {
         ret = focusDown(abs(steps));
@@ -687,10 +674,7 @@ bool MotorDriver::irisAbsolute(int loc)
 bool MotorDriver::irisRelative(int steps)
 {
     bool ret = false;
-    if (false == iris_init) {
-        _log_callback("Unable to adjust iris to relative position, iris not homed");
-        return false;
-    } else if (steps == 0) {
+    if (steps == 0) {
         return true;
     } else if (steps < 0) {
         ret = irisDown(abs(steps));

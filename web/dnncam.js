@@ -202,10 +202,8 @@ var set_focus_relative = function(val)
     if(Number.isNaN(value))
         value = 0
     document.getElementsByName("focus_relative")[0].value = value
-    alert("got here 1");
     if(value == 0)
         return
-    alert("got here 2");
     ajaxpage('/cgi-bin/rpc?request=focus_relative+i/'+value*val, 'result');
     get_config();
 }
