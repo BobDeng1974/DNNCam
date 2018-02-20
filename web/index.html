@@ -20,7 +20,8 @@
         <!--        <source src="rtsp://dnncam:8554/stream"> -->
         <!--   Your browser may not support HTML5 RTSP video. -->
         <!-- </video> -->
-        <a href="rtsp://dnncam:8554/stream">Link to Video Stream</a>
+        <p id="stream_link"></p>
+        <script type="text/javascript">document.getElementById("stream_link").innerHTML = "<a href=\"" + window.location.href.replace("http://", "rtsp://").replace(/\/$/, ":8554/stream") + "\">Link to Video Stream</a>"</script>
       </div>
       <div id="control_panel"> 
         <h2>Control</h2>
