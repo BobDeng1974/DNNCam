@@ -119,22 +119,45 @@ var get_config = function()
     //ajaxpage('/cgi-bin/rpc?request=get_timing', 'timing_data');
 }
 
-var set_auto_exposure = function(val)
+var set_auto_exposure = function()
 {
-    if(val == 0)
-        val="false"
-    else
-        val="true"
+    var val = document.getElementById("ae_lock_select").value
+    if(val == "Off")
+        val = "false"
+    if(val == "On")
+        val = "true"
     ajaxpage('/cgi-bin/rpc?request=set_auto_exposure+b/'+val, 'result');
 }
 
-var set_awb = function(val)
+var set_awb = function()
 {
-    if(val == 0)
+    var val = document.getElementById("awb_select").value
+    if(val == "Off")
         val = "false"
-    else
+    if(val == "On")
         val = "true"
     ajaxpage('/cgi-bin/rpc?request=set_awb+b/'+val, 'result');
+}
+
+var set_awb_mode = function()
+{
+    var val = document.getElementById("awb_mode_select").value
+    ajaxpage('/cgi-bin/rpc?request=set_awb_mode+s/'+val, 'result');
+}
+
+var set_wb_gains = function()
+{
+    var val0 = document.getElementById("wb_gain_0").value
+    var val1 = document.getElementById("wb_gain_1").value
+    var val2 = document.getElementById("wb_gain_2").value
+    var val3 = document.getElementById("wb_gain_3").value
+    ajaxpage('/cgi-bin/rpc?request=set_awb_gains+d/' + val0 + '+d/' + val1 + '+d/' + val2 + '+d/' + val3, 'result');
+}
+
+var set_denoise_mode = function()
+{
+    var val = document.getElementById("denoise_mode_select").value
+    ajaxpage('/cgi-bin/rpc?request=set_denoise_mode+s/'+val, 'result');
 }
 
 var set_stream_selection = function(val)
@@ -201,6 +224,10 @@ var set_focus_relative = function(val)
     value = Number.parseInt(value)
     if(Number.isNaN(value))
         value = 0
+    if(value < 0)
+        value = 0
+    if(value > 7000)
+        value = 7000
     document.getElementsByName("focus_relative")[0].value = value
     if(value == 0)
         return
@@ -214,6 +241,10 @@ var set_zoom_relative = function(val)
     value = Number.parseInt(value)
     if(Number.isNaN(value))
         value = 0
+    if(value < 0)
+        value = 0
+    if(value > 7000)
+        value = 7000
     document.getElementsByName("zoom_relative")[0].value = value
     if(value == 0)
         return
@@ -227,6 +258,10 @@ var set_iris_relative = function(val)
     value = Number.parseInt(value)
     if(Number.isNaN(value))
         value = 0
+    if(value < 0)
+        value = 0
+    if(value > 120)
+        value = 120
     document.getElementsByName("iris_relative")[0].value = value
     if(value == 0)
         return

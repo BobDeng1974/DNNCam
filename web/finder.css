@@ -95,7 +95,6 @@
 
 #configuration
 {
-    float: left;
     padding: 10px;
     background: #eee;
     font-family: sans-serif;
@@ -103,7 +102,6 @@
 
 #status
 {
-    float: left;
     padding: 10px;
     background: #eee;
     font-family: sans-serif;

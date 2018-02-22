@@ -8,8 +8,8 @@
 namespace BoulderAI
 {
 
-const char *DNNCam::OPT_WIDTH = "argus-camera-width";
-const char *DNNCam::OPT_HEIGHT = "argus-camera-height";
+const char *DNNCam::OPT_ROI_WIDTH = "argus-camera-width";
+const char *DNNCam::OPT_ROI_HEIGHT = "argus-camera-height";
 const char *DNNCam::OPT_EXPOSURE_TIME_MIN = "argus-camera-exposure-time-min";
 const char *DNNCam::OPT_EXPOSURE_TIME_MAX = "argus-camera-exposure-time-max";
 const char *DNNCam::OPT_GAIN_MIN = "argus-camera-gain-min";
@@ -80,8 +80,8 @@ po::options_description DNNCam::GetOptions()
 {
     po::options_description desc( "DNNCam Options" );
     desc.add_options()
-        ( OPT_WIDTH, po::value<uint32_t>(), "Pixel width of output video" )
-        ( OPT_HEIGHT, po::value<uint32_t>(), "Pixel height of output video" )
+        ( OPT_ROI_WIDTH, po::value<uint32_t>(), "Pixel width of output video" )
+        ( OPT_ROI_HEIGHT, po::value<uint32_t>(), "Pixel height of output video" )
         ( OPT_EXPOSURE_TIME_MIN,
           po::value<double>()->default_value( DEFAULT_EXPOSURE_TIME_MIN ),
           "Minimum exposure time (in seconds.) The AE algorithm will strive to "
@@ -177,14 +177,14 @@ DNNCam::DNNCam(const po::variables_map &vm,
     _initialized(false),
     _roi_x(0),
     _roi_y(0),
-    _roi_width( vm.count( OPT_WIDTH ) ?
-                vm[OPT_WIDTH].as<uint32_t>() :
+    _roi_width( vm.count( OPT_ROI_WIDTH ) ?
+                vm[OPT_ROI_WIDTH].as<uint32_t>() :
                 throw po::error(
-                    std::string( OPT_WIDTH ) + " is required." ) ),
-    _roi_height( vm.count( OPT_HEIGHT ) ?
-                 vm[OPT_HEIGHT].as<uint32_t>() :
+                    std::string( OPT_ROI_WIDTH ) + " is required." ) ),
+    _roi_height( vm.count( OPT_ROI_HEIGHT ) ?
+                 vm[OPT_ROI_HEIGHT].as<uint32_t>() :
                  throw po::error(
-                     std::string( OPT_HEIGHT ) + " is required." ) ),
+                     std::string( OPT_ROI_HEIGHT ) + " is required." ) ),
     _sensor_width(3864),
     _sensor_height(2196),
     _output_width(_sensor_width),
@@ -241,7 +241,7 @@ std::string DNNCam::awb_mode_to_string(const Argus::AwbMode mode)
 {
     if(mode == Argus::AWB_MODE_OFF)
         return "Off";
-    else if(mode ==Argus::AWB_MODE_AUTO)
+    else if(mode == Argus::AWB_MODE_AUTO)
         return "Auto";
     else if(mode == Argus::AWB_MODE_INCANDESCENT)
         return "Incandescent";
@@ -273,6 +273,46 @@ std::string DNNCam::denoise_mode_to_string(const Argus::DenoiseMode mode)
         return "High Quality";
     else
         return "Unknown Denoise Mode";
+}    
+
+Argus::AwbMode DNNCam::string_to_awb_mode(const std::string mode)
+{
+    if(mode == "Off")
+        return Argus::AWB_MODE_OFF;
+    else if(mode == "Auto")
+        return Argus::AWB_MODE_AUTO;
+    else if(mode == "Incandescent")
+        return Argus::AWB_MODE_INCANDESCENT;
+    else if(mode == "Fluorescent")
+        return Argus::AWB_MODE_FLUORESCENT;
+    else if(mode == "Warm Fluorescent" || mode == "Warm%20Fluorescent")
+        return Argus::AWB_MODE_WARM_FLUORESCENT;
+    else if(mode == "Daylight")
+        return Argus::AWB_MODE_DAYLIGHT;
+    else if(mode == "Cloudy Daylight" || mode == "Cloudy%20Daylight")
+        return Argus::AWB_MODE_CLOUDY_DAYLIGHT;
+    else if(mode == "Twilight")
+        return Argus::AWB_MODE_TWILIGHT;
+    else if(mode == "Shade")
+        return Argus::AWB_MODE_SHADE;
+    else if(mode == "Manual")
+        return Argus::AWB_MODE_MANUAL;
+
+    // nothing good to use here...
+    return Argus::AWB_MODE_OFF;
+}
+
+Argus::DenoiseMode DNNCam::string_to_denoise_mode(const std::string mode)
+{
+    if(mode == "Off")
+        return Argus::DENOISE_MODE_OFF;
+    else if(mode == "Fast")
+        return Argus::DENOISE_MODE_FAST;
+    else if(mode == "High Quality" || mode == "High%20Quality")
+        return Argus::DENOISE_MODE_HIGH_QUALITY;
+
+    // nothing good to use here...
+    return Argus::DENOISE_MODE_OFF;
 }
 
 bool DNNCam::check_bounds()
@@ -668,7 +708,7 @@ bool DNNCam::get_awb()
     return auto_control_settings->getAwbLock();
 }
     
-void DNNCam::set_awb_gains(const float wb_gains[Argus::BAYER_CHANNEL_COUNT])
+void DNNCam::set_awb_gains(array < float , Argus::BAYER_CHANNEL_COUNT > gains)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -686,7 +726,7 @@ void DNNCam::set_awb_gains(const float wb_gains[Argus::BAYER_CHANNEL_COUNT])
         return;
     }
 
-    Argus::BayerTuple < float > bayer_gains(wb_gains[0], wb_gains[1], wb_gains[2], wb_gains[3]);
+    Argus::BayerTuple < float > bayer_gains(gains[0], gains[1], gains[2], gains[3]);
     auto_control_settings->setWbGains(bayer_gains);
 
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
@@ -699,7 +739,33 @@ void DNNCam::set_awb_gains(const float wb_gains[Argus::BAYER_CHANNEL_COUNT])
 
     capture_session->repeat(_request_object.get());
 }
+    
+array < float, Argus::BAYER_CHANNEL_COUNT > DNNCam::get_awb_gains()
+{
+    array < float, Argus::BAYER_CHANNEL_COUNT > ret;
+    auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
+    if ( request == nullptr ) {
+        ostringstream oss;
+        oss << "Interface cast to IRequest failed.";
+        _log_callback(oss.str());
+        return ret;
+    }
+    
+    auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(request->getAutoControlSettings());
+    if ( auto_control_settings == nullptr ) {
+        ostringstream oss;
+        oss << "Interface cast to ISourceSettings failed.";
+        _log_callback(oss.str());
+        return ret;
+    }
 
+    Argus::BayerTuple < float > bayer_gains;
+    bayer_gains = auto_control_settings->getWbGains();
+    ret = {bayer_gains[0], bayer_gains[1], bayer_gains[2], bayer_gains[3]};
+    
+    return ret;
+}
+    
 void DNNCam::set_denoise_mode(const Argus::DenoiseMode mode)
 {
     auto *denoise_settings = Argus::interface_cast<Argus::IDenoiseSettings>(_request_object);

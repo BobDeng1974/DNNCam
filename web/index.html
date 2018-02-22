@@ -23,81 +23,22 @@
         <p id="stream_link"></p>
         <script type="text/javascript">document.getElementById("stream_link").innerHTML = "<a href=\"" + window.location.href.replace("http://", "rtsp://").replace(/\/$/, ":8554/stream") + "\">Link to Video Stream</a>"</script>
       </div>
-      <div id="control_panel"> 
-        <h2>Control</h2>
-        <div>
-          <table>
-            <tr>
-              <td>
-                <button type="submit" name="btn_autoexposureoff" class="imagebutton" onclick="javascript:set_auto_exposure(0);">
-                  Auto-Exposure<br>Off
-                </button>
-              </td>
-              <td>
-                <button type="submit" name="btn_awboff" class="imagebutton" onclick="javascript:set_awb(0);">
-                  Auto-White Balance<br>Off
-                </button>
-              </td>
-              <!-- <td>
-                <button type="submit" name="btn_denoiseoff" class="imagebutton" onclick="javascript:set_denoise(0);">
-                  Denoise<br>Off
-                </button>
-              </td> -->
-            </tr>
-
-            <tr>
-              <td>
-                <button type="submit" name="btn_autoexposureon" class="imagebutton" onclick="javascript:set_auto_exposure(1);">
-                  Auto-Exposure<br>On
-                </button>
-              </td>
-
-              <td>
-                <button type="submit" name="btn_awbon" class="imagebutton" onclick="javascript:set_awb(1);">
-                  Auto-White Balance<br>On
-                </button>
-              </td>
-              <!-- <td>
-                <button type="submit" name="btn_denoisefast" class="imagebutton" onclick="javascript:set_denoise(1);">
-                  Denoise<br>Fast
-                </button>
-              </td> -->
-            </tr>
-
-            <!-- <tr>
-              <td/>
-              <td/>
-              <td>
-                <button type="submit" name="btn_denoisehq" class="imagebutton" onclick="javascript:set_denoise(2);">
-                  Denoise<br>High Quality
-                </button>
-              </td>
-            </tr>          -->
-          </table>
-          <!-- TODO: AWB Mode, Denoise -->
-
-          <!--
-              <button type="submit" name="btn_stream_input" class="imagebutton" onclick="javascript:set_stream_selection(&quot;input&quot;);">
-                <img src="images/stream-input.png" width="48" height="48" ><br>
-                Show<br>Input
-              </button>
-
-              <button type="submit" name="btn_stream_thresh" class="imagebutton" onclick="javascript:set_stream_selection(&quot;thresh&quot;);">
-                <img src="images/stream-thresh.png" width="48" height="48" ><br>
-                Show<br>Threshold
-              </button>
-
-              <button type="submit" name="btn_stream_water_level" class="imagebutton" onclick="javascript:set_stream_selection(&quot;waterlevel&quot;);">
-                <img src="images/stream-water-level.png" width="48" height="48" ><br>
-                Show<br>Water Level
-              </button> -->
-
-        </div>
         <div id="configuration">
           <h2>Configuration</h2>
           <span id="cam_config"><p>Loading from server...</p></span>
           <hr>
           <table>
+
+            <tr>
+              <td>Auto-Exposure Lock:</td>
+              <td>
+                <select id="ae_lock_select">
+                  <option value="Off">Off</option>
+                  <option value="On">On</option>
+                </select>
+                <button type="submit" name="ae_lock" onclick="javascript:set_auto_exposure()">Set</button>
+              </td>
+            </tr>
             
 	        <tr>
 	          <td>Exposure:</td>
@@ -133,6 +74,47 @@
                 <button type="submit" name="exp_comp" onclick="javascript:set_exposure_compensation();">Set</button>
 	          </td>
 	        </tr>
+
+            <tr>
+              <td>Auto-White Balance:</td>
+              <td>
+                <select id="awb_select">
+                  <option value="Off">Off</option>
+                  <option value="On">On</option>
+                </select>
+                <button type="submit" name="awb" onclick="javascript:set_awb()">Set</button>
+              </td>
+            </tr>
+
+            <tr>
+              <td>Auto-White Balance Mode:</td>
+              <td>
+                <select id="awb_mode_select">
+                  <option value="Off">Off</option>
+                  <option value="Auto">Auto</option>
+                  <option value="Incandescent">Incandescent</option>
+                  <option value="Fluorescent">Fluorescent</option>
+                  <option value="Warm Fluorescent">Warm Fluorescent</option>
+                  <option value="Daylight">Daylight</option>
+                  <option value="Cloudy Daylight">Cloudy Daylight</option>
+                  <option value="Twilight">Twilight</option>
+                  <option value="Shade">Shade</option>
+                  <option value="Manual">Manual</option>
+                </select>
+                <button type="submit" name="awb_mode" onclick="javascript:set_awb_mode()">Set</button>
+              </td>
+            </tr>
+            
+	        <tr>
+	          <td>White Balance Gains:</td>
+	          <td>
+                <input type="text" id="wb_gain_0" value=""></input>
+                <input type="text" id="wb_gain_1" value=""></input>
+                <input type="text" id="wb_gain_2" value=""></input>
+                <input type="text" id="wb_gain_3" value=""></input>
+                <button type="submit" name="wb_gains" onclick="javascript:set_wb_gains();">Set</button>
+	          </td>
+	        </tr>
             
 	        <tr>
 	          <td>Denoise Strength:</td>
@@ -141,6 +123,18 @@
                 <button type="submit" name="denoise_strength" onclick="javascript:set_denoise_strength();">Set</button>
 	          </td>
 	        </tr>
+
+            <tr>
+              <td>Denoise Mode:</td>
+              <td>
+                <select id="denoise_mode_select">
+                  <option value="Off">Off</option>
+                  <option value="Fast">Fast</option>
+                  <option value="High Quality">High Quality</option>
+                </select>
+                <button type="submit" name="denoise_mode" onclick="javascript:set_denoise_mode()">Set</button>
+              </td>
+            </tr>
             
 	        <tr>
 	          <td>Focus Relative:</td>

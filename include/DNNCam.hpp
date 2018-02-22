@@ -22,8 +22,12 @@ void cout_log_handler(std::string output);
 class DNNCam
 {
 public:
-    static const char *OPT_WIDTH;
-    static const char *OPT_HEIGHT;
+    static const char *OPT_ROI_X;
+    static const char *OPT_ROI_Y;
+    static const char *OPT_ROI_WIDTH;
+    static const char *OPT_ROI_HEIGHT;
+    static const char *OPT_OUTPUT_WIDTH;
+    static const char *OPT_OUTPUT_HEIGHT;
     static const char *OPT_EXPOSURE_TIME_MIN;
     static const char *OPT_EXPOSURE_TIME_MAX;
     static const char *OPT_GAIN_MIN;
@@ -66,6 +70,9 @@ public:
     static std::string awb_mode_to_string(const Argus::AwbMode mode);
     static std::string denoise_mode_to_string(const Argus::DenoiseMode mode);
 
+    static Argus::AwbMode string_to_awb_mode(const std::string mode);
+    static Argus::DenoiseMode string_to_denoise_mode(const std::string mode);
+
     bool init(); // Must be called first
     bool is_initialized();
     
@@ -92,7 +99,8 @@ public:
     bool get_awb();
     void set_awb_mode(const Argus::AwbMode mode);
     Argus::AwbMode get_awb_mode();
-    void set_awb_gains(const float wb_gains[Argus::BAYER_CHANNEL_COUNT]); // For use with AWB_MODE_MANUAL
+    void set_awb_gains(std::array < float, Argus::BAYER_CHANNEL_COUNT > gains); // For use with AWB_MODE_MANUAL
+    std::array < float, Argus::BAYER_CHANNEL_COUNT > get_awb_gains();
     
     void set_denoise_mode(const Argus::DenoiseMode mode);
     Argus::DenoiseMode get_denoise_mode();
@@ -106,17 +114,20 @@ public:
     // Lens control
     // NOTE: The *_absolute(), *_home(), and *_location() functions do not work on the current hardware rev
     //
-    
+
+    // zoom should be limited to 7000 steps
     bool zoom_relative(const int steps);
     bool zoom_absolute(const int pos);
     bool zoom_home();
     int get_zoom_location();
 
+    // focus should be limited to 7000 steps
     bool focus_relative(const int steps);
     bool focus_absolute(const int pos);
     bool focus_home();
     int get_focus_location();
 
+    // iris should be limited to 120 steps
     bool iris_relative(const int steps);
     bool iris_absolute(const int pos);
     bool iris_home();
