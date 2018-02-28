@@ -21,6 +21,7 @@ sudo apt-get install libarchive-dev
 sudo apt-get install libxmlrpc-c++8-dev
 sudo apt-get install libv4l-dev
 sudo apt-get install libreadline-dev
+sudo apt-get install libi2c-dev i2c-tools
 sudo apt-get install cmake
 ```
 
