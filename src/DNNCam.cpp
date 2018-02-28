@@ -5,33 +5,73 @@
 #include "EGLStream/NV/ImageNativeBuffer.h"
 #include "Argus/Ext/InternalFrameCount.h"
 
-namespace BoulderAI
-{
-
-const char *DNNCam::OPT_ROI_WIDTH = "argus-camera-width";
-const char *DNNCam::OPT_ROI_HEIGHT = "argus-camera-height";
-const char *DNNCam::OPT_EXPOSURE_TIME_MIN = "argus-camera-exposure-time-min";
-const char *DNNCam::OPT_EXPOSURE_TIME_MAX = "argus-camera-exposure-time-max";
-const char *DNNCam::OPT_GAIN_MIN = "argus-camera-gain-min";
-const char *DNNCam::OPT_GAIN_MAX = "argus-camera-gain-max";
-const char *DNNCam::OPT_AWB_MODE = "argus-camera-awb-mode";
-const char *DNNCam::OPT_WB_GAINS = "argus-camera-wb-gains";
-const char *DNNCam::OPT_FRAMERATE = "argus-camera-framerate";
-const char *DNNCam::OPT_TIMEOUT = "argus-camera-timeout";
-const char *DNNCam::OPT_EXPOSURE_COMPENSATION = "argus-camera-exposure-compensation";
-
-const double DNNCam::DEFAULT_EXPOSURE_TIME_MIN = -1;
-const double DNNCam::DEFAULT_EXPOSURE_TIME_MAX = -1;
-const float DNNCam::DEFAULT_GAIN_MIN = -1;
-const float DNNCam::DEFAULT_GAIN_MAX = -1;
-const Argus::AwbMode DNNCam::DEFAULT_AWB_MODE = Argus::AWB_MODE_AUTO;
-const std::vector<float> DNNCam::DEFAULT_WB_GAINS = { 1, 1, 1, 1 };
-const double DNNCam::DEFAULT_FRAMERATE = 30;
-const double DNNCam::DEFAULT_TIMEOUT = -1;
-const float DNNCam::DEFAULT_EXPOSURE_COMPENSATION = 0;
-
 using namespace std;
 
+namespace BoulderAI
+{
+const char *DNNCam::OPT_ROI_X = "roi-x";
+const char *DNNCam::OPT_ROI_Y = "roi-y";
+const char *DNNCam::OPT_ROI_W = "roi-w";
+const char *DNNCam::OPT_ROI_H = "roi-h";
+const char *DNNCam::OPT_OUTPUT_W = "output-w";
+const char *DNNCam::OPT_OUTPUT_H = "output-h";
+const char *DNNCam::OPT_AUTO_EXP_LOCK = "auto-exp-lock";
+const char *DNNCam::OPT_EXP_TIME_MIN = "exp-time-min";
+const char *DNNCam::OPT_EXP_TIME_MAX = "exp-time-max";
+const char *DNNCam::OPT_FRAME_DUR_MIN = "frame-dur-min";
+const char *DNNCam::OPT_FRAME_DUR_MAX = "frame-dur-max";
+const char *DNNCam::OPT_GAIN_MIN = "gain-min";
+const char *DNNCam::OPT_GAIN_MAX = "gain-max";
+const char *DNNCam::OPT_AWB = "awb";
+const char *DNNCam::OPT_AWB_MODE = "awb-mode";
+const char *DNNCam::OPT_WB_GAINS = "wb-gains";
+const char *DNNCam::OPT_TIMEOUT = "timeout";
+const char *DNNCam::OPT_EXPOSURE_COMPENSATION = "exposure-compensation";
+const char *DNNCam::OPT_DENOISE_MODE = "denoise-mode";
+const char *DNNCam::OPT_DENOISE_STRENGTH = "denoise-strength";
+
+const uint32_t DNNCam::DEFAULT_ROI_X = 0;
+const uint32_t DNNCam::DEFAULT_ROI_Y = 0;
+const uint32_t DNNCam::DEFAULT_ROI_W = 3864;
+const uint32_t DNNCam::DEFAULT_ROI_H = 2196;
+const uint32_t DNNCam::DEFAULT_OUTPUT_W = 3864;
+const uint32_t DNNCam::DEFAULT_OUTPUT_H = 2196;
+const bool DNNCam::DEFAULT_AUTO_EXP_LOCK = false;
+const double DNNCam::DEFAULT_EXP_TIME_MIN = 16000;
+const double DNNCam::DEFAULT_EXP_TIME_MAX = 165770000;
+const double DNNCam::DEFAULT_FRAME_DUR_MIN = 16666667;
+const double DNNCam::DEFAULT_FRAME_DUR_MAX = 1462525056;
+const float DNNCam::DEFAULT_GAIN_MIN = 1;
+const float DNNCam::DEFAULT_GAIN_MAX = 180;
+const bool DNNCam::DEFAULT_AWB = false;
+const char *DNNCam::DEFAULT_AWB_MODE = "Auto";
+const std::vector < float > DNNCam::DEFAULT_WB_GAINS = {1, 1, 1, 1};
+const double DNNCam::DEFAULT_TIMEOUT = -1;
+const float DNNCam::DEFAULT_EXPOSURE_COMPENSATION = 0;
+const char *DNNCam::DEFAULT_DENOISE_MODE = "High Quality";
+const float DNNCam::DEFAULT_DENOISE_STRENGTH = -1;
+
+uint32_t DNNCam::_roi_x = DEFAULT_ROI_X;
+uint32_t DNNCam::_roi_y = DEFAULT_ROI_Y;
+uint32_t DNNCam::_roi_width = DEFAULT_ROI_W;
+uint32_t DNNCam::_roi_height = DEFAULT_ROI_H;
+uint32_t DNNCam::_output_width = DEFAULT_OUTPUT_W;
+uint32_t DNNCam::_output_height = DEFAULT_OUTPUT_H;
+bool DNNCam::_auto_exp_lock = DEFAULT_AUTO_EXP_LOCK;
+double DNNCam::_exp_time_min = DEFAULT_EXP_TIME_MIN;
+double DNNCam::_exp_time_max = DEFAULT_EXP_TIME_MAX;
+double DNNCam::_frame_dur_min = DEFAULT_FRAME_DUR_MIN;
+double DNNCam::_frame_dur_max = DEFAULT_FRAME_DUR_MAX;
+float DNNCam::_gain_min = DEFAULT_GAIN_MIN;
+float DNNCam::_gain_max = DEFAULT_GAIN_MAX;
+bool DNNCam::_awb = DEFAULT_AWB;
+string DNNCam::_awb_mode = DEFAULT_AWB_MODE;
+std::vector < float > DNNCam::_wb_gains = DEFAULT_WB_GAINS;
+double DNNCam::_timeout = DEFAULT_TIMEOUT;
+float DNNCam::_exposure_compensation = DEFAULT_EXPOSURE_COMPENSATION;
+string DNNCam::_denoise_mode = DEFAULT_DENOISE_MODE;
+float DNNCam::_denoise_strength = DEFAULT_DENOISE_STRENGTH;
+    
 // we need to track this stuff to avoid an extra copy here....
 // this will be used to free the nvbuffer data when a user is done with a frame
 struct ArgusReleaseData
@@ -80,83 +120,52 @@ po::options_description DNNCam::GetOptions()
 {
     po::options_description desc( "DNNCam Options" );
     desc.add_options()
-        ( OPT_ROI_WIDTH, po::value<uint32_t>(), "Pixel width of output video" )
-        ( OPT_ROI_HEIGHT, po::value<uint32_t>(), "Pixel height of output video" )
-        ( OPT_EXPOSURE_TIME_MIN,
-          po::value<double>()->default_value( DEFAULT_EXPOSURE_TIME_MIN ),
-          "Minimum exposure time (in seconds.) The AE algorithm will strive to "
+        ( OPT_ROI_X, po::value<uint32_t>(&_roi_x)->default_value(DEFAULT_ROI_X), "X position of ROI" )
+        ( OPT_ROI_Y, po::value<uint32_t>(&_roi_y)->default_value(DEFAULT_ROI_Y), "Y position of ROI" )
+        ( OPT_ROI_W, po::value<uint32_t>(&_roi_width)->default_value(DEFAULT_ROI_W), "Width of ROI" )
+        ( OPT_ROI_H, po::value<uint32_t>(&_roi_height)->default_value(DEFAULT_ROI_H), "Height of ROI" )
+        ( OPT_OUTPUT_W, po::value<uint32_t>(&_output_width)->default_value(DEFAULT_OUTPUT_W), "Width of output. Argus will scale the ROI to this width." )
+        ( OPT_OUTPUT_H, po::value<uint32_t>(&_output_height)->default_value(DEFAULT_OUTPUT_H), "Height of output. Argus will scale the ROI to this height." )
+        ( OPT_AUTO_EXP_LOCK, po::value < bool >(&_auto_exp_lock)->default_value(DEFAULT_AUTO_EXP_LOCK), "Auto exposure lock." )
+        ( OPT_EXP_TIME_MIN, po::value<double>(&_exp_time_min)->default_value( DEFAULT_EXP_TIME_MIN ),
+          "Minimum exposure time (in nS) The AE algorithm will strive to "
           "keep expsore time within this range. If negative, the default "
-          "minimum exposure time of the sensor will be used" )
-        ( OPT_EXPOSURE_TIME_MAX,
-          po::value<double>()->default_value( DEFAULT_EXPOSURE_TIME_MAX ),
-          "Maximum exposure time (in seconds.) The AE algorithm will strive to "
+          "minimum exposure time of the sensor will be used. Determines max frame rate." )
+        ( OPT_EXP_TIME_MAX, po::value<double>(&_exp_time_max)->default_value( DEFAULT_EXP_TIME_MAX ),
+          "Maximum exposure time (in nS) The AE algorithm will strive to "
           "keep expsure time within this range. If negative, the default "
-          "maximum exposure time of the sensor will be used" )
-        ( OPT_GAIN_MIN, po::value<float>()->default_value( DEFAULT_GAIN_MIN ),
+          "maximum exposure time of the sensor will be used. Determines max frame rate." )
+        ( OPT_FRAME_DUR_MIN, po::value<double>(&_frame_dur_min)->default_value( DEFAULT_FRAME_DUR_MAX ),
+          "Minimum frame duration (in nS), determines max frame rate" )
+        ( OPT_FRAME_DUR_MAX, po::value<double>(&_frame_dur_max)->default_value( DEFAULT_FRAME_DUR_MAX ),
+          "Maximum frame duration (in nS), determines max frame rate" )
+        ( OPT_GAIN_MIN, po::value<float>(&_gain_min)->default_value( DEFAULT_GAIN_MIN ),
           "Minimum gain value to be used by the AE algorithm. If negative, the "
           "default minimum gain value for the sensor will be used" )
-        ( OPT_GAIN_MAX, po::value<float>()->default_value( DEFAULT_GAIN_MAX ),
+        ( OPT_GAIN_MAX, po::value<float>(&_gain_max)->default_value( DEFAULT_GAIN_MAX ),
           "Maximum gain value to be used by the AE algorithm. If negative, the "
           "default maximum gain value for the sensor will be used" )
-        //TODO?
-        //( OPT_AWB_MODE, po::value<std::string>()->default_value(
-        //  AutoWhiteBalanceModeToString( DEFAULT_AWB_MODE ) ),
-          // "Auto"),
-        // "Auto white balance mode. Options: off, auto, incandescent, florescent,"
-        // "warm_fluorescent, daylight, cloudy_daylight, twilight, shade, or"
-          //"manual." )
-        ( OPT_WB_GAINS, po::value<std::vector<float>>()->multitoken()
-          ->default_value( DEFAULT_WB_GAINS, "1 1 1 1" ), ("Vector of manual"
-                                                           " white balance gains [R, G_EVEN, G_ODD, B]. Only used if --" +
-                                                           std::string(OPT_AWB_MODE) + " is set to 'manual'.").c_str() )
-        ( OPT_FRAMERATE, po::value<double>()->default_value( DEFAULT_FRAMERATE ),
-          "Framerate at which to have the sensor capture images. If this is "
-          "negative, the fastest framerate for the sensor is used. This will "
-          "not effect the runrate/framerate of this process. This value should"
-          " be higher than the process's configured runrate/framerate to avoid"
-          " obtaining duplicate frames.")
-        ( OPT_TIMEOUT, po::value<double>()->default_value( DEFAULT_TIMEOUT ),
-          "Timeout for acquiring frames. If this is negative, the timeout will be"
-          " infinite." )
-        ( OPT_EXPOSURE_COMPENSATION, po::value<float>()
-          ->default_value( DEFAULT_EXPOSURE_COMPENSATION ),
+        ( OPT_AWB, po::value < bool >(&_awb)->default_value(DEFAULT_AWB), "Auto white balance." )
+        ( OPT_AWB_MODE, po::value<std::string>(&_awb_mode)->default_value(DEFAULT_AWB_MODE),
+          "Auto white balance mode.")
+        ( OPT_WB_GAINS, po::value<std::vector < float > >(&_wb_gains)->multitoken()->default_value( DEFAULT_WB_GAINS, "1 1 1 1" ),
+          ("Vector of manual white balance gains [R, G_EVEN, G_ODD, B]. Only used if --" +
+           std::string(OPT_AWB_MODE) + " is set to 'Manual'.").c_str() )
+        ( OPT_TIMEOUT, po::value<double>(&_timeout)->default_value( DEFAULT_TIMEOUT ),
+          "Timeout for acquiring frames. If this is negative, the timeout will be infinite." )
+        ( OPT_EXPOSURE_COMPENSATION, po::value<float>(&_exposure_compensation)->default_value( DEFAULT_EXPOSURE_COMPENSATION ),
           "Exposure compensation, in (EV) stops." )
+        ( OPT_DENOISE_MODE, po::value < string >(&_denoise_mode)->default_value(DEFAULT_DENOISE_MODE), "Denoise mode.")
+        ( OPT_DENOISE_STRENGTH, po::value < float >(&_denoise_strength)->default_value(DEFAULT_DENOISE_STRENGTH), "Denoise strength.")
         ;
     return desc;
 }
 
-DNNCam::DNNCam(const uint32_t roi_x, const uint32_t roi_y,
-               const uint32_t roi_width, const uint32_t roi_height,
-               const uint32_t output_width, const uint32_t output_height,
-               boost::function < void(std::string) > log_callback,
-               const double exposure_time_min,
-               const double exposure_time_max,
-               const float gain_min,
-               const float gain_max,
-               const Argus::AwbMode awb_mode,
-               const std::vector<float>& wb_gains,
-               const double framerate,
-               const double timeout,
-               const float exposure_compensation )
-:
+DNNCam::DNNCam(boost::function < void(std::string) > log_callback)
+    :
     _initialized(false),
-    _roi_x(roi_x),
-    _roi_y(roi_y),
-    _roi_width(roi_width),
-    _roi_height(roi_height),
     _sensor_width(3864),
     _sensor_height(2196),
-    _output_width(output_width),
-    _output_height(output_height),
-    _exposure_time_min( exposure_time_min ),
-    _exposure_time_max( exposure_time_max ),
-    _gain_min( gain_min ),
-    _gain_max( gain_max ),
-    _awb_mode( awb_mode ),
-    _wb_gains( wb_gains ),
-    _framerate( framerate ),
-    _timeout( timeout ),
-    _exposure_compensation( exposure_compensation ),
     _log_callback(log_callback),
     _dropped_frames(0),
     _motor(true, log_callback)
@@ -169,60 +178,79 @@ DNNCam::DNNCam(const uint32_t roi_x, const uint32_t roi_y,
         _log_callback(oss.str());
         throw runtime_error(oss.str());
     }
-}
 
-DNNCam::DNNCam(const po::variables_map &vm,
-               boost::function < void(std::string) > log_callback)
-    :
+    if(_wb_gains.size() != Argus::BAYER_CHANNEL_COUNT)
+    {
+        ostringstream oss;
+        oss << "Requires 4 WB Gains, only got " << _wb_gains.size();
+        throw runtime_error(oss.str());
+    }
+}
+    
+DNNCam::DNNCam(const uint32_t roi_x, const uint32_t roi_y,
+               const uint32_t roi_width, const uint32_t roi_height,
+               const uint32_t output_width, const uint32_t output_height,
+               boost::function < void(std::string) > log_callback,
+               const bool auto_exp_lock,
+               const double exposure_time_min,
+               const double exposure_time_max,
+               const double frame_dur_min,
+               const double frame_dur_max,
+               const float gain_min,
+               const float gain_max,
+               const bool awb,
+               const Argus::AwbMode awb_mode,
+               const std::vector < float >& wb_gains,
+               const double timeout,
+               const float exposure_compensation,
+               const Argus::DenoiseMode denoise_mode,
+               const float denoise_strength)
+:
     _initialized(false),
-    _roi_x(0),
-    _roi_y(0),
-    _roi_width( vm.count( OPT_ROI_WIDTH ) ?
-                vm[OPT_ROI_WIDTH].as<uint32_t>() :
-                throw po::error(
-                    std::string( OPT_ROI_WIDTH ) + " is required." ) ),
-    _roi_height( vm.count( OPT_ROI_HEIGHT ) ?
-                 vm[OPT_ROI_HEIGHT].as<uint32_t>() :
-                 throw po::error(
-                     std::string( OPT_ROI_HEIGHT ) + " is required." ) ),
     _sensor_width(3864),
     _sensor_height(2196),
-    _output_width(_sensor_width),
-    _output_height(_sensor_height),
-    _exposure_time_min( vm[OPT_EXPOSURE_TIME_MIN].as<double>() ),
-    _exposure_time_max( vm[OPT_EXPOSURE_TIME_MAX].as<double>() ),
-    _gain_min( vm[OPT_GAIN_MIN].as<float>() ),
-    _gain_max( vm[OPT_GAIN_MAX].as<float>() ),
-    _awb_mode(DEFAULT_AWB_MODE),
-    _wb_gains( vm[OPT_WB_GAINS].as<std::vector<float>>() ),
-    _framerate( vm[OPT_FRAMERATE].as<double>() ),
-    _timeout( vm[OPT_TIMEOUT].as<double>() ),
-    _exposure_compensation( vm[OPT_EXPOSURE_COMPENSATION].as<float>() ),
     _log_callback(log_callback),
     _dropped_frames(0),
     _motor(true, log_callback)
 {
-    //TODO ?
-    //if ( !AutoWhiteBalanceModeFromString( _awb_mode,
-    //                                      vm[OPT_AWB_MODE].as<std::string>() ) ) {
-    //    throw po::error( vm[OPT_AWB_MODE].as<std::string>() +
-    //                     " is not a valid value for " + std::string( OPT_AWB_MODE ) );
-    // }
-
-    if ( _wb_gains.size() != 4 ) {
-        throw po::error( std::string( OPT_WB_GAINS ) + " requires exactly 4 values." );
-    }
-
+    _roi_x = roi_x;
+    _roi_y = roi_y;
+    _roi_width = roi_width;
+    _roi_height = roi_height;
+    _output_width = output_width;
+    _output_height = output_height;
+    _auto_exp_lock = auto_exp_lock;
+    _exp_time_min = exposure_time_min;
+    _exp_time_max = exposure_time_max;
+    _frame_dur_min = frame_dur_min;
+    _frame_dur_max = frame_dur_max;
+    _gain_min = gain_min;
+    _gain_max = gain_max;
+    _awb = awb;
+    _awb_mode = awb_mode_to_string(awb_mode);
+    _wb_gains = wb_gains;
+    _timeout = timeout;
+    _exposure_compensation = exposure_compensation;
+    _denoise_mode = denoise_mode_to_string(denoise_mode);
+    _denoise_strength = denoise_strength;
+    
     if(!check_bounds())
     {
         ostringstream oss;
         oss << "Bounds checking failed... SensorW " << _sensor_width << " SensorH " << _sensor_height << " roix " << _roi_x << " roiy " << _roi_y
             << " roiwidth " << _roi_width << " roiheight " << _roi_height;
         _log_callback(oss.str());
-        throw runtime_error(oss.str());      
+        throw runtime_error(oss.str());
+    }
+
+    if(wb_gains.size() != Argus::BAYER_CHANNEL_COUNT)
+    {
+        ostringstream oss;
+        oss << "Requires 4 WB Gains, only got " << wb_gains.size();
+        throw runtime_error(oss.str());
     }
 }
-
+    
 DNNCam::~DNNCam()
 {
     auto *capture_session = Argus::interface_cast<Argus::ICaptureSession>(_capture_session_object);
@@ -322,7 +350,7 @@ bool DNNCam::check_bounds()
     return false;
 }
 
-void DNNCam::set_auto_exposure(const bool auto_exp)
+void DNNCam::set_auto_exposure_lock(const bool auto_exp)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -353,7 +381,7 @@ void DNNCam::set_auto_exposure(const bool auto_exp)
     capture_session->repeat(_request_object.get());
 }
 
-bool DNNCam::get_auto_exposure()
+bool DNNCam::get_auto_exposure_lock()
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -708,7 +736,7 @@ bool DNNCam::get_awb()
     return auto_control_settings->getAwbLock();
 }
     
-void DNNCam::set_awb_gains(array < float , Argus::BAYER_CHANNEL_COUNT > gains)
+void DNNCam::set_awb_gains(vector < float > gains)
 {
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
@@ -740,9 +768,10 @@ void DNNCam::set_awb_gains(array < float , Argus::BAYER_CHANNEL_COUNT > gains)
     capture_session->repeat(_request_object.get());
 }
     
-array < float, Argus::BAYER_CHANNEL_COUNT > DNNCam::get_awb_gains()
+vector < float > DNNCam::get_awb_gains()
 {
-    array < float, Argus::BAYER_CHANNEL_COUNT > ret;
+    vector < float > ret;
+    ret.resize(4);
     auto *request = Argus::interface_cast<Argus::IRequest>( _request_object );
     if ( request == nullptr ) {
         ostringstream oss;
@@ -851,6 +880,31 @@ bool DNNCam::init()
         return true;
     }
 
+    {
+        ostringstream oss;
+        _log_callback("Initializing DNNCam with the following parameters:");
+        oss << OPT_ROI_X << ": " << _roi_x; _log_callback(oss.str()); oss.str("");
+        oss << OPT_ROI_Y << ": " << _roi_y; _log_callback(oss.str()); oss.str("");
+        oss << OPT_ROI_W << ": " << _roi_width; _log_callback(oss.str()); oss.str("");
+        oss << OPT_ROI_H << ": " << _roi_height; _log_callback(oss.str()); oss.str("");
+        oss << OPT_OUTPUT_W << ": " << _output_width; _log_callback(oss.str()); oss.str("");
+        oss << OPT_OUTPUT_H << ": " << _output_height; _log_callback(oss.str()); oss.str("");
+        oss << OPT_AUTO_EXP_LOCK << ": " << _auto_exp_lock; _log_callback(oss.str()); oss.str("");
+        oss << OPT_EXP_TIME_MIN << ": " << _exp_time_min; _log_callback(oss.str()); oss.str("");
+        oss << OPT_EXP_TIME_MAX << ": " << _exp_time_max; _log_callback(oss.str()); oss.str("");
+        oss << OPT_FRAME_DUR_MIN << ": " << _frame_dur_min; _log_callback(oss.str()); oss.str("");
+        oss << OPT_FRAME_DUR_MAX << ": " << _frame_dur_max; _log_callback(oss.str()); oss.str("");
+        oss << OPT_GAIN_MIN << ": " << _gain_min; _log_callback(oss.str()); oss.str("");
+        oss << OPT_GAIN_MAX << ": " << _gain_max; _log_callback(oss.str()); oss.str("");
+        oss << OPT_AWB << ": " << _awb; _log_callback(oss.str()); oss.str("");
+        oss << OPT_AWB_MODE << ": " << _awb_mode; _log_callback(oss.str()); oss.str("");
+        oss << OPT_WB_GAINS << ": " << _wb_gains[0] << "," << _wb_gains[1] << "," << _wb_gains[2] << "," << _wb_gains[3]; _log_callback(oss.str()); oss.str("");
+        oss << OPT_TIMEOUT << ": " << _timeout; _log_callback(oss.str()); oss.str("");
+        oss << OPT_EXPOSURE_COMPENSATION << ": " << _exposure_compensation; _log_callback(oss.str()); oss.str("");
+        oss << OPT_DENOISE_MODE << ": " << _denoise_mode; _log_callback(oss.str()); oss.str("");
+        oss << OPT_DENOISE_STRENGTH << ": " << _denoise_strength; _log_callback(oss.str()); oss.str("");
+    }
+    
     Argus::Status status;
 
     // Get camera provider
@@ -932,7 +986,7 @@ bool DNNCam::init()
         return false;
     }
 
-    // TODO(#1436): Choose sensor mode based on closest resolution
+    // TODO: Choose sensor mode based on closest resolution
     _sensor_mode_object = sensor_mode_objects[0];
     auto sensor_mode = Argus::interface_cast<Argus::ISensorMode>(_sensor_mode_object);
     if ( sensor_mode == nullptr ) {
@@ -1062,8 +1116,6 @@ bool DNNCam::init()
         return false;
     }
 
-    cout << "Post processing: " << stream_settings->getPostProcessingEnable() << endl;
-
     Argus::Rectangle < float > rect((float)_roi_x / _sensor_width, (float)_roi_y / _sensor_height, (float)(_roi_x + _roi_width) / _sensor_width, (float)(_roi_y + _roi_height) / _sensor_height);
     status = stream_settings->setSourceClipRect(rect);
     if(status != Argus::STATUS_OK)
@@ -1091,55 +1143,8 @@ bool DNNCam::init()
         return false;
     }
 
-    // Set exposure time range
-    Argus::Range<uint64_t> sensor_exposure_time = sensor_mode->getExposureTimeRange();
-    uint64_t exposure_time_min = sensor_exposure_time.min();
-    uint64_t exposure_time_max = sensor_exposure_time.max();
-
-    if ( _exposure_time_min >= 0 ) {
-        double exposure_time_min_ns = _exposure_time_max * pow( 10 , 9 );
-
-        if ( sensor_exposure_time.max() < exposure_time_min_ns ||
-             sensor_exposure_time.min() > exposure_time_min_ns ) {
-            ostringstream oss;
-            oss << "Minimum exposure time value (" << _exposure_time_min << ") is"
-                 << " outside the range supported by the sensor. Allowed range is ["
-                 << sensor_exposure_time.min() * pow( 10 , -9 ) << ", "
-                 << sensor_exposure_time.max() * pow( 10 , -9 ) << "].";
-            _log_callback(oss.str());
-            return false;
-        }
-
-        exposure_time_min = static_cast<uint64_t>( _exposure_time_min * pow( 10, 9 ) );
-    }
-
-    if ( _exposure_time_max >= 0) {
-        double exposure_time_max_ns = _exposure_time_max * pow( 10 , 9 );
-
-        if ( sensor_exposure_time.max() < exposure_time_max_ns ||
-             sensor_exposure_time.min() > exposure_time_max_ns ) {
-            ostringstream oss;
-            oss << "Maximum exposure time value (" << _exposure_time_max << ") is"
-                 << " outside the range supported by the sensor. Allowed range is ["
-                 << sensor_exposure_time.min() * pow( 10 , -9 ) << ", "
-                 << sensor_exposure_time.max() * pow( 10 , -9 ) << "].";
-            _log_callback(oss.str());
-            return false;
-        }
-
-        if ( exposure_time_max_ns < exposure_time_min ) {
-            ostringstream oss;
-            oss << "Maximum exposure time value (" << _exposure_time_max
-                 << ") cannot be less than the minimum value ("
-                 << exposure_time_min * pow( 10 , -9 ) << ").";
-            _log_callback(oss.str());
-            return false;
-        }
-
-        exposure_time_max = static_cast<uint64_t>( _exposure_time_max * pow( 10, 9 ) );
-    }
-
-    status = source_settings->setExposureTimeRange(Argus::Range<uint64_t>( exposure_time_min, exposure_time_max) );
+    // Set exposure time
+    status = source_settings->setExposureTimeRange(Argus::Range<uint64_t>( _exp_time_min, _exp_time_max) );
     if ( status != Argus::STATUS_OK ) {
         ostringstream oss;
         oss << "Couldn't set exposure time range. Status: " << status;
@@ -1147,79 +1152,8 @@ bool DNNCam::init()
         return false;
     }
 
-    // Set gain range
-    Argus::Range<float> sensor_gain = sensor_mode->getAnalogGainRange();
-    float gain_min = sensor_gain.min();
-    float gain_max = sensor_gain.max();
-
-    if ( _gain_min >= 0 ) {
-        if ( sensor_gain.max() < _gain_min || sensor_gain.min() > _gain_min ) {
-            ostringstream oss;
-            oss << "Minimum gain value (" << _gain_min
-                 << ") is outside the range supported by the sensor. "
-                 << "Allowed range is [" << sensor_gain.min() << ", "
-                 << sensor_gain.max() << "].";
-            _log_callback(oss.str());
-            return false;
-        }
-
-        gain_min = _gain_min;
-    }
-
-    if ( _gain_max >= 0 ) {
-        if ( sensor_gain.max() < _gain_max || sensor_gain.min() > _gain_max ) {
-            ostringstream oss;
-            oss << "Maximum gain value (" << _gain_max
-                 << ") is outside the range supported by the sensor. "
-                 << "Allowed range is [" << sensor_gain.min() << ", "
-                 << sensor_gain.max() << "].";
-            _log_callback(oss.str());
-            return false;
-        }
-
-        if ( _gain_max < gain_min ) {
-            ostringstream oss;
-            oss << "Maximum gain value (" << _gain_max
-                 << ") cannot be less than the minimum value ("
-                 << gain_min << ").";
-            _log_callback(oss.str());
-            return false;
-        }
-
-        gain_max = _gain_max;
-    }
-
-    status = source_settings->setGainRange( Argus::Range<float>(gain_min, gain_max) );
-    if ( status != Argus::STATUS_OK ) {
-        ostringstream oss;
-        oss << "Couldn't set gain range. Status: "  << status;
-        _log_callback(oss.str());
-        return false;
-    }
-
     // Set frame duration
-    Argus::Range<uint64_t> sensor_frame_duration = sensor_mode->getFrameDurationRange();
-    uint64_t frame_duration = sensor_frame_duration.min();
-
-    if ( _framerate > 0 ) {
-        double requested_frame_duration = ( 1 / _framerate ) * pow( 10, 9 );
-
-        if ( sensor_frame_duration.max() < requested_frame_duration ||
-             sensor_frame_duration.min() > requested_frame_duration ) {
-            ostringstream oss;
-            oss << "Framerate value (" << _framerate
-                 << ") is outside the range supported by the sensor. "
-                 << "Allowed range is ["
-                 << 1 / ( sensor_frame_duration.max() * pow( 10, -9 ) ) << ", "
-                 << 1 / ( sensor_frame_duration.min() * pow( 10, -9 ) ) << "].";
-            _log_callback(oss.str());
-            return false;
-        }
-
-        frame_duration = static_cast<uint64_t>(requested_frame_duration);
-    }
-
-    status = source_settings->setFrameDurationRange(Argus::Range<uint64_t>( frame_duration, frame_duration ));
+    status = source_settings->setFrameDurationRange(Argus::Range<uint64_t>( _frame_dur_min, _frame_dur_max ));
     if ( status != Argus::STATUS_OK ) {
         ostringstream oss;
         oss << "Couldn't set frame duration range. Status: " << status;
@@ -1227,11 +1161,15 @@ bool DNNCam::init()
         return false;
     }
 
-    ostringstream oss;
-    oss << "exp range " << sensor_exposure_time.min() << " " << sensor_exposure_time.max() << endl << "frame range" << sensor_frame_duration.min() << " " << sensor_frame_duration.max() << endl
-        << "gain range " << sensor_gain.min() << " " << sensor_gain.max() << endl;
-    _log_callback(oss.str());
-    
+    // Set gain range
+    status = source_settings->setGainRange( Argus::Range<float>(_gain_min, _gain_max) );
+    if ( status != Argus::STATUS_OK ) {
+        ostringstream oss;
+        oss << "Couldn't set gain range. Status: "  << status;
+        _log_callback(oss.str());
+        return false;
+    }
+
     auto auto_control_settings = Argus::interface_cast<Argus::IAutoControlSettings>(request->getAutoControlSettings());
     if ( auto_control_settings == nullptr ) {
         ostringstream oss;
@@ -1239,9 +1177,27 @@ bool DNNCam::init()
         _log_callback(oss.str());
         return false;
     }
-    
+
+    // Set Auto Exposure lock
+    status = auto_control_settings->setAeLock(_auto_exp_lock);
+    if ( status != Argus::STATUS_OK ) {
+        ostringstream oss;
+        oss << "Couldn't set auto exposure lock. Status: " << status;
+        _log_callback(oss.str());
+        return false;
+    }
+
+    // Set awb lock
+    status = auto_control_settings->setAwbLock(_awb);
+    if ( status != Argus::STATUS_OK ) {
+        ostringstream oss;
+        oss << "Couldn't set awb lock. Status: " << status;
+        _log_callback(oss.str());
+        return false;
+    }
+
     // Set auto white balance mode
-    status = auto_control_settings->setAwbMode(_awb_mode);
+    status = auto_control_settings->setAwbMode(string_to_awb_mode(_awb_mode));
     if ( status != Argus::STATUS_OK ) {
         ostringstream oss;
         oss << "Couldn't auto white balance mode. Status: " << status;
@@ -1250,7 +1206,7 @@ bool DNNCam::init()
     }
 
     // Set white balance gains if white balance mode is manual
-    if ( _awb_mode == Argus::AWB_MODE_MANUAL ) {
+    if ( string_to_awb_mode(_awb_mode) == Argus::AWB_MODE_MANUAL ) {
         status = auto_control_settings->setWbGains(
             Argus::BayerTuple<float>( _wb_gains[0],
                                       _wb_gains[1],
@@ -1270,6 +1226,32 @@ bool DNNCam::init()
     if ( status != Argus::STATUS_OK ) {
         ostringstream oss;
         oss << "Couldn't set exposure compensation. Status: " << status;
+        _log_callback(oss.str());
+        return false;
+    }
+
+    // Set denoise mode
+    auto *denoise_settings = Argus::interface_cast<Argus::IDenoiseSettings>(_request_object);
+    if (denoise_settings == nullptr)
+    {
+        ostringstream oss;
+        oss << "Interface cast to IDenoiseSettings failed.";
+        _log_callback(oss.str());
+        return false;
+    }
+    status = denoise_settings->setDenoiseMode(string_to_denoise_mode(_denoise_mode));
+    if ( status != Argus::STATUS_OK ) {
+        ostringstream oss;
+        oss << "Couldn't set denoise mode. Status: " << status;
+        _log_callback(oss.str());
+        return false;
+    }
+
+    // Set denoise strength
+    status = denoise_settings->setDenoiseStrength(_denoise_strength);
+    if ( status != Argus::STATUS_OK ) {
+        ostringstream oss;
+        oss << "Couldn't set denoise strength. Status: " << status;
         _log_callback(oss.str());
         return false;
     }
@@ -1294,7 +1276,17 @@ bool DNNCam::init()
     return _initialized = true;
 }
 
-ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num)
+uint32_t DNNCam::get_output_width()
+{
+    return _output_width;
+}
+    
+uint32_t DNNCam::get_output_height()
+{
+    return _output_height;
+}
+    
+ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame)
 {
     if ( !is_initialized()) {
         ostringstream oss;
@@ -1361,7 +1353,6 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
     }
     static uint64_t last_frame_num = 0;
     uint64_t this_frame_num = frame_count->getInternalFrameCount();
-    frame_num = this_frame_num;
     dropped_frame = false;
     if((this_frame_num != last_frame_num + 1) && (last_frame_num != 0))
     {
@@ -1448,7 +1439,7 @@ ArgusReleaseData *DNNCam::request_frame(bool &dropped_frame, uint64_t &frame_num
                            CV_8UC4, plane_buffer_rgb, params_rgb.pitch[0]);
 
     // NOTE:
-    // In order to avoid coyping all the data here, the calls to NvBufferMemUnMap()
+    // In order to avoid copying all the data here, the calls to NvBufferMemUnMap()
     // and NvBufferDestroy() are deferred until the user is finished with the data.
     // The provided 'Frame' class will call these as part of it's dtor through the
     // release_callback.
@@ -1461,9 +1452,9 @@ uint64_t DNNCam::get_dropped_frames()
     return _dropped_frames;
 }
     
-FramePtr DNNCam::grab(bool &dropped_frame, uint64_t &frame_num)
+FramePtr DNNCam::grab(bool &dropped_frame)
 {
-    ArgusReleaseData *data = request_frame(dropped_frame, frame_num);
+    ArgusReleaseData *data = request_frame(dropped_frame);
     return FramePtr(new Frame(cv_frame_rgb, data, argus_release_helper));
 }
 

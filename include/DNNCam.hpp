@@ -22,49 +22,99 @@ void cout_log_handler(std::string output);
 class DNNCam
 {
 public:
+    // options names
     static const char *OPT_ROI_X;
     static const char *OPT_ROI_Y;
-    static const char *OPT_ROI_WIDTH;
-    static const char *OPT_ROI_HEIGHT;
-    static const char *OPT_OUTPUT_WIDTH;
-    static const char *OPT_OUTPUT_HEIGHT;
-    static const char *OPT_EXPOSURE_TIME_MIN;
-    static const char *OPT_EXPOSURE_TIME_MAX;
+    static const char *OPT_ROI_W;
+    static const char *OPT_ROI_H;
+    static const char *OPT_OUTPUT_W;
+    static const char *OPT_OUTPUT_H;
+    static const char *OPT_AUTO_EXP_LOCK;
+    static const char *OPT_EXP_TIME_MIN;
+    static const char *OPT_EXP_TIME_MAX;
+    static const char *OPT_FRAME_DUR_MIN;
+    static const char *OPT_FRAME_DUR_MAX;
     static const char *OPT_GAIN_MIN;
     static const char *OPT_GAIN_MAX;
+    static const char *OPT_AWB;
     static const char *OPT_AWB_MODE;
     static const char *OPT_WB_GAINS;
-    static const char *OPT_FRAMERATE;
     static const char *OPT_TIMEOUT;
     static const char *OPT_EXPOSURE_COMPENSATION;
-    static const double DEFAULT_EXPOSURE_TIME_MIN;
-    static const double DEFAULT_EXPOSURE_TIME_MAX;
+    static const char *OPT_DENOISE_MODE;
+    static const char *OPT_DENOISE_STRENGTH;
+
+    // option defaults
+    static const uint32_t DEFAULT_ROI_X;
+    static const uint32_t DEFAULT_ROI_Y;
+    static const uint32_t DEFAULT_ROI_W;
+    static const uint32_t DEFAULT_ROI_H;
+    static const uint32_t DEFAULT_OUTPUT_W;
+    static const uint32_t DEFAULT_OUTPUT_H;
+    static const bool DEFAULT_AUTO_EXP_LOCK;
+    static const double DEFAULT_EXP_TIME_MIN;
+    static const double DEFAULT_EXP_TIME_MAX;
+    static const double DEFAULT_FRAME_DUR_MIN;
+    static const double DEFAULT_FRAME_DUR_MAX;
     static const float DEFAULT_GAIN_MIN;
     static const float DEFAULT_GAIN_MAX;
-    static const Argus::AwbMode DEFAULT_AWB_MODE;
-    static const std::vector<float> DEFAULT_WB_GAINS;
-    static const double DEFAULT_FRAMERATE;
+    static const bool DEFAULT_AWB;
+    static const char *DEFAULT_AWB_MODE;
+    static const std::vector < float > DEFAULT_WB_GAINS;
     static const double DEFAULT_TIMEOUT;
     static const float DEFAULT_EXPOSURE_COMPENSATION;
+    static const char *DEFAULT_DENOISE_MODE;
+    static const float DEFAULT_DENOISE_STRENGTH;
+
+    // option variables
+    static uint32_t _roi_x;
+    static uint32_t _roi_y;
+    static uint32_t _roi_width;
+    static uint32_t _roi_height;
+    static uint32_t _output_width;
+    static uint32_t _output_height;
+    static bool _auto_exp_lock;
+    static double _exp_time_min;
+    static double _exp_time_max;
+    static double _frame_dur_min;
+    static double _frame_dur_max;
+    static float _gain_min;
+    static float _gain_max;
+    static bool _awb;
+    static std::string _awb_mode;
+    static std::vector < float > _wb_gains;
+    static double _timeout;
+    static float _exposure_compensation;
+    static std::string _denoise_mode;
+    static float _denoise_strength;
 
     static po::options_description GetOptions();
 
-    DNNCam(const uint32_t roi_x, const uint32_t roi_y,
-           const uint32_t roi_width, const uint32_t roi_height,
-           const uint32_t output_width, const uint32_t output_height, // NOTE: if the output resolution is different than the
-                                                                      //       ROI resolution, Argus scales to the output res
+    // use the parameters set by boost program options
+    DNNCam(boost::function < void(std::string) > log_callback = cout_log_handler);
+
+    DNNCam(const uint32_t roi_x,
+           const uint32_t roi_y,
+           const uint32_t roi_width = DEFAULT_ROI_W,
+           const uint32_t roi_height = DEFAULT_ROI_H,
+           const uint32_t output_width = DEFAULT_OUTPUT_W,  // NOTE: if the output resolution is different than the
+           const uint32_t output_height = DEFAULT_OUTPUT_H, //       ROI resolution, Argus scales to the output res
            boost::function < void(std::string) > log_callback = cout_log_handler,
-           const double exposure_time_min = DEFAULT_EXPOSURE_TIME_MIN,
-           const double exposure_time_max = DEFAULT_EXPOSURE_TIME_MAX,
+           const bool auto_exp_lock = DEFAULT_AUTO_EXP_LOCK,
+           const double exp_time_min = DEFAULT_EXP_TIME_MIN,
+           const double exp_time_max = DEFAULT_EXP_TIME_MAX,
+           const double frame_dur_min = DEFAULT_FRAME_DUR_MIN,
+           const double frame_dur_max = DEFAULT_FRAME_DUR_MAX,
            const float gain_min = DEFAULT_GAIN_MIN,
            const float gain_max = DEFAULT_GAIN_MAX,
-           const Argus::AwbMode awb_mode = DEFAULT_AWB_MODE,
-           const std::vector<float>& wb_gains = DEFAULT_WB_GAINS,
-           const double framerate = DEFAULT_FRAMERATE,
+           const bool awb = DEFAULT_AWB,
+           const Argus::AwbMode awb_mode = string_to_awb_mode(DEFAULT_AWB_MODE),
+           const std::vector < float >& wb_gains = DEFAULT_WB_GAINS,
            const double timeout = DEFAULT_TIMEOUT,
-           const float exposure_compensation = DEFAULT_EXPOSURE_COMPENSATION );
-    DNNCam(const po::variables_map &vm,
-           boost::function < void(std::string) > log_callback = cout_log_handler);
+           const float exposure_compensation = DEFAULT_EXPOSURE_COMPENSATION,
+           const Argus::DenoiseMode denoise_mode = string_to_denoise_mode(DEFAULT_DENOISE_MODE),
+           const float denoise_strength = DEFAULT_DENOISE_STRENGTH);
+    
     ~DNNCam();
 
     static std::string awb_mode_to_string(const Argus::AwbMode mode);
@@ -75,16 +125,20 @@ public:
 
     bool init(); // Must be called first
     bool is_initialized();
+
+    uint32_t get_output_width();
+    uint32_t get_output_height();
     
-    // Grabs the RGB frame. This call must be made before any of the other grab_* calls
-    FramePtr grab(bool &dropped_frame, // return parameter: true if a frame was dropped since the last call
-                  uint64_t &frame_num); // return parameter: the frame number of the returned frame, according to libargus
+    FramePtr grab(bool &dropped_frame); // Grabs the RGB frame. This call must be made before any of the other grab_* calls
+                                        // Return parameter 'dropped_frame' is set to true if a frame was missed being read from
+                                        // libargus since the last grab call. Call get_dropped_frames() to see how many
+                                        // frames were missed.
     FramePtr grab_y(); // Grabs just the 'Y' plane of a YUV image. This is equivalent to greyscale.
     FramePtr grab_u(); // Grabs just the 'U' plane of a YUV image. NOTE: this is half the size of the full frame
     FramePtr grab_v(); // Grabs just the 'V' plane of a YUV image. NOTE: this is half the size of the full frame
     
-    void set_auto_exposure(const bool enabled);
-    bool get_auto_exposure();
+    void set_auto_exposure_lock(const bool enabled);
+    bool get_auto_exposure_lock();
     void set_exposure_time(const Argus::Range < uint64_t > exposure_range);
     Argus::Range < uint64_t > get_exposure_time();
     void set_exposure_compensation(const float comp);
@@ -99,8 +153,8 @@ public:
     bool get_awb();
     void set_awb_mode(const Argus::AwbMode mode);
     Argus::AwbMode get_awb_mode();
-    void set_awb_gains(std::array < float, Argus::BAYER_CHANNEL_COUNT > gains); // For use with AWB_MODE_MANUAL
-    std::array < float, Argus::BAYER_CHANNEL_COUNT > get_awb_gains();
+    void set_awb_gains(std::vector < float > gains); // For use with AWB_MODE_MANUAL
+    std::vector < float > get_awb_gains();
     
     void set_denoise_mode(const Argus::DenoiseMode mode);
     Argus::DenoiseMode get_denoise_mode();
@@ -138,7 +192,7 @@ public:
     boost::function < void(std::string) > _log_callback;
 
 private:
-    ArgusReleaseData *request_frame(bool &dropped_frame, uint64_t &frame_num);
+    ArgusReleaseData *request_frame(bool &dropped_frame);
     bool check_bounds();
 
     bool _initialized;
@@ -146,17 +200,8 @@ private:
     cv::Mat cv_frame_y;
     cv::Mat cv_frame_u;
     cv::Mat cv_frame_v;
-    const uint32_t _roi_x, _roi_y;
-    const uint32_t _roi_width, _roi_height;
-    const uint32_t _sensor_width, _sensor_height;
-    const uint32_t _output_width, _output_height;
-    const double _exposure_time_min, _exposure_time_max;
-    const float _gain_min, _gain_max;
-    Argus::AwbMode _awb_mode;
-    const std::vector<float> _wb_gains;
-    const double _framerate;
-    const double _timeout;
-    const float _exposure_compensation;
+    const uint32_t _sensor_width;
+    const uint32_t _sensor_height;
     uint64_t _dropped_frames;
 
     MotorDriver _motor;

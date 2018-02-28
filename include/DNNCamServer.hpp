@@ -308,7 +308,7 @@ public:
     {
         const bool value(paramList.getBoolean(0));
         _dnncam->_log_callback("XMLRPC: SetAutoExposure");
-        _dnncam->set_auto_exposure(value);
+        _dnncam->set_auto_exposure_lock(value);
         *retvalP = xmlrpc_c::value_nil();
     }
 
@@ -327,7 +327,7 @@ public:
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
         _dnncam->_log_callback("XMLRPC: GetAutoExposure");
-        const bool ret = _dnncam->get_auto_exposure();
+        const bool ret = _dnncam->get_auto_exposure_lock();
         *retvalP = xmlrpc_c::value_boolean(ret);
     }
 
@@ -599,7 +599,8 @@ public:
 
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
-        std::array < float,  Argus::BAYER_CHANNEL_COUNT > wb_gains;
+        std::vector < float > wb_gains;
+        wb_gains.resize(4);
         wb_gains[0] = paramList.getDouble(0);
         wb_gains[1] = paramList.getDouble(1);
         wb_gains[2] = paramList.getDouble(2);
@@ -625,7 +626,7 @@ public:
 
     void execute(xmlrpc_c::paramList const &paramList, xmlrpc_c::value *const retvalP)
     {
-        const std::array < float, Argus::BAYER_CHANNEL_COUNT > wb_gains = _dnncam->get_awb_gains();
+        const std::vector < float > wb_gains = _dnncam->get_awb_gains();
         _dnncam->_log_callback("XMLRPC: GetAWBGains");
         xmlrpc_c::carray ret_array;
         ret_array.push_back(xmlrpc_c::value_double(wb_gains[0]));
@@ -752,7 +753,7 @@ public:
     {
         std::string ret = "<table>";
         // auto exposure
-        ret += table_chunk("Auto-Exposure Lock", _dnncam->get_auto_exposure(), "");
+        ret += table_chunk("Auto-Exposure Lock", _dnncam->get_auto_exposure_lock(), "");
         // exposure time
         ret += table_chunk("Exposure Time", _dnncam->get_exposure_time(), "nS");
         // exposure compensation
@@ -801,7 +802,7 @@ protected:
         return ret.str();
     }
     
-    std::string table_chunk(const std::string name, const std::array < float, Argus::BAYER_CHANNEL_COUNT > value, const std::string unit)
+    std::string table_chunk(const std::string name, const std::vector < float > value, const std::string unit)
     {
         std::ostringstream ret;
         ret << "<tr><th>" << name << "</th><td>" << value[0] << " " << value[1] << " " << value[2] << " " << value[3] << unit << "</td></tr>";
