@@ -56,60 +56,6 @@ CMAKE_BINARY_DIR = /home/nvidia/DNNCam/examples/GstreamerOpenCV/build
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target edit_cache
-edit_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-.PHONY : edit_cache
-
-# Special rule for the target edit_cache
-edit_cache/fast: edit_cache
-
-.PHONY : edit_cache/fast
-
-# Special rule for the target package_source
-package_source:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Run CPack packaging tool for source..."
-	/usr/bin/cpack --config ./CPackSourceConfig.cmake /home/nvidia/DNNCam/examples/GstreamerOpenCV/build/CPackSourceConfig.cmake
-.PHONY : package_source
-
-# Special rule for the target package_source
-package_source/fast: package_source
-
-.PHONY : package_source/fast
-
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-
-.PHONY : rebuild_cache/fast
-
-# Special rule for the target package
-package: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Run CPack packaging tool..."
-	/usr/bin/cpack --config ./CPackConfig.cmake
-.PHONY : package
-
-# Special rule for the target package
-package/fast: package
-
-.PHONY : package/fast
-
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
-
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
-
-.PHONY : list_install_components/fast
-
 # Special rule for the target install
 install: preinstall
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
@@ -121,6 +67,27 @@ install/fast: preinstall/fast
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
 	/usr/bin/cmake -P cmake_install.cmake
 .PHONY : install/fast
+
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+
+.PHONY : list_install_components/fast
+
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+
+.PHONY : rebuild_cache/fast
 
 # Special rule for the target install/strip
 install/strip: preinstall
@@ -143,6 +110,17 @@ install/local: preinstall
 install/local/fast: install/local
 
 .PHONY : install/local/fast
+
+# Special rule for the target edit_cache
+edit_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
+	/usr/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+.PHONY : edit_cache
+
+# Special rule for the target edit_cache
+edit_cache/fast: edit_cache
+
+.PHONY : edit_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -189,32 +167,32 @@ GstreamerOpenCV/fast:
 	$(MAKE) -f CMakeFiles/GstreamerOpenCV.dir/build.make CMakeFiles/GstreamerOpenCV.dir/build
 .PHONY : GstreamerOpenCV/fast
 
-simpleCV_Gstreamer.o: simpleCV_Gstreamer.cpp.o
+very_simple.o: very_simple.cpp.o
 
-.PHONY : simpleCV_Gstreamer.o
+.PHONY : very_simple.o
 
 # target to build an object file
-simpleCV_Gstreamer.cpp.o:
-	$(MAKE) -f CMakeFiles/GstreamerOpenCV.dir/build.make CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o
-.PHONY : simpleCV_Gstreamer.cpp.o
+very_simple.cpp.o:
+	$(MAKE) -f CMakeFiles/GstreamerOpenCV.dir/build.make CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o
+.PHONY : very_simple.cpp.o
 
-simpleCV_Gstreamer.i: simpleCV_Gstreamer.cpp.i
+very_simple.i: very_simple.cpp.i
 
-.PHONY : simpleCV_Gstreamer.i
+.PHONY : very_simple.i
 
 # target to preprocess a source file
-simpleCV_Gstreamer.cpp.i:
-	$(MAKE) -f CMakeFiles/GstreamerOpenCV.dir/build.make CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.i
-.PHONY : simpleCV_Gstreamer.cpp.i
+very_simple.cpp.i:
+	$(MAKE) -f CMakeFiles/GstreamerOpenCV.dir/build.make CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.i
+.PHONY : very_simple.cpp.i
 
-simpleCV_Gstreamer.s: simpleCV_Gstreamer.cpp.s
+very_simple.s: very_simple.cpp.s
 
-.PHONY : simpleCV_Gstreamer.s
+.PHONY : very_simple.s
 
 # target to generate assembly for a file
-simpleCV_Gstreamer.cpp.s:
-	$(MAKE) -f CMakeFiles/GstreamerOpenCV.dir/build.make CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.s
-.PHONY : simpleCV_Gstreamer.cpp.s
+very_simple.cpp.s:
+	$(MAKE) -f CMakeFiles/GstreamerOpenCV.dir/build.make CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.s
+.PHONY : very_simple.cpp.s
 
 # Help Target
 help:
@@ -222,18 +200,16 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
-	@echo "... edit_cache"
-	@echo "... package_source"
-	@echo "... rebuild_cache"
-	@echo "... package"
-	@echo "... GstreamerOpenCV"
-	@echo "... list_install_components"
 	@echo "... install"
+	@echo "... list_install_components"
+	@echo "... rebuild_cache"
+	@echo "... GstreamerOpenCV"
 	@echo "... install/strip"
 	@echo "... install/local"
-	@echo "... simpleCV_Gstreamer.o"
-	@echo "... simpleCV_Gstreamer.i"
-	@echo "... simpleCV_Gstreamer.s"
+	@echo "... edit_cache"
+	@echo "... very_simple.o"
+	@echo "... very_simple.i"
+	@echo "... very_simple.s"
 .PHONY : help
 
 

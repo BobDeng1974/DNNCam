@@ -57,39 +57,68 @@ include CMakeFiles/GstreamerOpenCV.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/GstreamerOpenCV.dir/flags.make
 
-CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o: CMakeFiles/GstreamerOpenCV.dir/flags.make
-CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o: ../simpleCV_Gstreamer.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/nvidia/DNNCam/examples/GstreamerOpenCV/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o -c /home/nvidia/DNNCam/examples/GstreamerOpenCV/simpleCV_Gstreamer.cpp
+CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o: CMakeFiles/GstreamerOpenCV.dir/flags.make
+CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o: ../very_simple.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/nvidia/DNNCam/examples/GstreamerOpenCV/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o"
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o -c /home/nvidia/DNNCam/examples/GstreamerOpenCV/very_simple.cpp
 
-CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/nvidia/DNNCam/examples/GstreamerOpenCV/simpleCV_Gstreamer.cpp > CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.i
+CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.i"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/nvidia/DNNCam/examples/GstreamerOpenCV/very_simple.cpp > CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.i
 
-CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/nvidia/DNNCam/examples/GstreamerOpenCV/simpleCV_Gstreamer.cpp -o CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.s
+CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.s"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/nvidia/DNNCam/examples/GstreamerOpenCV/very_simple.cpp -o CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.s
 
-CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o.requires:
+CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o.requires:
 
-.PHONY : CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o.requires
+.PHONY : CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o.requires
 
-CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o.provides: CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o.requires
-	$(MAKE) -f CMakeFiles/GstreamerOpenCV.dir/build.make CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o.provides.build
-.PHONY : CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o.provides
+CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o.provides: CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o.requires
+	$(MAKE) -f CMakeFiles/GstreamerOpenCV.dir/build.make CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o.provides.build
+.PHONY : CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o.provides
 
-CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o.provides.build: CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o
+CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o.provides.build: CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o
 
 
 # Object files for target GstreamerOpenCV
 GstreamerOpenCV_OBJECTS = \
-"CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o"
+"CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o"
 
 # External object files for target GstreamerOpenCV
 GstreamerOpenCV_EXTERNAL_OBJECTS =
 
-GstreamerOpenCV: CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o
+GstreamerOpenCV: CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o
 GstreamerOpenCV: CMakeFiles/GstreamerOpenCV.dir/build.make
+GstreamerOpenCV: /usr/lib/libopencv_cudabgsegm.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_cudaobjdetect.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_cudastereo.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_dnn.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_ml.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_shape.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_stitching.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_superres.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_videostab.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_cudafeatures2d.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_cudacodec.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_cudaoptflow.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_cudalegacy.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_calib3d.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_cudawarping.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_features2d.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_flann.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_highgui.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_objdetect.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_photo.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_cudaimgproc.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_cudafilters.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_cudaarithm.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_video.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_videoio.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_imgcodecs.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_imgproc.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_core.so.3.3.0
+GstreamerOpenCV: /usr/lib/libopencv_cudev.so.3.3.0
 GstreamerOpenCV: CMakeFiles/GstreamerOpenCV.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/nvidia/DNNCam/examples/GstreamerOpenCV/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable GstreamerOpenCV"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/GstreamerOpenCV.dir/link.txt --verbose=$(VERBOSE)
@@ -99,7 +128,7 @@ CMakeFiles/GstreamerOpenCV.dir/build: GstreamerOpenCV
 
 .PHONY : CMakeFiles/GstreamerOpenCV.dir/build
 
-CMakeFiles/GstreamerOpenCV.dir/requires: CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o.requires
+CMakeFiles/GstreamerOpenCV.dir/requires: CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o.requires
 
 .PHONY : CMakeFiles/GstreamerOpenCV.dir/requires
 

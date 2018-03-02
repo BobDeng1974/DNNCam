@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/nvidia/DNNCam/examples/GstreamerOpenCV/simpleCV_Gstreamer.cpp" "/home/nvidia/DNNCam/examples/GstreamerOpenCV/build/CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o"
+  "/home/nvidia/DNNCam/examples/GstreamerOpenCV/very_simple.cpp" "/home/nvidia/DNNCam/examples/GstreamerOpenCV/build/CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
@@ -15,6 +15,7 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "/usr/include/glib-2.0"
   "/usr/lib/aarch64-linux-gnu/glib-2.0/include"
   "../include"
+  "/usr/include/opencv"
   )
 
 # Targets to which this target links.

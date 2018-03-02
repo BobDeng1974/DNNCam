@@ -27,16 +27,15 @@ message(STATUS "    version: ${OpenCV_VERSION}")
 message(STATUS "    libraries: ${OpenCV_LIBS}")
 message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
 
-if(CMAKE_VERSION VERSION_LESS "2.8.11")
-  # Add OpenCV headers location to your include paths
-  include_directories(${OpenCV_INCLUDE_DIRS})
-endif()
+# Add OpenCV headers location to your include paths
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 # Declare the executable target built from your sources
-add_executable(${PROJECT_NAME} "simpleCV_Gstreamer.cpp")
+add_executable(${PROJECT_NAME} "very_simple.cpp")
 
 target_link_libraries(${PROJECT_NAME}
     ${OPENGLES_LIBRARIES}
+    ${OpenCV_LIBS}
      )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

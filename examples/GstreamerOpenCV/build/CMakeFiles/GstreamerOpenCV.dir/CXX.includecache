@@ -6,11 +6,7 @@
 
 #IncludeRegexTransform: 
 
-/home/nvidia/DNNCam/examples/GstreamerOpenCV/simpleCV_Gstreamer.cpp
+/home/nvidia/DNNCam/examples/GstreamerOpenCV/very_simple.cpp
 opencv2/opencv.hpp
--
-string
--
-sstream
--
+/home/nvidia/DNNCam/examples/GstreamerOpenCV/opencv2/opencv.hpp
 

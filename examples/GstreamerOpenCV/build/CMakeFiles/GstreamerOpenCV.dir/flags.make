@@ -6,5 +6,5 @@ CXX_FLAGS =
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/home/nvidia/DNNCam/examples/GstreamerOpenCV/include 
+CXX_INCLUDES = -I/usr/include/gstreamer-1.0 -I/usr/lib/aarch64-linux-gnu/gstreamer-1.0/include -I/usr/include/glib-2.0 -I/usr/lib/aarch64-linux-gnu/glib-2.0/include -I/home/nvidia/DNNCam/examples/GstreamerOpenCV/include -isystem /usr/include/opencv 
 

@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o"
+  "CMakeFiles/GstreamerOpenCV.dir/very_simple.cpp.o"
   "GstreamerOpenCV.pdb"
   "GstreamerOpenCV"
 )
