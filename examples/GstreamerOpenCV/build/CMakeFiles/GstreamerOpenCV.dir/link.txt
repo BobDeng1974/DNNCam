@@ -1,0 +1,1 @@
+/usr/bin/c++      CMakeFiles/GstreamerOpenCV.dir/simpleCV_Gstreamer.cpp.o  -o GstreamerOpenCV  -L/usr/local/cuda-8.0/lib64 -rdynamic 

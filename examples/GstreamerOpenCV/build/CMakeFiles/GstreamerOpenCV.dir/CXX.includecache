@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/nvidia/DNNCam/examples/GstreamerOpenCV/simpleCV_Gstreamer.cpp
+opencv2/opencv.hpp
+-
+string
+-
+sstream
+-
+
