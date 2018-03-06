@@ -61,7 +61,7 @@ remote setting of camera parameters. Here is a basic list of the
 XMLRPC controls available:
 
 Image Controls:
-
+```
 void set_auto_exposure(bool) - Sets auto exposure (auto exposure "lock")
 bool get_auto_exposure(void) - Gets auto exposure
 Array(i8, i8) get_exposure_time(void) - Gets the exposure time min and max
@@ -83,11 +83,12 @@ void set_denoise_mode(string) - Sets denoise mode
 void set_denoise_strength(double) - Sets denoise strength
 double get_denoise_strength(void) - Gets denoise strength
 string get_config(void) - Returns a chunk of table HTML that shows the camera settings
-
+```
 
 Lens Controls (NOTE: at the time of this writing, the limit switches
 were not working, and the *_absolute(), *_home(), and *_get_location()
 functions do not work)
+```
 int focus_home(void) - Sets focus to the 'home' location
 int focus_absolute(int) - Sets focus to the given absolute location
 int focus_relative(int) - Sets focus relative to the current position
@@ -101,3 +102,4 @@ int iris_absolute(int) - Sets iris to the given absolute position
 int iris_relative(int) - Sets iris relative to the current position
 int iris_get_location(void) - Get the absolute iris location
 int ir_cut(bool) - Set the IR cut filter
+```
