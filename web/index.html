@@ -1,0 +1,174 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"> 
+<head> 
+    <title>DNNCam Web Control</title> 
+    <link rel="stylesheet" href="finder.css" />
+<script src="dnncam.js" type="text/javascript">  
+</script>      
+
+</head> 
+<body> 
+  <div id="container"> 
+    <div id="header"> 
+      <!-- <img src="images/sureworks-alpha.png"/> -->
+      <h2>DNNCam Controller</h2>
+    </div> 
+    <div id="content">
+      <div id="video">
+        <h2>Video</h2>
+        <!-- doesn't look like any browsers support embedded rtsp -->
+        <!-- <video autoplay controls> -->
+        <!--        <source src="rtsp://dnncam:8554/stream"> -->
+        <!--   Your browser may not support HTML5 RTSP video. -->
+        <!-- </video> -->
+        <p id="stream_link"></p>
+        <script type="text/javascript">document.getElementById("stream_link").innerHTML = "<a href=\"" + window.location.href.replace("http://", "rtsp://").replace(/\/$/, ":8554/stream") + "\">Link to Video Stream</a>"</script>
+      </div>
+        <div id="configuration">
+          <h2>Configuration</h2>
+          <span id="cam_config"><p>Loading from server...</p></span>
+          <hr>
+          <table>
+
+            <tr>
+              <td>Auto-Exposure Lock:</td>
+              <td>
+                <select id="ae_lock_select">
+                  <option value="Off">Off</option>
+                  <option value="On">On</option>
+                </select>
+                <button type="submit" name="ae_lock" onclick="javascript:set_auto_exposure()">Set</button>
+              </td>
+            </tr>
+            
+	        <tr>
+	          <td>Exposure:</td>
+	          <td>
+                Low<input type="text" id="exposure_text_low" value=""></input>
+                High<input type="text" id="exposure_text_high" value=""></input>
+                <button type="submit" name="exp" onclick="javascript:set_exposure();">Set</button>
+	          </td>
+	        </tr>
+            
+	        <tr>
+	          <td>Frame Duration:</td>
+	          <td>
+                Low<input type="text" id="frame_duration_text_low" value=""></input>
+                High<input type="text" id="frame_duration_text_high" value=""></input>
+                <button type="submit" name="frame_dur" onclick="javascript:set_frame_duration();">Set</button>
+	          </td>
+	        </tr>
+            
+	        <tr>
+	          <td>Gain:</td>
+	          <td>
+                Low<input type="text" id="gain_text_low" value=""></input>
+                High<input type="text" id="gain_text_high" value=""></input>
+                <button type="submit" name="gain" onclick="javascript:set_gain();">Set</button>
+              </td>
+            </tr>
+            
+	        <tr>
+	          <td>Exposure Compensation:</td>
+	          <td>
+                <input type="text" id="exposure_comp_text" value=""></input>
+                <button type="submit" name="exp_comp" onclick="javascript:set_exposure_compensation();">Set</button>
+	          </td>
+	        </tr>
+
+            <tr>
+              <td>Auto-White Balance:</td>
+              <td>
+                <select id="awb_select">
+                  <option value="Off">Off</option>
+                  <option value="On">On</option>
+                </select>
+                <button type="submit" name="awb" onclick="javascript:set_awb()">Set</button>
+              </td>
+            </tr>
+
+            <tr>
+              <td>Auto-White Balance Mode:</td>
+              <td>
+                <select id="awb_mode_select">
+                  <option value="Off">Off</option>
+                  <option value="Auto">Auto</option>
+                  <option value="Incandescent">Incandescent</option>
+                  <option value="Fluorescent">Fluorescent</option>
+                  <option value="Warm Fluorescent">Warm Fluorescent</option>
+                  <option value="Daylight">Daylight</option>
+                  <option value="Cloudy Daylight">Cloudy Daylight</option>
+                  <option value="Twilight">Twilight</option>
+                  <option value="Shade">Shade</option>
+                  <option value="Manual">Manual</option>
+                </select>
+                <button type="submit" name="awb_mode" onclick="javascript:set_awb_mode()">Set</button>
+              </td>
+            </tr>
+            
+	        <tr>
+	          <td>White Balance Gains:</td>
+	          <td>
+                <input type="text" id="wb_gain_0" value=""></input>
+                <input type="text" id="wb_gain_1" value=""></input>
+                <input type="text" id="wb_gain_2" value=""></input>
+                <input type="text" id="wb_gain_3" value=""></input>
+                <button type="submit" name="wb_gains" onclick="javascript:set_wb_gains();">Set</button>
+	          </td>
+	        </tr>
+            
+	        <tr>
+	          <td>Denoise Strength:</td>
+	          <td>
+                <input type="text" id="denoise_strength_text" value=""></input>
+                <button type="submit" name="denoise_strength" onclick="javascript:set_denoise_strength();">Set</button>
+	          </td>
+	        </tr>
+
+            <tr>
+              <td>Denoise Mode:</td>
+              <td>
+                <select id="denoise_mode_select">
+                  <option value="Off">Off</option>
+                  <option value="Fast">Fast</option>
+                  <option value="High Quality">High Quality</option>
+                </select>
+                <button type="submit" name="denoise_mode" onclick="javascript:set_denoise_mode()">Set</button>
+              </td>
+            </tr>
+            
+	        <tr>
+	          <td>Focus Relative:</td>
+	          <td>
+	            <input id="focus_relative" type="text" name="focus_relative" size="8"></input>
+                <button type="submit" name="focus_up" onclick="javascript:set_focus_relative(1);">Focus Out</button>
+                <button type="submit" name="focus_down" onclick="javascript:set_focus_relative(-1);">Focus In</button>
+	          </td>
+	        </tr>
+            
+	        <tr>
+	          <td>Zoom Relative:</td>
+	          <td>
+	            <input id="zoom_relative" type="text" name="zoom_relative" size="8"></input>
+                <button type="submit" name="zoom_up" onclick="javascript:set_zoom_relative(1);">Zoom Out</button>
+                <button type="submit" name="zoom_down" onclick="javascript:set_zoom_relative(-1);">Zoom In</button>
+	          </td>
+	        </tr>
+            
+	        <tr>
+	          <td>Iris Relative:</td>
+	          <td>
+	            <input id="iris_relative" type="text" name="iris_relative" size="8"></input>
+                <button type="submit" name="iris_up" onclick="javascript:set_iris_relative(1);">Iris Open</button>
+                <button type="submit" name="iris_down" onclick="javascript:set_iris_relative(-1);">Iris Close</button>
+	          </td>
+	        </tr>
+            
+          </table>
+        </div>
+      </div>
+      <div id="footer"> 
+        Development by <a href="https://www.boulderai.com">Boulder AI</a> in cooperation with <a href="http://boulderlabs.com">Boulder Labs</a>.
+      </div> 
+    </div> 
+</body> 
+</html> 

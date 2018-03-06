@@ -13,6 +13,9 @@
 
 namespace pt=boost::posix_time;
 
+namespace BoulderAI
+{
+
 static const size_t PREBUFFERED_FRAMES = 20; // number of frames to 'prebuffer' -- the prebuffer is
                                              // a small queue of frames that we can go back to after
                                              // we notice a new object for tracking, and dynamically turn
@@ -81,7 +84,7 @@ std::string FrameProcessor::get_stream_state()
 {
 }
 
-void FrameProcessor::process_frame(FramePtr frame, const bool block)
+void FrameProcessor::process_frame(FrameCollection frame_col, const bool block)
 {
     /* When processing captures / movies, block rather than filling the queue as fast
      * as io will allow, so we don't get overruns */
@@ -90,7 +93,7 @@ void FrameProcessor::process_frame(FramePtr frame, const bool block)
         usleep(50000);
     }
 
-    if (!frame.get())
+    if (!frame_col.frame_rgb.get())
     {
         ScopedLock lock(_mtex);
         increment_dropped_frames();
@@ -98,6 +101,9 @@ void FrameProcessor::process_frame(FramePtr frame, const bool block)
         return;
     }
 
+    //cv::Mat m = frame->to_mat();
+    //cout << "In process frame: " << m.cols << "x" << m.rows << endl;
+    
     {
         ScopedLock lock(_prebuffer_mtex);
         if (_prebuffer.size() == PREBUFFERED_FRAMES)  // Buffer size limit
@@ -105,12 +111,12 @@ void FrameProcessor::process_frame(FramePtr frame, const bool block)
             _prebuffer.pop_back();
         }
         /* store a copy in the prebuffer, for when we turn on capture */
-        _prebuffer.push_front(frame);
+        _prebuffer.push_front(frame_col);
     }
 
     {
         ScopedLock lock(_mtex);
-        if ( (_queue_size = _worker.add_job( boost::bind(&FrameProcessor::process_frame_task, this, frame, _frame_num, _frame_num-_previous_frame_num-1)) ) == -1 )
+        if ( (_queue_size = _worker.add_job( boost::bind(&FrameProcessor::process_frame_task, this, frame_col, _frame_num, _frame_num-_previous_frame_num-1)) ) == -1 )
         {
             std::cout << "The _worker queue is full!" << std::endl;
             increment_dropped_frames();
@@ -129,49 +135,48 @@ std::string FrameProcessor::get_timing_string(void)
     return ret.str();
 }
 
-void FrameProcessor::do_stream(cv::Mat frame, const int frame_num, const int n_dropped_before)
+void FrameProcessor::do_stream(FrameCollection frame_col, const int frame_num, const int n_dropped_before)
 {
     /* TODO: Potential optimization - don't for sequential section here if we're not going
      * to stream the frame. Requires some logic for figuring out dropped frames */
 
-    cv::Mat scaled_frame; 
-    if (frame_num % 4 == 0)
-    {
-        cv::Mat stream_frame; 
-        stream_frame = frame;
+    // This depth scaling will need to be updated if we can ever get > 8 bit data out of libargus...
+    //cv::Mat scaled_frame; 
+    // if (frame_num % 2 == 0)
+    // {
+    //     cv::Mat stream_frame; 
+    //     stream_frame = frame;
 
-        if (frame.depth() == CV_16U)
-        {
-            stream_frame.convertTo(scaled_frame, CV_8U, 1/16.0);
-        }
-        else
-        {
-            scaled_frame = stream_frame;
-        }
-    }
+    //     if (frame.depth() == CV_16U)
+    //     {
+    //         stream_frame.convertTo(scaled_frame, CV_8U, 1/16.0);
+    //     }
+    //     else
+    //     {
+    //         scaled_frame = stream_frame;
+    //     }
+    // }
 
     if (!SequentialSection::too_late("stream", frame_num, n_dropped_before))
     {
         SequentialSection ss("stream", frame_num, n_dropped_before);
-        if (frame_num % 4 == 0)
+        //if (frame_num % 2 == 0)
         {
-           _streamer->push_frame(frame);
+           _streamer->push_frame(frame_col);
         }
     }
 }
 
-void FrameProcessor::process_frame_task(FramePtr src, const int frame_num, const int n_dropped_before)
+void FrameProcessor::process_frame_task(FrameCollection frame_col, const int frame_num, const int n_dropped_before)
 {
     const int queue_size = get_queue_size();
     const bool skip_processing = (queue_size > 350) && frame_num % 2 == 1;
     if (skip_processing)
     {
-        std::cout << "Skipping frame " << frame_num << " because frame queue contains " << queue_size << " frames.";
+        std::cout << "Skipping frame " << frame_num << " because frame queue contains " << queue_size << " frames." << std::endl;
     }
 
-    cv::Mat source_frame; 
-    source_frame = src->to_mat();
-    do_stream(source_frame, frame_num, n_dropped_before);
+    do_stream(frame_col, frame_num, n_dropped_before);
 }
 
 void touch(const std::string& pathname)
@@ -202,3 +207,5 @@ void FrameProcessor::increment_dropped_frames(void)
 {
     _dropped_frames++;
 }
+
+} // namespace BoulderAI

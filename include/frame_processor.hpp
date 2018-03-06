@@ -9,6 +9,9 @@
 #include "new_worker.hpp"
 #include "stream.hpp"
 
+namespace BoulderAI
+{
+
 typedef bl::NewWorker < bl::Logexc_policy > BoundedWorkerBase;
 class BoundedWorker : public BoundedWorkerBase
 {
@@ -73,10 +76,6 @@ enum class StreamState
     BACKGROUND,
     TRACKS
 } ;
-
-typedef std::deque < FramePtr > FrameQueue;
-typedef FrameQueue::iterator FrameQueueIter;
-typedef FrameQueue::reverse_iterator FrameQueueRIter;
 
 class SequentialSection
 {
@@ -156,7 +155,7 @@ public:
 
     void start_workers(void);
     
-    void process_frame(FramePtr frame, const bool block=false);
+    void process_frame(FrameCollection frame_col, const bool block=false);
     void wait_for_queued_images(); 
 
     void set_stream_state(const StreamState state);
@@ -181,16 +180,9 @@ public:
 protected:
     typedef boost::mutex::scoped_lock ScopedLock;
 
-    /**
-     * Note that we pass the cv::Mat by value, NOT by reference. Passing by reference WON'T work
-     * because the data will cease to exist as soon as the previous thread is done with it.
-     * There is a tiny performance penalty in passing by value because the header information
-     * needs to be copied, but the data does not; a cv::Mat is essentially a smart pointer
-     * to a data buffer. So this is plenty efficient.
-     */
-    void process_frame_task(FramePtr frame, const int frame_num, const int n_dropped_before);
+    void process_frame_task(FrameCollection frame_col, const int frame_num, const int n_dropped_before);
 
-    void do_stream(cv::Mat frame, const int frame_num, const int n_dropped_before);
+    void do_stream(FrameCollection frame_col, const int frame_num, const int n_dropped_before);
 
     bool _created_window;
     int _frame_width;
@@ -214,3 +206,5 @@ protected:
 } ;
 
 typedef boost::shared_ptr < FrameProcessor > FrameProcessorPtr;
+
+} // namespace BoulderAI

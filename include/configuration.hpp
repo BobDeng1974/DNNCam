@@ -1,13 +1,17 @@
 #pragma once
 
 #include <boost/program_options.hpp>
-#include <log.hpp>
 
 namespace po=boost::program_options;
+
+namespace BoulderAI
+{
 
 class Configuration
 {
 public:
+    static void set_log_handler(boost::function < void(std::string) > handler);
+    
     static int zoom_start() { init(); return _zoom_start; }
     static int zoom_up_direction() { init(); return _zoom_up_direction; }
     static int zoom_home_direction() { init(); return _zoom_home_direction; }
@@ -67,5 +71,8 @@ protected:
     static int _iris_home_max_steps;
     static int _iris_home_step_size;
     static bool _iris_has_limit;
+
+    static boost::function < void(std::string) > _log_callback;
 };
 
+} // namepsace BoulderAI

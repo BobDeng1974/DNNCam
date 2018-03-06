@@ -27,7 +27,9 @@
  */
 
 #include "Thread.h"
-#include "log.hpp"
+
+#include <iostream>
+#include <sstream>
 
 namespace NvidiaUtils
 {
@@ -52,7 +54,7 @@ bool Thread::initialize()
 
     if (pthread_create(&m_threadID, NULL, threadFunctionStub, this) != 0)
     {
-        bl_log_error("Failed to create thread");
+        std::cerr << "Failed to create thread" << std::endl;
         return false;
     }
 
@@ -71,7 +73,7 @@ bool Thread::shutdown()
         m_doShutdown = true;
         if (pthread_join(m_threadID, NULL) != 0)
         {
-            bl_log_error("Failed to join thread");
+            std::cerr << "Failed to join thread" << std::endl;
             return false;
         }
         m_threadID = 0;
@@ -87,7 +89,7 @@ bool Thread::waitRunning(useconds_t timeoutUs)
     // Can only wait for a thread which is initializing or already running
     if ((m_threadState != THREAD_INITIALIZING) && (m_threadState != THREAD_RUNNING))
     {
-        bl_log_error("Invalid thread state " << m_threadState.get());
+        std::cerr << "Invalid thread state " << m_threadState.get() << std::endl;
         return false;
     }
 
@@ -134,7 +136,7 @@ bool Thread::threadFunction()
 
     if (false == threadInitialize())
     {
-        bl_log_error("threadInitialize failed");
+        std::cerr << "threadInitialize failed" << std::endl;
         return false;
     }
 
@@ -144,14 +146,14 @@ bool Thread::threadFunction()
     {
         if (false == threadExecute())
         {
-            bl_log_error("threadExecute failed");
+            std::cerr << "threadExecute failed" << std::endl;
             return false;
         }
     }
 
     if (false == threadShutdown())
     {
-        bl_log_error("threadShutdown failed");
+        std::cerr << "threadShutdown failed" << std::endl;
         return false;
     }
 

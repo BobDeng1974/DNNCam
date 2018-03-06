@@ -1,4 +1,13 @@
+
+#include <fstream>
+#include <iostream>
+
 #include "configuration.hpp"
+
+using namespace std;
+
+namespace BoulderAI
+{
 
 bool Configuration::_initialized;
 
@@ -23,10 +32,22 @@ int Configuration::_iris_home_max_steps;
 int Configuration::_iris_home_step_size;
 bool Configuration::_iris_has_limit;
 
+static void cout_log_handler(std::string output)
+{
+    cout << output << endl;
+}
+    
+boost::function < void(std::string) > Configuration::_log_callback = cout_log_handler;
+    
 po::variables_map Configuration::_vm;
 po::options_description Configuration::_options("Configuration");
 
 std::string Configuration::_config_filename="/etc/lensdriver.cfg";
+
+void Configuration::set_log_handler(boost::function < void(std::string) > handler)
+{
+    _log_callback = handler;
+}
 
 void Configuration::_load_config_file(void)
 {
@@ -54,15 +75,17 @@ void Configuration::_load_config_file(void)
     ifs.open(_config_filename);
     if (ifs.fail())
     {
-        bl_log_warn("Unable to open: " << _config_filename);
+        ostringstream oss;
+        oss << "Unable to open config file: " << _config_filename;
+        _log_callback(oss.str());
         ifs.open("./lensdriver.cfg");
         if (ifs.fail())
         {
-            bl_log_warn("Unable to open ./lensdriver.cfg either.");
+            _log_callback("Unable to open ./lensdriver.cfg either.");
         }
         else
         {
-            bl_log_info("Opened ./lensdriver.cfg.");
+            _log_callback("Opened ./lensdriver.cfg.");
         }
     }
 
@@ -73,11 +96,15 @@ void Configuration::_load_config_file(void)
     }
     catch (po::error &e)
     {
-        bl_log_warn("Error parsing config file: " << e.what());
+        ostringstream oss;
+        oss << "Error parsing config file: " << e.what();
+        _log_callback(oss.str());
         exit(1);
     }
 
-    bl_log_info("Loaded config file.");
+    _log_callback("Loaded config file.");
     _initialized = true;
 }
 
+
+} // namespace BoulderAI

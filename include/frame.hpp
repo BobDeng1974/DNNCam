@@ -5,6 +5,9 @@
 #include <boost/function.hpp>
 #include <opencv2/opencv.hpp>
 
+namespace BoulderAI
+{
+
 class Frame
 {
 public:
@@ -15,20 +18,36 @@ public:
         _type(mat.type()),
         _has_mat(true),
         _has_callback(false),
-        _mat(mat)
+        _mat(mat),
+        _opaque(nullptr)
     {} ;
 
-    Frame(unsigned char *buf, size_t height, size_t width, int type, boost::function<void()> release_callback) : 
+    Frame(cv::Mat mat, void *opaque, boost::function < void(void *) > release_callback)
+        :
+        _buf(nullptr),
+        _height(mat.rows),
+        _width(mat.cols),
+        _type(mat.type()),
+        _has_mat(true),
+        _has_callback(true),
+        _mat(mat),
+        _release_callback(release_callback),
+        _opaque(opaque)
+    {
+    }
+
+    Frame(unsigned char *buf, size_t height, size_t width, int type, void *opaque, boost::function < void(void *) > release_callback) : 
        _buf(buf),
-      _height(height),
-      _width(width),
-      _type(type),
-      _has_mat(false),
-      _has_callback(true),
-      _release_callback(release_callback)
+       _height(height),
+       _width(width),
+       _type(type),
+       _has_mat(false),
+       _has_callback(true),
+       _release_callback(release_callback),
+       _opaque(opaque)
     {}  ; 
 
-    virtual ~Frame() { if(_has_callback) {  _release_callback(); } } 
+    virtual ~Frame() { if(_has_callback) {  _release_callback(_opaque); } } 
 
     cv::Mat to_mat() {
          if (_has_mat) return _mat;
@@ -69,7 +88,22 @@ private:
     cv::Mat _mat; 
     bool _has_mat;
     bool _has_callback;
-    boost::function<void()> _release_callback; 
+    boost::function < void(void *) > _release_callback; 
+    void *_opaque;
 } ; 
 
 typedef boost::shared_ptr < Frame > FramePtr; 
+
+struct FrameCollection
+{
+    FramePtr frame_rgb;
+    FramePtr frame_y;
+    FramePtr frame_u;
+    FramePtr frame_v;
+};
+
+typedef std::deque < FrameCollection > FrameQueue;
+typedef FrameQueue::iterator FrameQueueIter;
+typedef FrameQueue::reverse_iterator FrameQueueRIter;
+
+} // namespace BoulderAI

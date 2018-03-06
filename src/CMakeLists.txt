@@ -1,4 +1,4 @@
-project(CameraStreamer/streaming)
+project(DNNCam/streaming)
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -8,7 +8,7 @@ endif(COMMAND cmake_policy)
 
 include_directories(${CMAKE_SOURCE_DIR}/nvidia/include)
 LINK_DIRECTORIES(/usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}/tegra)
-set(CAMERA_DEPS imx377 nvidia_util v4l2 nvbuf_utils argus) 
+set(CAMERA_DEPS nvidia_util v4l2 nvbuf_utils argus) 
 
 find_package(PkgConfig)
 pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
@@ -31,13 +31,7 @@ set(XMLRPC_DEPS
         xmlrpc_server_abyss++
 )
 
-add_library(imx377 STATIC
-        imx377camera.cpp)
-
-add_library(logger STATIC
-        log.cpp)
-
-add_library(stepper STATIC
+add_library(motor STATIC
         motordriver.cpp
 )
 
@@ -47,20 +41,22 @@ add_library(config STATIC
 
 add_executable(camerastreamer
 		camerastreamer.cpp
-		datasource.cpp
-		datasource_camera.cpp
+        DNNCam.cpp
+        motordriver.cpp
 		frame_processor.cpp
 		stream.cpp
 )
 
 target_link_libraries(camerastreamer
 		${CAMERA_DEPS}
-		logger
+        motor
+        config
 		${BOOST_DEPS}
 		${OPENCV_DEPS}
 		${STREAMER_DEPS}
 		${GSTREAMER_LIBRARIES}
 		${ARGUS_DEPS}
+        ${XMLRPC_DEPS}
 		gstrtspserver-1.0
 )
 
@@ -68,11 +64,11 @@ install(TARGETS camerastreamer DESTINATION usr/local/bin COMPONENT camerastreame
 
 add_executable(lensDriver lensDriver.cpp)
 target_link_libraries(lensDriver
-    stepper
-    logger
+    motor
     config 
     ${BOOST_DEPS}
     ${XMLRPC_DEPS}
+    readline
 )
 
 install(TARGETS lensDriver DESTINATION usr/local/bin COMPONENT camerastreamer)

@@ -4,9 +4,14 @@
 #include <iostream>
 #include <memory>
 
+#include <boost/function.hpp>
+
+namespace BoulderAI
+{
+
 class MotorDriver {
 public:
-    MotorDriver(bool doInit);
+    MotorDriver(bool doInit, boost::function < void(std::string) > log_callback);
     ~MotorDriver();
 
     bool init();
@@ -74,6 +79,10 @@ private:
     int focus_abs_location;
     bool iris_init;
     int iris_abs_location;
+
+    boost::function < void(std::string) > _log_callback;
 };
 
 using MotorDriverPtr = std::shared_ptr<MotorDriver>;
+
+}

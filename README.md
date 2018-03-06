@@ -20,4 +20,29 @@ sudo apt-get install libgstrtspserver-1.0-dev
 sudo apt-get install libarchive-dev
 sudo apt-get install libxmlrpc-c++8-dev
 sudo apt-get install libv4l-dev
+sudo apt-get install libreadline-dev
+sudo apt-get install libi2c-dev i2c-tools
+sudo apt-get install cmake
+```
+
+To build DNNCam, from the top level source directory:
+```
+mkdir build
+cmake ..
+make -j6
+```
+
+If you want to install to /usr/local/dnncam and put the web files in
+/var/www, from your build directory:
+```
+sudo make install
+```
+
+If you want to run the webserver:
+```
+sudo apt-get install lighttpd
+cd /etc/lighttpd/conf-enabled
+sudo ln -s /etc/lighttpd/conf-available/10-cgi.conf .
+cd /var/www/html
+sudo ln -s /usr/lib/cgi-bin .
 ```

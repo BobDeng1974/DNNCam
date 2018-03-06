@@ -1,0 +1,22 @@
+#!/bin/sh
+
+WIDTH=`echo $REQUEST_URI | awk -F'width=' '{ print $2 }'|sed -e 's/&.*//' -e 's/+/ /g'`
+HEIGHT=`echo $REQUEST_URI | awk -F'height=' '{ print $2 }'|sed -e 's/&.*//' -e 's/+/ /g'`
+OFFSETX=`echo $REQUEST_URI | awk -F'offsetx=' '{ print $2 }'|sed -e 's/&.*//' -e 's/+/ /g'`
+OFFSETY=`echo $REQUEST_URI | awk -F'offsety=' '{ print $2 }'|sed -e 's/&.*//' -e 's/+/ /g'`
+
+echo Content-type: text/plain
+echo
+
+if [ -z "$WIDTH" || -z "$HEIGHT" || -z "$OFFSETX" || -z "$OFFSETY" ]; then
+   echo Invalid configuration
+   exit
+fi
+
+sed -e "s/^[ \t]*frame-width[ \t]*=[ \t]*[0-9]+/frame-width=$WIDTH/" \
+    -e "s/^[ \t]*frame-height[ \t]*=[ \t]*[0-9]+/frame-height=$HEIGHT/" \
+    -e "s/^[ \t]*frame-offset-x[ \t]*=[ \t]*[0-9]+/frame-offset-x=$OFFSETX/" \
+    -e "s/^[ \t]*frame-offset-y[ \t]*=[ \t]*[0-9]+/frame-offset-y=$OFFSETY/" \
+    < /etc/smeltcam.cfg > /tmp/smeltcam.cfg.new
+mv /etc/smeltcam.cfg /etc/smeltcam.cfg.orig
+mv /tmp/smeltcam.cfg.new /etc/smeltcam.cfg
