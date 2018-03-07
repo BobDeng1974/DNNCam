@@ -265,7 +265,7 @@ var set_iris_relative = function(val)
     document.getElementsByName("iris_relative")[0].value = value
     if(value == 0)
         return
-    ajaxpage('/cgi-bin/rpc?request=zoom_relative+i/'+value*val, 'result');
+    ajaxpage('/cgi-bin/rpc?request=iris_relative+i/'+value*val, 'result');
     get_config();
 }
 
