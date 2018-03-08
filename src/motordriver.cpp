@@ -410,7 +410,7 @@ bool MotorDriver::zoom(int steps)
     char out;
     for(int i = 0; i < abs(steps); ++i) {
         phase = 0;
-        if (steps <0) {
+        if (steps >0) {
             phase = 3- (i%4);
         }
         else {
@@ -737,7 +737,7 @@ bool MotorDriver::iris(int steps)
    char phase;
    for(int i = 0; i < abs(steps); ++i) {
         phase = 0;
-        if (steps <0) {
+        if (steps >0) {
                 phase = 3- (i%4);
         }
         else {
