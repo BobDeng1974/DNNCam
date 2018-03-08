@@ -1,0 +1,42 @@
+# cmake needs this line
+cmake_minimum_required(VERSION 2.8)
+
+# Define project name
+project(GstreamerOpenCV)
+
+# Find OpenCV, you may need to set OpenCV_DIR variable
+# to the absolute path to the directory containing OpenCVConfig.cmake file
+# via the command line or GUI
+find_package(OpenCV REQUIRED)
+#Find pkg-config
+find_package(PkgConfig)
+
+#Use Pkg-config to configure GStreamer
+pkg_check_modules(GST REQUIRED gstreamer-1.0 gstreamer-video-1.0 gstreamer-app-1.0)
+
+#Include header files
+include_directories(${GST_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/)
+
+# If the package has been found, several variables will
+# be set, you can find the full list with descriptions
+# in the OpenCVConfig.cmake file.
+# Print some message showing some of them
+message(STATUS "OpenCV library status:")
+message(STATUS "    version: ${OpenCV_VERSION}")
+message(STATUS "    libraries: ${OpenCV_LIBS}")
+message(STATUS "    include path: ${OpenCV_INCLUDE_DIRS}")
+
+# Add OpenCV headers location to your include paths
+include_directories(${OpenCV_INCLUDE_DIRS})
+
+# Declare the executable target built from your sources
+add_executable(${PROJECT_NAME} "very_simple.cpp")
+
+target_link_libraries(${PROJECT_NAME}
+    ${OPENGLES_LIBRARIES}
+    ${OpenCV_LIBS}
+     )
+
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+
