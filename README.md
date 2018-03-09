@@ -83,6 +83,7 @@ void set_denoise_mode(string) - Sets denoise mode
 void set_denoise_strength(double) - Sets denoise strength
 double get_denoise_strength(void) - Gets denoise strength
 string get_config(void) - Returns a chunk of table HTML that shows the camera settings
+void set_tracking(bool) - Sets tracking on/off
 ```
 
 Lens Controls (NOTE: at the time of this writing, the limit switches
