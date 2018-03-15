@@ -1,7 +1,0 @@
-/home/nvidia/DNNCam/examples/GstreamerOpenCV/build/CMakeFiles/install.dir
-/home/nvidia/DNNCam/examples/GstreamerOpenCV/build/CMakeFiles/list_install_components.dir
-/home/nvidia/DNNCam/examples/GstreamerOpenCV/build/CMakeFiles/rebuild_cache.dir
-/home/nvidia/DNNCam/examples/GstreamerOpenCV/build/CMakeFiles/GstreamerOpenCV.dir
-/home/nvidia/DNNCam/examples/GstreamerOpenCV/build/CMakeFiles/install/strip.dir
-/home/nvidia/DNNCam/examples/GstreamerOpenCV/build/CMakeFiles/install/local.dir
-/home/nvidia/DNNCam/examples/GstreamerOpenCV/build/CMakeFiles/edit_cache.dir
