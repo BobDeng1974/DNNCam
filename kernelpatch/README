@@ -1,0 +1,9 @@
+Follow the Leopard instruction to line 191, the dtbs patch. Instead of applying that patch, there are two separate DTS repos that need to be patched.
+
+cd Linux_for_Tegra_tx2/sources/hardware/nvidia/platform/t18x/quill
+git apply leopard.single.quill.patch
+Linux_for_Tegra_tx2/sources/hardware/nvidia/platform/t18x/common
+git apply leopard.single.common.patch
+
+At this point, resume following the Leopard instructions.
+
