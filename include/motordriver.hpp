@@ -71,8 +71,8 @@ private:
     bool iris(int steps);
 
     int fd_;
-    static int addr1, addr2;
-    char exp1_gpioa, exp1_gpiob, exp2_gpioa, exp2_gpiob;
+    static int addr0, addr1, addr2;
+    char exp0_gpioa, exp0_gpiob, exp1_gpioa, exp1_gpiob, exp2_gpioa, exp2_gpiob;
     bool zoom_init;
     int zoom_abs_location;
     bool focus_init;

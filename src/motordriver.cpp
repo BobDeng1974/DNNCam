@@ -18,8 +18,9 @@ namespace BoulderAI
 {
 
 // Addresses of the chips on the I2C bus
-int MotorDriver::addr1 = 0x20;
-int MotorDriver::addr2 = 0x21;
+int MotorDriver::addr1 = 0x20;  //U4 (Zoom, focus)
+int MotorDriver::addr2 = 0x21;  //U5 (Power on mainboard)
+int MotorDriver::addr0 = 0x22;  //U7 (Iris/Ircut)
 
 #define STEPPER_SLEEP_TIME_MS 1
 
@@ -87,14 +88,19 @@ int MotorDriver::addr2 = 0x21;
 // Output direction is value 0
 #define REG_IODIRA_EXP1 0x11 //Fault, Pgood
 #define REG_IODIRB_EXP1 0x11 //Fault, Pgood
+#define REG_IODIRA_EXP0 0x00  
+#define REG_IODIRB_EXP0 0xE0 //Board ID
 #define REG_IODIRA_EXP2 0x11 //Fault, Pgood input, all others output
 #define REG_IODIRB_EXP2 0x04 // U6.B.2 is input, all others output
 #define REG_GPPUA_VAL 0x00 // disable all pull-ups
 #define REG_GPPUB_VAL 0x00
 #define REG_GPIOA_EXP1 (ZOOM_SLEEP ) // wake up on init
 #define REG_GPIOB_EXP1 (FOCUS_SLEEP)
-#define REG_GPIOA_EXP2 (IRIS_SLEEP)
+#define REG_GPIOA_EXP2 0x00
 #define REG_GPIOB_EXP2 0x00
+#define REG_GPIOA_EXP0 (IRIS_SLEEP ) // wake up on init
+#define REG_GPIOB_EXP0 0x00
+
 
 #define DO_WRITE(addr,reg,data)   \
     {if (false == writeReg(addr,reg,data)) { ostringstream oss; oss << "Write failed for addr: " << hex << addr << " reg: " << hex << reg << dec; _log_callback(oss.str()); return false;}}
@@ -235,6 +241,17 @@ bool MotorDriver::initExpanders()
     }
 
 //    DO_WRITE(addr1, REG_IOCON, REG_IOCON_VAL);
+    DO_WRITE(addr0, REG_IODIRA, REG_IODIRA_EXP0);
+    DO_WRITE(addr0, REG_IODIRB, REG_IODIRB_EXP0);
+    DO_WRITE(addr0, REG_GPPUA, REG_GPPUA_VAL);
+    DO_WRITE(addr0, REG_GPPUB, REG_GPPUB_VAL);
+
+    DO_WRITE(addr0, REG_GPIOA, REG_GPIOA_EXP0);
+    exp0_gpioa = REG_GPIOA_EXP0;
+
+    DO_WRITE(addr0, REG_GPIOB, REG_GPIOB_EXP0);
+    exp0_gpiob = REG_GPIOB_EXP0;
+
     DO_WRITE(addr1, REG_IODIRA, REG_IODIRA_EXP1);
     DO_WRITE(addr1, REG_IODIRB, REG_IODIRB_EXP1);
     DO_WRITE(addr1, REG_GPPUA, REG_GPPUA_VAL);
@@ -607,14 +624,14 @@ bool MotorDriver::focus(int steps)
 
 bool MotorDriver::enableIris() {
 
-    exp2_gpioa |= IRIS_AENBL + IRIS_BENBL;
-    DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
+    exp0_gpioa |= IRIS_AENBL + IRIS_BENBL;
+    DO_WRITE(addr0, REG_GPIOA, exp0_gpioa);
 }
 
 bool MotorDriver::disableIris()
 {
-    exp2_gpioa &= ~(IRIS_AENBL+IRIS_BENBL) ;
-    DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
+    exp0_gpioa &= ~(IRIS_AENBL+IRIS_BENBL) ;
+    DO_WRITE(addr0, REG_GPIOA, exp0_gpioa);
     return true;
 }
 
@@ -759,25 +776,25 @@ bool MotorDriver::iris(int steps)
                 break;
         }
 
-        mask = exp2_gpioa & (~(IRIS_APHASE + IRIS_BPHASE));  //set before to the mask of phase a and b and the current output register
-        exp2_gpioa = out + mask;
-        DO_WRITE(addr2, REG_GPIOA, exp2_gpioa);
+        mask = exp0_gpioa & (~(IRIS_APHASE + IRIS_BPHASE));  //set before to the mask of phase a and b and the current output register
+        exp0_gpioa = out + mask;
+        DO_WRITE(addr0, REG_GPIOA, exp0_gpioa);
         std::this_thread::sleep_for(std::chrono::milliseconds(STEPPER_SLEEP_TIME_MS)*4);
    }
 }
 bool MotorDriver::ircutOn()
 {
-	exp2_gpiob |= IRCUT_A;
-	exp2_gpiob &= ~IRCUT_B;
-	DO_WRITE(addr2, REG_GPIOB, exp2_gpiob);
+	exp0_gpiob |= IRCUT_A;
+	exp0_gpiob &= ~IRCUT_B;
+	DO_WRITE(addr0, REG_GPIOB, exp0_gpiob);
 	return true;
 	
 }
 bool MotorDriver::ircutOff()
 {
-        exp2_gpiob |= IRCUT_B;
-        exp2_gpiob &= ~IRCUT_A;
-        DO_WRITE(addr2, REG_GPIOB, exp2_gpiob);
+        exp0_gpiob |= IRCUT_B;
+        exp0_gpiob &= ~IRCUT_A;
+        DO_WRITE(addr0, REG_GPIOB, exp0_gpiob);
 	return true;
 
 }

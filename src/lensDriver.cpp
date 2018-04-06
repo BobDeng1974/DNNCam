@@ -32,7 +32,7 @@ void interactive(MotorDriverPtr m) {
     char c;
     int num_steps = 1;
     m.reset(new MotorDriver(true, lens_cout_log_handler));
-    std::cout << "Verson 1.1.3: Type help for commands." << std::endl;
+    std::cout << "Verson 1.1.4: Type help for commands." << std::endl;
     po::options_description desc("Options");
     desc.add_options()
         ("help", "print help message")
