@@ -1,3 +1,6 @@
+----------------------
+For 28.1:
+
 Follow the Leopard instruction to line 191, the dtbs patch. Instead of applying that patch, there are two separate DTS repos that need to be patched.
 
 cd Linux_for_Tegra_tx2/sources/hardware/nvidia/platform/t18x/quill
@@ -7,3 +10,14 @@ git apply leopard.single.common.patch
 
 At this point, resume following the Leopard instructions.
 
+----------------------
+For 28.2:
+
+Simply apply the patches on top of the jetpack 3.2 source:
+
+cd Linux_for_Tegra/sources/kernel/kernel-4.4
+git apply 28.2-kernel.patch
+cd Linux_for_Tegra/sources/hardware/nvidia/platform/t18x/common
+git apply 28.2-dts-common.patch
+cd Linux_for_Tegra/sources/hardware/nvidia/platform/t18x/quill
+git apply 28.2-dts-quill.patch
