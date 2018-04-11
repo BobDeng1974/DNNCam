@@ -132,6 +132,19 @@ public:
     int setBitrate(uint32_t bitrate);
 
     /**
+     * Sets the encoder peak bitrate.
+     *
+     * Calls the VIDIOC_S_EXT_CTRLS IOCTL internally with Control ID
+     * \c V4L2_CID_MPEG_VIDEO_BITRATE_PEAK. Can be called any time after setFormat on
+     * both the planes. Takes effect in VBR mode
+     *
+     * @param[in] peak_bitrate Peak Bitrate of the encoded stream, in bits per second.
+     *
+     * @return 0 for success, -1 otherwise.
+     */
+    int setPeakBitrate(uint32_t peak_bitrate);
+
+    /**
      * Sets the encoder profile.
      *
      * Calls the VIDIOC_S_EXT_CTRLS IOCTL internally with Control ID
@@ -145,7 +158,16 @@ public:
      */
     int setProfile(uint32_t profile);
 
-    /**
+   /**
+     * Sets the encoder command.
+     *
+     * Calls the VIDIOC_ENCODER_CMD internally with encoder commands.
+     *
+     * @return 0 for succes, -1 otherwise.
+     */
+    int setEncoderCommand(int cmd, int flags);
+
+   /**
      * Set the encoder level.
      *
      * Calls the VIDIOC_S_EXT_CTRLS IOCTL internally with Control ID
@@ -158,6 +180,20 @@ public:
      * @return 0 for success, -1 otherwise.
      */
     int setLevel(enum v4l2_mpeg_video_h264_level level);
+
+    /**
+     * Sets the encoder constant qp.
+     *
+     * Calls the VIDIOC_S_EXT_CTRLS IOCTL internally with Control ID
+     * \c V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE, V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP,
+     * \c and V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP. Must be called after setFormat on both
+     * the planes and before \c requestBuffers on any of the planes.
+     *
+     * @param[in] qp_value Qp value
+     *
+     * @return 0 for success, -1 otherwise.
+     */
+    int setConstantQp(int qp_value);
 
     /**
      * Sets the encoder rate control mode.

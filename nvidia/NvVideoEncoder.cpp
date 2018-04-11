@@ -31,6 +31,7 @@
 
 #include <cstring>
 #include <errno.h>
+#include <libv4l2.h>
 
 #define ENCODER_DEV "/dev/nvhost-msenc"
 #define ENCODER_COMP_NAME "NVENC"
@@ -188,6 +189,45 @@ NvVideoEncoder::setBitrate(uint32_t bitrate)
 }
 
 int
+NvVideoEncoder::setEncoderCommand(int cmd, int flags)
+{
+   int ret=0;
+   struct v4l2_encoder_cmd v4l2_enc_cmd;
+   v4l2_enc_cmd.cmd = cmd;
+   v4l2_enc_cmd.flags = flags;
+
+   ret = v4l2_ioctl(fd, VIDIOC_ENCODER_CMD, v4l2_enc_cmd);
+   if (ret < 0)
+     printf(" Error in encoder command \n");
+
+  return ret;
+}
+
+int
+NvVideoEncoder::setPeakBitrate(uint32_t peak_bitrate)
+{
+    struct v4l2_ext_control control;
+    struct v4l2_ext_controls ctrls;
+
+    cout << capture_plane_pixfmt <<endl;
+    cout << output_plane_pixfmt <<endl;
+    RETURN_ERROR_IF_FORMATS_NOT_SET();
+
+    memset(&control, 0, sizeof(control));
+    memset(&ctrls, 0, sizeof(ctrls));
+
+    ctrls.count = 1;
+    ctrls.controls = &control;
+    ctrls.ctrl_class = V4L2_CTRL_CLASS_MPEG;
+
+    control.id = V4L2_CID_MPEG_VIDEO_BITRATE_PEAK;
+    control.value = peak_bitrate;
+
+    CHECK_V4L2_RETURN(setExtControls(ctrls),
+            "Setting encoder peak bitrate to " << peak_bitrate);
+}
+
+int
 NvVideoEncoder::setProfile(uint32_t profile)
 {
     struct v4l2_ext_control control;
@@ -248,6 +288,34 @@ NvVideoEncoder::setLevel(enum v4l2_mpeg_video_h264_level level)
 
     CHECK_V4L2_RETURN(setExtControls(ctrls),
             "Setting encoder level to " << level);
+}
+
+int
+NvVideoEncoder::setConstantQp(int qp_value)
+{
+    struct v4l2_ext_control control[3];
+    struct v4l2_ext_controls ctrls;
+
+    RETURN_ERROR_IF_FORMATS_NOT_SET();
+    RETURN_ERROR_IF_BUFFERS_REQUESTED();
+
+    memset(&control, 0, sizeof(control));
+    memset(&ctrls, 0, sizeof(ctrls));
+
+    ctrls.count = 3;
+    ctrls.controls = &control[0];
+    ctrls.ctrl_class = V4L2_CTRL_CLASS_MPEG;
+
+    control[0].id = V4L2_CID_MPEG_VIDEO_FRAME_RC_ENABLE;
+    control[0].value = 0; // disable rate control
+
+    control[1].id = V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP;
+    control[1].value = qp_value;
+
+    control[2].id = V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP;
+    control[2].value = qp_value;
+    CHECK_V4L2_RETURN(setExtControls(ctrls),
+            "Setting encoder constant qp to " << qp_value);
 }
 
 int
@@ -386,6 +454,29 @@ NvVideoEncoder::setSliceLength(v4l2_enc_slice_length_type type, uint32_t length)
     CHECK_V4L2_RETURN(setExtControls(ctrls),
             "Setting encoder packet type to " << type << ", length to " <<
             length);
+}
+
+int
+NvVideoEncoder::setHWPresetType(v4l2_enc_hw_preset_type type)
+{
+    struct v4l2_ext_control control;
+    struct v4l2_ext_controls ctrls;
+
+    RETURN_ERROR_IF_FORMATS_NOT_SET();
+    RETURN_ERROR_IF_BUFFERS_REQUESTED();
+
+    memset(&control, 0, sizeof(control));
+    memset(&ctrls, 0, sizeof(ctrls));
+
+    ctrls.count = 1;
+    ctrls.controls = &control;
+    ctrls.ctrl_class = V4L2_CTRL_CLASS_MPEG;
+
+    control.id = V4L2_CID_MPEG_VIDEOENC_HW_PRESET_TYPE_PARAM;
+    control.value = type;
+
+    CHECK_V4L2_RETURN(setExtControls(ctrls),
+            "Setting encoder HW Preset type to " << type);
 }
 
 int
@@ -749,4 +840,50 @@ NvVideoEncoder::setQpRange(uint32_t MinQpI, uint32_t MaxQpI, uint32_t MinQpP,
 
     CHECK_V4L2_RETURN(setExtControls(ctrls),
             "Setting encoder Qp range " << ctrls.count);
+}
+
+int
+NvVideoEncoder::setInsertVuiEnabled(bool enabled)
+{
+    struct v4l2_ext_control control;
+    struct v4l2_ext_controls ctrls;
+
+    RETURN_ERROR_IF_FORMATS_NOT_SET();
+    RETURN_ERROR_IF_BUFFERS_REQUESTED();
+
+    memset(&control, 0, sizeof(control));
+    memset(&ctrls, 0, sizeof(ctrls));
+
+    ctrls.count = 1;
+    ctrls.controls = &control;
+    ctrls.ctrl_class = V4L2_CTRL_CLASS_MPEG;
+
+    control.id = V4L2_CID_MPEG_VIDEOENC_INSERT_VUI;
+    control.value = enabled;
+
+    CHECK_V4L2_RETURN(setExtControls(ctrls),
+            "Setting encoder InsertVUI to " << enabled);
+}
+
+int
+NvVideoEncoder::setInsertAudEnabled(bool enabled)
+{
+    struct v4l2_ext_control control;
+    struct v4l2_ext_controls ctrls;
+
+    RETURN_ERROR_IF_FORMATS_NOT_SET();
+    RETURN_ERROR_IF_BUFFERS_REQUESTED();
+
+    memset(&control, 0, sizeof(control));
+    memset(&ctrls, 0, sizeof(ctrls));
+
+    ctrls.count = 1;
+    ctrls.controls = &control;
+    ctrls.ctrl_class = V4L2_CTRL_CLASS_MPEG;
+
+    control.id = V4L2_CID_MPEG_VIDEOENC_INSERT_AUD;
+    control.value = enabled;
+
+    CHECK_V4L2_RETURN(setExtControls(ctrls),
+            "Setting encoder InsertAUD to " << enabled);
 }

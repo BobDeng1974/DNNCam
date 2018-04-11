@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2017, NVIDIA CORPORATION. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -67,7 +67,8 @@ NvJPEGEncoder::~NvJPEGEncoder()
 
 int
 NvJPEGEncoder::encodeFromFd(int fd, J_COLOR_SPACE color_space,
-        unsigned char **out_buf, unsigned long &out_buf_size)
+        unsigned char **out_buf, unsigned long &out_buf_size,
+        int quality)
 {
     uint32_t buffer_id;
 
@@ -87,6 +88,8 @@ NvJPEGEncoder::encodeFromFd(int fd, J_COLOR_SPACE color_space,
     cinfo.raw_data_in = TRUE;
     cinfo.in_color_space = JCS_YCbCr;
     jpeg_set_defaults(&cinfo);
+    jpeg_set_quality(&cinfo, quality, TRUE);
+    jpeg_set_hardware_acceleration_parameters_enc(&cinfo, TRUE, out_buf_size, 0, 0);
 
     switch (color_space)
     {
@@ -120,7 +123,8 @@ NvJPEGEncoder::encodeFromFd(int fd, J_COLOR_SPACE color_space,
 
 int
 NvJPEGEncoder::encodeFromBuffer(NvBuffer & buffer, J_COLOR_SPACE color_space,
-        unsigned char **out_buf, unsigned long &out_buf_size)
+        unsigned char **out_buf, unsigned long &out_buf_size,
+        int quality)
 {
     unsigned char **line[3];
 
@@ -207,6 +211,8 @@ NvJPEGEncoder::encodeFromBuffer(NvBuffer & buffer, J_COLOR_SPACE color_space,
     cinfo.in_color_space = color_space;
 
     jpeg_set_defaults(&cinfo);
+    jpeg_set_quality(&cinfo, quality, TRUE);
+    jpeg_set_hardware_acceleration_parameters_enc(&cinfo, TRUE, out_buf_size, 0, 0);
     cinfo.raw_data_in = TRUE;
 
     if (cinfo.in_color_space == JCS_RGB)
@@ -281,4 +287,13 @@ NvJPEGEncoder::setCropRect(uint32_t left, uint32_t top, uint32_t width,
     cinfo.crop_rect.top = top;
     cinfo.crop_rect.width = width;
     cinfo.crop_rect.height = height;
+}
+
+
+void
+NvJPEGEncoder::setScaledEncodeParams(uint32_t scale_width, uint32_t scale_height)
+{
+    cinfo.image_scale = TRUE;
+    cinfo.scaled_image_width = scale_width;
+    cinfo.scaled_image_height = scale_height;
 }

@@ -159,10 +159,13 @@ public:
      */
     int enableMetadataReporting();
 
+    int checkifMasteringDisplayDataPresent(v4l2_ctrl_video_displaydata &displaydata);
+    int MasteringDisplayData(v4l2_ctrl_video_hdrmasteringdisplaydata *hdrmasteringdisplaydata);
+
     /**
      * Gets metadata for the decoded capture plane buffer.
      *
-     * Calls the VIDIOC_S_EXT_CTRLS IOCTL internally with Control ID
+     * Calls the VIDIOC_G_EXT_CTRLS IOCTL internally with Control ID
      * V4L2_CID_MPEG_VIDEODEC_METADATA. Must be called for a buffer that has
      * been dequeued from the capture plane. The returned metadata corresponds
      * to the last dequeued buffer with index @a buffer_index.
@@ -176,6 +179,24 @@ public:
      */
     int getMetadata(uint32_t buffer_index,
         v4l2_ctrl_videodec_outputbuf_metadata &metadata);
+
+    /**
+     * Gets metadata for the decoder output plane buffer.
+     *
+     * Calls the VIDIOC_G_EXT_CTRLS IOCTL internally with Control ID
+     * V4L2_CID_MPEG_VIDEODEC_INPUT_METADATA. Must be called for a buffer that has
+     * been dequeued from the output plane. The returned metadata corresponds
+     * to the last dequeued buffer with index @a buffer_index.
+     *
+     * @param[in] buffer_index Index of the output plane buffer whose metadata
+     *              is required.
+     * @param[in,out] input_metadata Reference to the metadata structure
+     *              v4l2_ctrl_videodec_inputbuf_metadata to be filled.
+     *
+     * @return 0 for success, -1 otherwise.
+     */
+    int getInputMetadata(uint32_t buffer_index,
+        v4l2_ctrl_videodec_inputbuf_metadata &input_metadata);
 
 private:
     /**

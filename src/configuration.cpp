@@ -9,6 +9,7 @@ using namespace std;
 namespace BoulderAI
 {
 
+std::string Configuration::_models_directory;
 bool Configuration::_initialized;
 
 int Configuration::_zoom_start;
@@ -52,6 +53,7 @@ void Configuration::set_log_handler(boost::function < void(std::string) > handle
 void Configuration::_load_config_file(void)
 {
     _options.add_options()
+	("models_directory", po::value<std::string>(&_models_directory)->default_value("/usr/bin/wrModels/"), "Wrnch Models Directory")
         ("zoom_start", po::value<int>(&_zoom_start)->default_value(0), "absolute zoom start offset")
         ("zoom_up_direction", po::value<int>(&_zoom_up_direction)->default_value(0), "0 or 1 for direction")
         ("zoom_home_direction", po::value<int>(&_zoom_home_direction)->default_value(0), "0 or 1 for direction")

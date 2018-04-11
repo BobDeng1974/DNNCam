@@ -100,6 +100,9 @@ struct FrameCollection
     FramePtr frame_y;
     FramePtr frame_u;
     FramePtr frame_v;
+    FramePtr frame_y_copy;
+    FramePtr frame_u_copy;
+    FramePtr frame_v_copy;
 };
 
 typedef std::deque < FrameCollection > FrameQueue;

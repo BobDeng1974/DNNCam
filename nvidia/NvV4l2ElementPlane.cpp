@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2017, NVIDIA CORPORATION. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,6 +34,7 @@
 #include <libv4l2.h>
 #include <sys/mman.h>
 #include <sys/prctl.h>
+#include "nvbuf_utils.h"
 
 #define CHECK_V4L2_RETURN(ret, str)              \
     if (ret < 0) {                               \
@@ -154,7 +155,7 @@ NvV4l2ElementPlane::dqBuffer(struct v4l2_buffer &v4l2_buf, NvBuffer ** buffer,
         else if (errno == EAGAIN)
         {
             pthread_mutex_lock(&plane_lock);
-            if (!streamon)
+            if (v4l2_buf.flags & V4L2_BUF_FLAG_LAST)
             {
                 pthread_mutex_unlock(&plane_lock);
                 break;
@@ -258,6 +259,89 @@ NvV4l2ElementPlane::qBuffer(struct v4l2_buffer &v4l2_buf, NvBuffer * shared_buff
         pthread_cond_broadcast(&plane_cond);
         total_queued_buffers++;
         num_queued_buffers++;
+    }
+    pthread_mutex_unlock(&plane_lock);
+
+    return ret;
+}
+
+int
+NvV4l2ElementPlane::mapOutputBuffers(struct v4l2_buffer &v4l2_buf, int dmabuff_fd)
+{
+    int ret;
+    uint32_t i;
+    NvBufferParams params;
+    pthread_mutex_lock(&plane_lock);
+    unsigned char *data;
+
+    switch (memory_type)
+    {
+        case V4L2_MEMORY_DMABUF:
+            ret = NvBufferGetParams(dmabuff_fd, &params);
+            if(ret < 0)
+            {
+                PLANE_SYS_ERROR_MSG("Error: NvBufferGetParams Failed\n");
+                pthread_mutex_unlock(&plane_lock);
+                return ret;
+            }
+            for (i = 0; i < n_planes; i++)
+            {
+                buffers[v4l2_buf.index]->planes[i].fd = dmabuff_fd;
+                v4l2_buf.m.planes[i].m.fd = buffers[v4l2_buf.index]->planes[i].fd;
+                buffers[v4l2_buf.index]->planes[i].mem_offset = params.offset[i];
+                ret = NvBufferMemMap (dmabuff_fd,i,NvBufferMem_Read_Write, (void **)&data);
+                if (ret < 0)
+                {
+                    is_in_error = 1;
+                    PLANE_SYS_ERROR_MSG("Error while Mapping buffer");
+                    pthread_mutex_unlock(&plane_lock);
+                    return ret;
+                }
+                buffers[v4l2_buf.index]->planes[i].data=data;
+            }
+            break;
+        default:
+            pthread_mutex_unlock(&plane_lock);
+            return -1;
+    }
+    if(ret == 0)
+    {
+        PLANE_DEBUG_MSG("Mapped Nvbuffer to buffers " << v4l2_buf.index);
+    }
+    pthread_mutex_unlock(&plane_lock);
+
+    return ret;
+}
+
+int
+NvV4l2ElementPlane::unmapOutputBuffers(int index, int dmabuff_fd)
+{
+    int ret = 0;
+    uint32_t i;
+    pthread_mutex_lock(&plane_lock);
+
+    switch (memory_type)
+    {
+        case V4L2_MEMORY_DMABUF:
+            for (i = 0; i < n_planes; i++)
+            {
+                ret = NvBufferMemUnMap (dmabuff_fd, i, (void **)&buffers[index]->planes[i].data);
+                if (ret < 0)
+                {
+                    is_in_error = 1;
+                    PLANE_SYS_ERROR_MSG("Error while Unmapping buffer");
+                    pthread_mutex_unlock(&plane_lock);
+                    return ret;
+                }
+            }
+            break;
+        default:
+            pthread_mutex_unlock(&plane_lock);
+            return -1;
+    }
+    if(ret == 0)
+    {
+        PLANE_DEBUG_MSG("Unmapped Nvbuffer to buffers " << index);
     }
     pthread_mutex_unlock(&plane_lock);
 
@@ -388,8 +472,11 @@ NvV4l2ElementPlane::reqbufs(enum v4l2_memory mem_type, uint32_t num)
             {
                 planefmts[i].stride =
                     planefmts[i].width * planefmts[i].bytesperpixel;
-                planefmts[i].sizeimage =
-                    planefmts[i].width * planefmts[i].height;
+                if(!planefmts[i].sizeimage)
+                {
+                    planefmts[i].sizeimage =
+                        planefmts[i].width * planefmts[i].height;
+                }
             }
             break;
         case V4L2_MEMORY_MMAP:
@@ -474,11 +561,7 @@ NvV4l2ElementPlane::setStreamStatus(bool status)
 
         if (buf_type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
         {
-            if (status)
-            {
-                v4l2elem_profiler.enableProfiling(false);
-            }
-            else
+            if (status == false)
             {
                 v4l2elem_profiler.disableProfiling();
             }

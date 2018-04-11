@@ -501,6 +501,9 @@ struct jpeg_compress_struct {
   boolean header_len;
   boolean crop_region;
   jpeg_rect_struct crop_rect;
+  boolean image_scale;
+  JDIMENSION scaled_image_width;	/* scaled image width */
+  JDIMENSION scaled_image_height;	/* scaled image height */
 #endif
 };
 

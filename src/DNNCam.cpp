@@ -1462,6 +1462,21 @@ FramePtr DNNCam::grab_y()
 {
     return FramePtr(new Frame(cv_frame_y, NULL, argus_release_helper));
 }
+FramePtr DNNCam::grab_y_copy()
+{
+    cv::Mat newframe = cv_frame_y.clone();
+    return FramePtr(new Frame(newframe, NULL, argus_release_helper));
+}
+FramePtr DNNCam::grab_u_copy()
+{
+    cv::Mat newframe = cv_frame_u.clone();
+    return FramePtr(new Frame(newframe, NULL, argus_release_helper));
+}
+FramePtr DNNCam::grab_v_copy()
+{
+    cv::Mat newframe = cv_frame_v.clone();
+    return FramePtr(new Frame(newframe, NULL, argus_release_helper));
+}
 
 FramePtr DNNCam::grab_u()
 {

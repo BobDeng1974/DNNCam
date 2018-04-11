@@ -85,7 +85,7 @@ void Stream::media_configure(GstRTSPMediaFactory * factory, GstRTSPMedia * media
                 "framerate", GST_TYPE_FRACTION, 0, 1,
                 NULL),
             "stream-type", 0,
-            "min-latency", gst_util_uint64_scale_int (1, GST_SECOND, 2),
+            "min-latency", gst_util_uint64_scale_int (1, GST_SECOND, 30),
             "is-live", TRUE,
             "format", GST_FORMAT_TIME, NULL);
     sc->elementMap.insert(std::make_pair(appsrc, element));
@@ -118,9 +118,9 @@ void Stream::push_frame(const FrameCollection frame_col)
     std::lock_guard<std::mutex> lg(_context_mutex);
     if(_streamContext.elementMap.empty()) return;
 
-    cv::Mat frame_y = frame_col.frame_y->to_mat();
-    cv::Mat frame_u = frame_col.frame_u->to_mat();
-    cv::Mat frame_v = frame_col.frame_v->to_mat();
+    cv::Mat frame_y = frame_col.frame_y_copy->to_mat();
+    cv::Mat frame_u = frame_col.frame_u_copy->to_mat();
+    cv::Mat frame_v = frame_col.frame_v_copy->to_mat();
     const guint size = frame_y.rows * frame_y.cols * 3/2;
     
     auto itr = _streamContext.elementMap.begin();

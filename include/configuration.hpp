@@ -32,6 +32,8 @@ public:
     static int iris_home_max_steps() { init(); return _iris_home_max_steps; }
     static int iris_home_step_size() { init(); return _iris_home_step_size; }
     static bool iris_has_limit() { init(); return _iris_has_limit; }
+
+    static std::string models_directory() { init(); return _models_directory; }
 protected:
     static void _load_config_file();
     static void init()
@@ -43,6 +45,7 @@ protected:
     }
 
     static std::string _config_filename;
+    static std::string _models_directory;
     static bool _initialized;
 
     static po::options_description _options;
