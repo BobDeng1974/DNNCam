@@ -21,3 +21,15 @@ cd Linux_for_Tegra/sources/hardware/nvidia/platform/t18x/common
 git apply 28.2-dts-common.patch
 cd Linux_for_Tegra/sources/hardware/nvidia/platform/t18x/quill
 git apply 28.2-dts-quill.patch
+
+Precompiled binaries: (if you don't want to build from source):
+https://drive.google.com/open?id=1wiyDGyseYU5QUdEbaBmrHuPAzaRX_eCI
+Download Jetpack 3.2: https://developer.nvidia.com/embedded/jetpack
+Apply Jetpack 3.2 to the camera, flashing through the gui provided. Install all/any packages you may need via Jetpack 3.2.
+
+Log into the camera and copy image and zimage files to /boot
+From the camera: sudo scp hostusername@HOSTIPADDRESS:file /boot
+Copy the supplied dtb over the host's /Jetpack/Linux_for_Tegra/kernel/dtb
+Place the camera back in recovery mode and flash just the dtb with:
+sudo ./flash.sh -r -k kernel-dtb jetson-tx2 mmcblk0p1
+Reboot when finished, now you should see a /dev/video0 device.
