@@ -10,6 +10,26 @@ git apply leopard.single.common.patch
 
 At this point, resume following the Leopard instructions.
 
+Alternative route:
+Download Jetpack 3.1, 
+Apply Jetpack 3.1 to the camera, flashing through the provided Nvidia gui.
+
+1. Copy Boulder AI precompiled binary patches from: 
+   https://drive.google.com/open?id=1qH3YEM6KvGYpIrWTbOpPgCxdaewsqfyS
+   to the /Jetpack/64_TX2/Linux_for_Tegra_tx2/kernel/dtb on the host.
+   Flash the devicetree binary: from the /64_TX2/Linux_for_Tegra_tx2 path on the host, 
+   sudo ./flash.sh -r -k kernel-dtb jetson-tx2 mmcblk0p1
+2. After boot up, Copy Image, zImage to TX2 /boot.
+3. copy 4.4.38-tegra-leopard.tgz to TX2 /lib/modules
+   sudo cp 4.4.38-tegra-leopard.tgz /lib/modules
+   cd /lib/modules
+   sudo tar zxvf 4.4.38-tegra-leopard.tgz
+4. Copy camera_overrides.isp to TX2 /var/nvidia/nvcam/settings (if there is isp file)
+   sudo chmod 664 /var/nvidia/nvcam/settings/camera_overrides.isp
+   sudo chown root:root /var/nvidia/nvcam/settings/camera_overrides.isp
+5. Reboot the camera
+6. Check that /dev/video0 exists.
+
 ----------------------
 For 28.2:
 
