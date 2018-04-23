@@ -15,7 +15,6 @@ pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
 message(STATUS "GStreamer include: ${GSTREAMER_INCLUDE_DIRS}")
 message(STATUS "GStreamer lib: ${GSTREAMER_LIBRARIES}")
 include_directories( ${GSTREAMER_INCLUDE_DIRS} )
-find_package(wrnchAI)
 
 include_directories(../include)
 
@@ -59,7 +58,6 @@ target_link_libraries(camerastreamer
 		${ARGUS_DEPS}
         ${XMLRPC_DEPS}
 		gstrtspserver-1.0
-	wrAPI
 )
 
 install(TARGETS camerastreamer DESTINATION usr/local/bin COMPONENT camerastreamer)

@@ -134,9 +134,6 @@ public:
                                         // libargus since the last grab call. Call get_dropped_frames() to see how many
                                         // frames were missed.
     FramePtr grab_y(); // Grabs just the 'Y' plane of a YUV image. This is equivalent to greyscale.
-    FramePtr grab_y_copy();
-    FramePtr grab_u_copy();
-    FramePtr grab_v_copy();
     FramePtr grab_u(); // Grabs just the 'U' plane of a YUV image. NOTE: this is half the size of the full frame
     FramePtr grab_v(); // Grabs just the 'V' plane of a YUV image. NOTE: this is half the size of the full frame
     

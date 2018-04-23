@@ -14,7 +14,6 @@
 #include "DNNCamServer.hpp"
 
 #include "frame_processor.hpp"
-#include <wrnch/engine.hpp>
 
 using namespace std;
 using namespace BoulderAI;
@@ -87,13 +86,6 @@ int run(int argc, char** argv)
 {
     srand(time(NULL));
 
-    if (wrLicense_Check() != wrReturnCode_OK)
-    {
-        std::cout << "Error: No valid license found. \n";
-        return -1;
-    }
-
-
     DNNCamPtr camera;
     
     camera.reset(new DNNCam());
@@ -103,12 +95,6 @@ int run(int argc, char** argv)
     {
         return ret;
     }
-    std::cout << "Initializing wrnch: " << Configuration::models_directory() << std::endl;
-    boost::shared_ptr<wrnch::PoseEstimator> poseEstimator(new wrnch::PoseEstimator(Configuration::models_directory().c_str()));
-    poseEstimator->Initialize3D();
-    boost::shared_ptr<wrnch::PoseEstimatorOptions> poseOptions(new wrnch::PoseEstimatorOptions());
-    //poseOptions->SetEstimate3D(true);
-    std::cout << "wrnch complete" << std::endl;
 
     camera->init();
     
@@ -119,7 +105,7 @@ int run(int argc, char** argv)
         
 
     FrameProcessorPtr frame_proc;
-    frame_proc.reset(new FrameProcessor(poseEstimator, poseOptions, camera->get_output_width(), camera->get_output_height()));
+    frame_proc.reset(new FrameProcessor(camera->get_output_width(), camera->get_output_height()));
     frame_proc->start_workers();
     
     while(running)
@@ -130,9 +116,6 @@ int run(int argc, char** argv)
         FrameCollection col;
         bool was_frame_dropped;
         col.frame_rgb = camera->grab(was_frame_dropped);  // This is a blocking call. Grab must be called before any grab_*
-        col.frame_y_copy = camera->grab_y_copy();
-        col.frame_u_copy = camera->grab_u_copy();
-        col.frame_v_copy = camera->grab_v_copy();
         col.frame_y = camera->grab_y();
         col.frame_u = camera->grab_u();
         col.frame_v = camera->grab_v();

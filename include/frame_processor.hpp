@@ -8,7 +8,6 @@
 #include "frame.hpp"
 #include "new_worker.hpp"
 #include "stream.hpp"
-#include <wrnch/engine.hpp>
 
 namespace BoulderAI
 {
@@ -151,7 +150,7 @@ private:
 class FrameProcessor : public boost::enable_shared_from_this<FrameProcessor>
 {
 public:
-    FrameProcessor(boost::shared_ptr<wrnch::PoseEstimator> pe, boost::shared_ptr<wrnch::PoseEstimatorOptions> po, const int w, const int h);
+    FrameProcessor(const int w, const int h);
     virtual ~FrameProcessor();
 
     void start_workers(void);
@@ -222,15 +221,6 @@ protected:
     bl::NewWorker < bl::Logexc_policy > _gui_worker;
     
     boost::posix_time::time_duration _tracking_time;
-    boost::shared_ptr<wrnch::PoseEstimator> poseEstimator;
-    boost::shared_ptr<wrnch::PoseEstimatorOptions> poseOptions;
-    wrnch::JointDefinition jointsDefinition;
-    std::vector<unsigned int> bonePairs;
-
-    std::vector<int> y_color;
-    std::vector<int> u_color;
-    std::vector<int> v_color;
-
 } ;
 
 typedef boost::shared_ptr < FrameProcessor > FrameProcessorPtr;
