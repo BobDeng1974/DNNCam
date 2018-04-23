@@ -85,7 +85,7 @@ void Stream::media_configure(GstRTSPMediaFactory * factory, GstRTSPMedia * media
                 "framerate", GST_TYPE_FRACTION, 0, 1,
                 NULL),
             "stream-type", 0,
-            "min-latency", gst_util_uint64_scale_int (1, GST_SECOND, 2),
+            "min-latency", gst_util_uint64_scale_int (1, GST_SECOND, 30),
             "is-live", TRUE,
             "format", GST_FORMAT_TIME, NULL);
     sc->elementMap.insert(std::make_pair(appsrc, element));

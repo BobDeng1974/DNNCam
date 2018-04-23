@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2016-2017, NVIDIA CORPORATION. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -112,10 +112,12 @@ public:
      * @param[out] color_space Indicates the color_space to use for encoding.
      * @param[in] out_buf Specifies a pointer to the memory for the JPEG image.
      * @param[in] out_buf_size Specifies the size of the output buffer in bytes.
+     * @param[in] quality Sets the image quality.
      * @return 0 for success, -1 otherwise.
      */
     int encodeFromFd(int fd, J_COLOR_SPACE color_space,
-                     unsigned char **out_buf, unsigned long &out_buf_size);
+                     unsigned char **out_buf, unsigned long &out_buf_size,
+                     int quality = 75);
 
     /**
      * Encodes a JPEG image from software buffer memory.
@@ -139,10 +141,12 @@ public:
      * @param[out] color_space Indicates the color_space to use for encoding.
      * @param[in] out_buf Specifies a pointer to the memory for the JPEG image.
      * @param[in] out_buf_size Specifies the size of the output buffer in bytes.
+     * @param[in] quality Sets the image quality.
      * @return 0 for success, -1 otherwise.
      */
     int encodeFromBuffer(NvBuffer & buffer, J_COLOR_SPACE color_space,
-                         unsigned char **out_buf, unsigned long &out_buf_size);
+                         unsigned char **out_buf, unsigned long &out_buf_size,
+                         int quality = 75);
 
     /**
      * Sets the cropping rectangle used by the JPEG encoder. This method
@@ -160,6 +164,17 @@ public:
      */
     void setCropRect(uint32_t left, uint32_t top, uint32_t width,
             uint32_t height);
+
+
+    /**
+     * Sets scaling parameters by which image needs to be scaled and encoded.
+     * This method must be called before #encodeFromFd or #encodeFromBuffer for
+     * scaled encoding to take effect.
+     *
+     * @param[in] scale_width Specifies width of the scaled image.
+     * @param[in] scale_height Specifies height of the scaled image.
+     */
+    void setScaledEncodeParams(uint32_t scale_width, uint32_t scale_height);
 
 private:
 

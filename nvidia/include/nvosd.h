@@ -30,19 +30,17 @@
 
 /**
  * @file
- * <b>NVIDIA Multimedia API: NvOSD Library</b>
+ * <b>NVIDIA Multimedia Utilities: On-Screen Display Manager</b>
  *
- * @b This file defines the NvOSD library to be used to draw rectangles and text over the frame
+ * This file defines the NvOSD library to be used to draw rectangles and text over the frame
  * for given parameters.
  */
 
 /**
- *
- * @defgroup ee_nvosd_group NvOSD Library
- *
- * This file defines the NvOSD library to be used to draw rectangles and text over the frame
+ * @defgroup ee_nvosd_group On-Screen Display Manager
+ * Defines the NvOSD library to be used to draw rectangles and text over the frame
  * for given parameters.
- *
+ * @ingroup common_utility_group
  * @{
  */
 
@@ -55,7 +53,7 @@ extern "C"
 #endif
 
 #define NVOSD_MAX_NUM_RECTS 128
-#define MAX_BG_CLR 8
+#define MAX_BG_CLR 20
 
 /**
  * Holds the color parameters of the box or text to be overlayed.
@@ -109,10 +107,10 @@ typedef struct _NvOSD_TextParams {
 }NvOSD_TextParams;
 
 
-typedef struct _NvOSD_Class_info {
+typedef struct _NvOSD_Color_info {
     int id;
-    NvOSD_ColorParams class_clr;
-}NvOSD_Class_info;
+    NvOSD_ColorParams color;
+}NvOSD_Color_info;
 
 
 /**
@@ -140,8 +138,8 @@ typedef struct _NvOSD_RectParams {
 
     NvOSD_ColorParams bg_color; /**< Holds background color of the box. */
 
-    int has_class_info;
-    int class_id;
+    int has_color_info;
+    int color_id;
 
 }NvOSD_RectParams;
 
@@ -288,7 +286,7 @@ int nvosd_put_text(void *nvosd_ctx, NvOSD_Mode mode, int fd, int num_strings,
 int nvosd_draw_rectangles(void *nvosd_ctx, NvOSD_Mode mode, int fd,
         int num_rects, NvOSD_RectParams *rect_params_list);
 
-int nvosd_init_class_clrs(void *nvosd_ctx, NvOSD_Class_info * class_info,
+int nvosd_init_colors_for_hw_blend(void *nvosd_ctx, NvOSD_Color_info * color_info,
         int num_classes);
 
 

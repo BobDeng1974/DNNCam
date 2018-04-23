@@ -23,6 +23,8 @@ static const size_t PREBUFFERED_FRAMES = 20; // number of frames to 'prebuffer' 
                                              // the tracker notices an object, in case a detail was missed.
 static const size_t PREBUFFER_POST_FRAMES = 20;
 
+static const int NUM_COLORS = 6;
+
 std::map<std::string, boost::shared_ptr<boost::mutex> > SequentialSection::_mutex;
 std::map<std::string, boost::shared_ptr<boost::condition_variable> > SequentialSection::_condition;
 std::map<std::string, int> SequentialSection::_frame_num;
@@ -128,6 +130,84 @@ void FrameProcessor::process_frame(FrameCollection frame_col, const bool block)
         _frame_num++;
     }
 }
+
+inline void FrameProcessor::DrawPoints(cv::Mat frame, const float* points,
+                                   unsigned int numPoints,
+                                   const cv::Scalar& color,
+                                   float pointSize)
+{
+    const int w = frame.cols;
+    const int h = frame.rows;
+
+    for (int i = 0; i < numPoints; i++)
+    {
+        int x = points[2 * i] * w;
+        int y = points[2 * i + 1] * h;
+        if (x >= 0 && y >= 0)
+        {
+            cv::circle(
+                frame, cv::Point(x, y), static_cast<int>(pointSize), color, cv::FILLED, cv::LINE_AA);
+        }
+    }
+}
+
+inline void FrameProcessor::DrawLines(cv::Mat frame, const float* points,
+                                  const unsigned int* pairs,
+                                  unsigned int numPairs,
+                                  const cv::Scalar& color,
+                                  float thickness)
+{
+    const int w = frame.cols;
+    const int h = frame.rows;
+
+    for (unsigned int i = 0; i < numPairs; i++)
+    {
+        const int& idx1 = pairs[2 * i];
+        const int& idx2 = pairs[2 * i + 1];
+        if (idx1 >= 0 && idx2 >= 0)
+        {
+            int x1 = points[idx1 * 2] * w;
+            int y1 = points[idx1 * 2 + 1] * h;
+            int x2 = points[idx2 * 2] * w;
+            int y2 = points[idx2 * 2 + 1] * h;
+
+            if (x1 >= 0 && x2 >= 0)
+            {
+                cv::line(frame,
+                         cv::Point(x1, y1),
+                         cv::Point(x2, y2),
+                         color,
+                         static_cast<int>(thickness),
+                         cv::LINE_AA);
+            }
+        }
+    }
+}
+
+
+
+void FrameProcessor::DrawPoints3D(cv::Mat frame, const float* points,
+                                     unsigned int numPoints,
+                                     const cv::Scalar& color,
+                                     float pointSize)
+{
+    const int w = frame.cols;
+    const int h = frame.rows;
+
+    for (int i = 0; i < numPoints; i++)
+    {
+        int x = points[3 * i] * w;
+        int y = points[3 * i + 1] * h;
+        // auto z = points[3 * i + 2] Depth is stored here
+
+        if (x >= 0 && y >= 0)
+        {
+            cv::circle(
+                frame, cv::Point(x, y), static_cast<int>(pointSize), color, cv::FILLED, cv::LINE_AA);
+        }
+    }
+}
+
 
 std::string FrameProcessor::get_timing_string(void)
 {

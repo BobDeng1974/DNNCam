@@ -95,7 +95,7 @@ int run(int argc, char** argv)
     {
         return ret;
     }
-    
+
     camera->init();
     
     std::cout << "Initialized camera. Frame size: " << camera->get_output_width() << "x" << camera->get_output_height() << std::endl;
@@ -103,6 +103,7 @@ int run(int argc, char** argv)
     DNNCamServerPtr server(new DNNCamServer(camera));
     boost::thread *server_thread(new boost::thread(boost::bind(&DNNCamServer::run, server)));
         
+
     FrameProcessorPtr frame_proc;
     frame_proc.reset(new FrameProcessor(camera->get_output_width(), camera->get_output_height()));
     frame_proc->start_workers();

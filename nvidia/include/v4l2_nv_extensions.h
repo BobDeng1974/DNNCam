@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions
@@ -395,6 +395,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * - #V4L2_CID_MPEG_VIDEO_SKIP_FRAMES
  * - V4L2_CID_MIN_BUFFERS_FOR_CAPTURE (Get the minimum buffers to be allocated on capture plane.
  * Read only. Valid after #V4L2_EVENT_RESOLUTION_CHANGE)
+ * - #V4L2_CID_MPEG_VIDEODEC_INPUT_METADATA
  * - #V4L2_CID_MPEG_VIDEODEC_METADATA
  *
  * ### Supported Events
@@ -421,6 +422,11 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * for the 0th plane (`v4l2_buffer.m.planes[0].bytesused == 0`)
  * -# Dequeues buffers on the capture plane until it gets a buffer with bytesused = 0
  * for the 0th plane.
+ *
+ * ### Decoder Input Frame Metadata
+ * Decoder supports reporting stream header parsing error info as input frame metadata.
+ * See \c V4L2_CID_MPEG_VIDEO_ERROR_REPORTING, \c V4L2_CID_MPEG_VIDEODEC_INPUT_METADATA
+ * and \c v4l2_ctrl_video_metadata for more information.
  *
  * ### Decoder Output Frame Metadata
  * Decoder supports reporting frame related metadata, including error reports and
@@ -494,6 +500,38 @@ struct v4l2_ctrl_vp8_frame_hdr {
  */
 #define V4L2_CID_MPEG_VIDEODEC_METADATA (V4L2_CID_MPEG_BASE+519)
 
+/**
+ * Defines the Control ID to get the decoder input header error metadata.
+ *
+ * @note Metadata reporting must be enabled using
+ * #V4L2_CID_MPEG_VIDEO_ERROR_REPORTING IOCTL for this.
+ *
+ * A pointer to a valid \c v4l2_ctrl_video_metadata structure must be supplied
+ * with this control.
+ *
+ * @attention This control must be read after dequeueing a buffer successfully from
+ * the output plane. The values in the structure are valid until the buffer is queued
+ * again.
+ */
+#define V4L2_CID_MPEG_VIDEODEC_INPUT_METADATA (V4L2_CID_MPEG_BASE+520)
+
+/**
+ * Defines the Control ID to check if display data is present.
+ *
+ * This control returns true if HDR metadata is present in the stream.
+ *
+ */
+#define V4L2_CID_VIDEODEC_DISPLAYDATA_PRESENT (V4L2_CID_MPEG_BASE+521)
+
+/**
+ * Defines the Control ID to get display data if V4L2_CID_VIDEODEC_DISPLAYDATA_PRESENT returns true.
+ *
+ * This control returns display data such as display_primaries, white_point and
+ * display_parameter_luminance required for display module.
+ *
+ */
+#define V4L2_CID_VIDEODEC_HDR_MASTERING_DISPLAY_DATA (V4L2_CID_MPEG_BASE+522)
+
 /** @} */
 
 /**
@@ -563,7 +601,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  *
  * @attention This control must be set before requesting buffers on the output plane.
  */
-#define V4L2_CID_VIDEO_CONVERT_OUTPUT_PLANE_LAYOUT   (V4L2_CID_MPEG_BASE+520)
+#define V4L2_CID_VIDEO_CONVERT_OUTPUT_PLANE_LAYOUT   (V4L2_CID_MPEG_BASE+523)
 
 /**
  * Defines the Control ID to set converter capture plane buffer layout.
@@ -572,7 +610,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  *
  * @attention This control must be set before requesting buffers on the capture plane.
  */
-#define V4L2_CID_VIDEO_CONVERT_CAPTURE_PLANE_LAYOUT  (V4L2_CID_MPEG_BASE+521)
+#define V4L2_CID_VIDEO_CONVERT_CAPTURE_PLANE_LAYOUT  (V4L2_CID_MPEG_BASE+524)
 
 /**
  * Defines the Control ID to set the converter flip/rotation method.
@@ -581,7 +619,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  *
  * @attention This control must be set before requesting buffers on either plane.
  */
-#define V4L2_CID_VIDEO_CONVERT_FLIP_METHOD           (V4L2_CID_MPEG_BASE+522)
+#define V4L2_CID_VIDEO_CONVERT_FLIP_METHOD           (V4L2_CID_MPEG_BASE+525)
 
 /**
  * Defines the Control ID to set the converter interpolation method.
@@ -590,7 +628,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  *
  * @attention This control must be set before requesting buffers on either plane.
  */
-#define V4L2_CID_VIDEO_CONVERT_INTERPOLATION_METHOD  (V4L2_CID_MPEG_BASE+523)
+#define V4L2_CID_VIDEO_CONVERT_INTERPOLATION_METHOD  (V4L2_CID_MPEG_BASE+526)
 
 /**
  * Defines the Control ID to set the converter Temporal Noise Reduction (TNR) algorithm.
@@ -601,7 +639,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention TNR algorithms are not supported with YUV422 and YUV444 capture
  *            plane formats.
  */
-#define V4L2_CID_VIDEO_CONVERT_TNR_ALGORITHM         (V4L2_CID_MPEG_BASE+524)
+#define V4L2_CID_VIDEO_CONVERT_TNR_ALGORITHM         (V4L2_CID_MPEG_BASE+527)
 /** @} */
 
 /**
@@ -712,7 +750,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after setting formats on both the planes
  * and before requesting buffers on either plane.
  */
-#define V4L2_CID_MPEG_VIDEOENC_TEMPORAL_TRADEOFF_LEVEL (V4L2_CID_MPEG_BASE+525)
+#define V4L2_CID_MPEG_VIDEOENC_TEMPORAL_TRADEOFF_LEVEL (V4L2_CID_MPEG_BASE+528)
 
 /**
  * Defines the Control ID to configure encoder slice length either in terms of MBs or bits.
@@ -723,7 +761,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after setting formats on both the planes
  * and before requesting buffers on either plane.
  */
-#define V4L2_CID_MPEG_VIDEOENC_SLICE_LENGTH_PARAM (V4L2_CID_MPEG_BASE+526)
+#define V4L2_CID_MPEG_VIDEOENC_SLICE_LENGTH_PARAM (V4L2_CID_MPEG_BASE+529)
 
 /**
  * Defines the Control ID to configure encoder to encode particular region of frame in high
@@ -735,7 +773,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after requesting buffers on both the
  * planes.
  */
-#define V4L2_CID_MPEG_VIDEOENC_ROI_PARAMS (V4L2_CID_MPEG_BASE+527)
+#define V4L2_CID_MPEG_VIDEOENC_ROI_PARAMS (V4L2_CID_MPEG_BASE+530)
 
 /**
  * Defines the Control ID to specify virtual buffer size in bits for encoder.
@@ -746,7 +784,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after setting formats on both the planes
  * and before requesting buffers on either plane.
  */
-#define V4L2_CID_MPEG_VIDEOENC_VIRTUALBUFFER_SIZE (V4L2_CID_MPEG_BASE+528)
+#define V4L2_CID_MPEG_VIDEOENC_VIRTUALBUFFER_SIZE (V4L2_CID_MPEG_BASE+531)
 
 /**
  * Defines the Control ID to specify maximum number of reference frames that can be used.
@@ -756,7 +794,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after setting formats on both the planes
  * and before requesting buffers on either plane.
  */
-#define V4L2_CID_MPEG_VIDEOENC_NUM_REFERENCE_FRAMES (V4L2_CID_MPEG_BASE+529)
+#define V4L2_CID_MPEG_VIDEOENC_NUM_REFERENCE_FRAMES (V4L2_CID_MPEG_BASE+532)
 
 /**
  * Defines the Control ID to specify the encoder slice intra refresh interval.
@@ -767,7 +805,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after setting formats on both the planes
  * and before requesting buffers on either plane.
  */
-#define V4L2_CID_MPEG_VIDEOENC_SLICE_INTRAREFRESH_PARAM (V4L2_CID_MPEG_BASE+530)
+#define V4L2_CID_MPEG_VIDEOENC_SLICE_INTRAREFRESH_PARAM (V4L2_CID_MPEG_BASE+533)
 
 /**
  * Defines the Control ID to set number of B frames to be encoded between two P frames.
@@ -778,7 +816,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after setting formats on both the planes
  * and before requesting buffers on either plane.
  */
-#define V4L2_CID_MPEG_VIDEOENC_NUM_BFRAMES (V4L2_CID_MPEG_BASE+531)
+#define V4L2_CID_MPEG_VIDEOENC_NUM_BFRAMES (V4L2_CID_MPEG_BASE+534)
 
 /**
  * Defines the Control ID to enable/disable inserting SPS and PPS explicitly at IDR interval.
@@ -788,7 +826,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after setting formats on both the planes
  * and before requesting buffers on either plane.
  */
-#define V4L2_CID_MPEG_VIDEOENC_INSERT_SPS_PPS_AT_IDR (V4L2_CID_MPEG_BASE+532)
+#define V4L2_CID_MPEG_VIDEOENC_INSERT_SPS_PPS_AT_IDR (V4L2_CID_MPEG_BASE+535)
 
 /**
  * Defines the Control ID to get encoder output metadata.
@@ -800,7 +838,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * the capture plane. The values in the structure are valid until the buffer is queued
  * again.
  */
-#define V4L2_CID_MPEG_VIDEOENC_METADATA               (V4L2_CID_MPEG_BASE+533)
+#define V4L2_CID_MPEG_VIDEOENC_METADATA               (V4L2_CID_MPEG_BASE+536)
 
 /**
  * Defines the Control ID to enable/disable encoder motion vector reporting.
@@ -810,7 +848,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after setting formats on both the planes
  * and before requesting buffers on either plane.
  */
-#define V4L2_CID_MPEG_VIDEOENC_ENABLE_METADATA_MV     (V4L2_CID_MPEG_BASE+534)
+#define V4L2_CID_MPEG_VIDEOENC_ENABLE_METADATA_MV     (V4L2_CID_MPEG_BASE+537)
 
 /**
  * Defines the Control ID to get encoder output motion vector metadata.
@@ -822,7 +860,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * the capture plane. The values in the structure are valid until the buffer is queued
  * again.
  */
-#define V4L2_CID_MPEG_VIDEOENC_METADATA_MV            (V4L2_CID_MPEG_BASE+535)
+#define V4L2_CID_MPEG_VIDEOENC_METADATA_MV            (V4L2_CID_MPEG_BASE+538)
 
 /**
  * Defines the Control ID to set QP range for I/P/B frames.
@@ -833,7 +871,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after setting formats on both the planes
  * and before requesting buffers on either plane.
  */
-#define V4L2_CID_MPEG_VIDEOENC_QP_RANGE               (V4L2_CID_MPEG_BASE+536)
+#define V4L2_CID_MPEG_VIDEOENC_QP_RANGE               (V4L2_CID_MPEG_BASE+539)
 
 /**
  * Defines the Control ID to set encoder HW Preset type.
@@ -844,7 +882,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after setting formats on both the planes
  * and before requesting buffers on either plane.
  */
-#define V4L2_CID_MPEG_VIDEOENC_HW_PRESET_TYPE_PARAM   (V4L2_CID_MPEG_BASE+537)
+#define V4L2_CID_MPEG_VIDEOENC_HW_PRESET_TYPE_PARAM   (V4L2_CID_MPEG_BASE+540)
 
 /**
  * Defines the Control ID to provide input metadata for encoder buffer.
@@ -857,7 +895,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * v4l2_ctrl_videoenc_input_metadata.metadata_flag to provide different input
  * metadata parameters in one s_ctrl call.
  */
-#define V4L2_CID_MPEG_VIDEOENC_INPUT_METADATA         (V4L2_CID_MPEG_BASE+538)
+#define V4L2_CID_MPEG_VIDEOENC_INPUT_METADATA         (V4L2_CID_MPEG_BASE+541)
 
 /**
  * Defines the Control ID to configure encoder for external RPS control.
@@ -868,7 +906,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after requesting buffers on both the
  * planes.
  */
-#define V4L2_CID_MPEG_VIDEOENC_ENABLE_EXTERNAL_RPS_CONTROL (V4L2_CID_MPEG_BASE+539)
+#define V4L2_CID_MPEG_VIDEOENC_ENABLE_EXTERNAL_RPS_CONTROL (V4L2_CID_MPEG_BASE+542)
 
 /**
  * Defines the Control ID to configure encoder for external rate control.
@@ -879,7 +917,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after requesting buffers on both the
  * planes.
  */
-#define V4L2_CID_MPEG_VIDEOENC_ENABLE_EXTERNAL_RATE_CONTROL (V4L2_CID_MPEG_BASE+540)
+#define V4L2_CID_MPEG_VIDEOENC_ENABLE_EXTERNAL_RATE_CONTROL (V4L2_CID_MPEG_BASE+543)
 
 /**
  * Defines the Control ID to configure ROI encoding for a session.
@@ -890,7 +928,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after requesting buffers on both the
  * planes.
  */
-#define V4L2_CID_MPEG_VIDEOENC_ENABLE_ROI_PARAM (V4L2_CID_MPEG_BASE+541)
+#define V4L2_CID_MPEG_VIDEOENC_ENABLE_ROI_PARAM (V4L2_CID_MPEG_BASE+544)
 
 /**
  * Defines the Control ID to configure Reconstructed CRC for a session.
@@ -901,7 +939,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control must be set after requesting buffers on both the
  * planes.
  */
-#define V4L2_CID_MPEG_VIDEOENC_ENABLE_RECONCRC_PARAM  (V4L2_CID_MPEG_BASE+542)
+#define V4L2_CID_MPEG_VIDEOENC_ENABLE_RECONCRC_PARAM  (V4L2_CID_MPEG_BASE+545)
 
 /**
  * Control ID to enable/disable inserting VUI in SPS.
@@ -911,7 +949,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control should be set after setting formats on both the planes
  * and before requesting buffers on either plane.
  */
-#define V4L2_CID_MPEG_VIDEOENC_INSERT_VUI (V4L2_CID_MPEG_BASE+543)
+#define V4L2_CID_MPEG_VIDEOENC_INSERT_VUI (V4L2_CID_MPEG_BASE+546)
 
 /**
  * Control ID to enable/disable inserting AUD(Access Unit Delimiter).
@@ -921,7 +959,7 @@ struct v4l2_ctrl_vp8_frame_hdr {
  * @attention This control should be set after setting formats on both the planes
  * and before requesting buffers on either plane.
  */
-#define V4L2_CID_MPEG_VIDEOENC_INSERT_AUD (V4L2_CID_MPEG_BASE+544)
+#define V4L2_CID_MPEG_VIDEOENC_INSERT_AUD (V4L2_CID_MPEG_BASE+547)
 
 /** @} */
 
@@ -936,6 +974,23 @@ enum v4l2_skip_frames_type {
     V4L2_SKIP_FRAMES_TYPE_NONREF = 1,
     /** Skip all frames except IDR */
     V4L2_SKIP_FRAMES_TYPE_DECODE_IDR_ONLY = 2,
+};
+
+/**
+ * Enum v4l2_videodec_input_error_type, possible error types for input stream. */
+enum v4l2_videodec_input_error_type {
+    /** no error. */
+    V4L2_DEC_ERROR_NONE = 0x0,
+    /** sps error. */
+    V4L2_DEC_ERROR_SPS = 0x1,
+    /** pps error. */
+    V4L2_DEC_ERROR_PPS = 0x2,
+    /** slice header error. */
+    V4L2_DEC_ERROR_SLICE_HDR = 0x4,
+    /** missing reference frame error. */
+    V4L2_DEC_ERROR_MISSING_REF_FRAME = 0x8,
+    /** VPS error. */
+    V4L2_DEC_ERROR_VPS = 0x10,
 };
 
 /**
@@ -1044,6 +1099,16 @@ typedef struct v4l2_ctrl_hevcdec_bufmetadata_
     /** Holds the current DPB information of the decoder. */
     v4l2_ctrl_videodec_dpbinfometadata dpbInfo;
 }v4l2_ctrl_hevcdec_bufmetadata;
+
+/**
+ * Holds the video decoder input header error metadata for a frame.
+ */
+typedef struct v4l2_ctrl_videodec_inputbuf_metadata_
+{
+    /** Bits represent types of error as defined
+     *  with v4l2_videodec_input_error_type. */
+    __u32 nBitStreamError;
+} v4l2_ctrl_videodec_inputbuf_metadata;
 
 /**
  * Holds the video decoder output metadata for a frame.
@@ -1310,6 +1375,10 @@ typedef struct v4l2_ctrl_videoenc_outputbuf_metadata_
  */
 typedef struct v4l2_ctrl_video_metadata_
 {
+    /** A pointer to #v4l2_ctrl_videodec_inputbuf_metadata structure.
+     * This must be a valid pointer when used with #V4L2_CID_MPEG_VIDEODEC_INPUT_METADATA
+     * IOCTL. */
+    v4l2_ctrl_videodec_inputbuf_metadata *VideoDecHeaderErrorMetadata;
     /** A pointer to #v4l2_ctrl_videodec_outputbuf_metadata structure.
      * This must be a valid pointer when used with #V4L2_CID_MPEG_VIDEODEC_METADATA
      * IOCTL. */
@@ -1325,7 +1394,6 @@ typedef struct v4l2_ctrl_video_metadata_
     /** Index of the buffer whose metadata is required. */
     __u32 buffer_index;
 } v4l2_ctrl_video_metadata;
-
 
 /**
  * Holds the encoder GDR parameters
@@ -1537,10 +1605,12 @@ enum v4l2_flip_method {
  * Specifies the types of interpolation methods.
  */
 enum v4l2_interpolation_method {
-  V4L2_INTERPOLATION_NEAREST = 1,   /**< Nearest interpolation method. */
-  V4L2_INTERPOLATION_LINEAR = 2,    /**< Linear interpolation method. */
-  V4L2_INTERPOLATION_SMART = 3,     /**< Smart interpolation method. */
-  V4L2_INTERPOLATION_BILINEAR = 4,  /**< Bi-Linear interpolation method. */
+  V4L2_INTERPOLATION_NEAREST = 1,   /**< Nearest interpolation method */
+  V4L2_INTERPOLATION_BILINEAR = 2,  /**< Bi-Linear interpolation method */
+  V4L2_INTERPOLATION_5_TAP = 3,     /**< 5-Tap interpolation method */
+  V4L2_INTERPOLATION_10_TAP = 4,    /**< 10-Tap interpolation method */
+  V4L2_INTERPOLATION_SMART = 5,     /**< Smart interpolation method */
+  V4L2_INTERPOLATION_NICEST = 6,    /**< Nicest interpolation method */
 };
 
 /**
@@ -1555,5 +1625,26 @@ enum v4l2_tnr_algorithm {
   V4L2_TNR_ALGO_INDOOR_MEDIUM_LIGHT = 5, /**< Indoor Medium Light TNR algorithm. */
   V4L2_TNR_ALGO_INDOOR_HIGH_LIGHT = 6, /**< Indoor High Light TNR algorithm. */
 };
+
+typedef struct v4l2_ctrl_video_displaydata_
+{
+    __u32 masteringdisplaydatapresent;
+}v4l2_ctrl_video_displaydata;
+
+/**
+ * HDR Metadata.
+ */
+
+typedef struct _v4l2_ctrl_video_hdrmasteringdisplaydata
+{
+    // idx 0 : G, 1 : B, 2 : R
+    __u16 display_primaries_x[3];       // normalized x chromaticity cordinate. It shall be in the range of 0 to 50000
+    __u16 display_primaries_y[3];       // normalized y chromaticity cordinate. It shall be in the range of 0 to 50000
+    __u16 white_point_x;    // normalized x chromaticity cordinate of white point of mastering display
+    __u16 white_point_y;    // normalized y chromaticity cordinate of white point of mastering display
+    __u32 max_display_parameter_luminance;      // nominal maximum display luminance in units of 0.0001 candelas per square metre
+    __u32 min_display_parameter_luminance;      // nominal minimum display luminance in units of 0.0001 candelas per square metre
+} v4l2_ctrl_video_hdrmasteringdisplaydata;
+
 /** @} */
 #endif /*__V4L2_NV_EXTENSIONS_H__*/

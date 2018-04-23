@@ -288,6 +288,11 @@ private:
      *  Returns a DRM buffer_object handle allocated of size (w,h)
      */
     int createDumbBO(int w, int h, int bpp, NvDrmBO *bo);
+
+    static const NvElementProfiler::ProfilerField valid_fields =
+            NvElementProfiler::PROFILER_FIELD_TOTAL_UNITS |
+            NvElementProfiler::PROFILER_FIELD_FPS |
+            NvElementProfiler::PROFILER_FIELD_LATE_UNITS;
 };
 
 /** @} */

@@ -32,6 +32,7 @@ public:
     static int iris_home_max_steps() { init(); return _iris_home_max_steps; }
     static int iris_home_step_size() { init(); return _iris_home_step_size; }
     static bool iris_has_limit() { init(); return _iris_has_limit; }
+
 protected:
     static void _load_config_file();
     static void init()

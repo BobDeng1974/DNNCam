@@ -177,6 +177,24 @@ public:
     
     std::string get_timing_string(void);
 
+    void DrawPoints3D(cv::Mat frame,
+                      const float* points,
+                      unsigned int numPoints,
+                      const cv::Scalar& color,
+                      float pointSize);
+
+    void DrawPoints(cv::Mat frame, const float* points,
+                                   unsigned int numPoints,
+                                   const cv::Scalar& color,
+                                   float pointSize);
+    void DrawLines(cv::Mat frame, const float* points,
+                                  const unsigned int* pairs,
+                                  unsigned int numPairs,
+                                  const cv::Scalar& color,
+                                  float thickness);
+
+
+
 protected:
     typedef boost::mutex::scoped_lock ScopedLock;
 

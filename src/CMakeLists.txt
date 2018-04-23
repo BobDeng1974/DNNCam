@@ -68,6 +68,7 @@ target_link_libraries(lensDriver
     config 
     ${BOOST_DEPS}
     ${XMLRPC_DEPS}
+    ${OPENCV_DEPS}
     readline
 )
 

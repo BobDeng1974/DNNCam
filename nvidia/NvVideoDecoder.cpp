@@ -126,6 +126,7 @@ NvVideoDecoder::setOutputPlaneFormat(uint32_t pixfmt, uint32_t sizeimage)
     {
         case V4L2_PIX_FMT_H264:
         case V4L2_PIX_FMT_H265:
+        case V4L2_PIX_FMT_VP9:
             output_plane_pixfmt = pixfmt;
             break;
         default:
@@ -251,3 +252,59 @@ NvVideoDecoder::getMetadata(uint32_t buffer_index,
     CHECK_V4L2_RETURN(getExtControls(ctrls),
             "Getting decoder output metadata for buffer " << buffer_index);
 }
+
+int
+NvVideoDecoder::getInputMetadata(uint32_t buffer_index,
+        v4l2_ctrl_videodec_inputbuf_metadata &dec_input_metadata)
+{
+    v4l2_ctrl_video_metadata metadata;
+    struct v4l2_ext_control control;
+    struct v4l2_ext_controls ctrls;
+
+    ctrls.count = 1;
+    ctrls.controls = &control;
+
+    metadata.buffer_index = buffer_index;
+    metadata.VideoDecHeaderErrorMetadata = &dec_input_metadata;
+
+    control.id = V4L2_CID_MPEG_VIDEODEC_INPUT_METADATA;
+    control.string = (char *)&metadata;
+
+    CHECK_V4L2_RETURN(getExtControls(ctrls),
+            "Getting decoder input metadata for buffer " << buffer_index);
+}
+
+int
+NvVideoDecoder::checkifMasteringDisplayDataPresent(v4l2_ctrl_video_displaydata
+        &displaydata)
+{
+    struct v4l2_ext_control control;
+    struct v4l2_ext_controls ctrls;
+
+    ctrls.count = 1;
+    ctrls.controls = &control;
+
+    control.id = V4L2_CID_VIDEODEC_DISPLAYDATA_PRESENT;
+    control.string = (char *)&displaydata;
+
+    CHECK_V4L2_RETURN(getExtControls(ctrls),
+            "Getting decoder output displaydata for buffer ");
+}
+
+int
+NvVideoDecoder::MasteringDisplayData(v4l2_ctrl_video_hdrmasteringdisplaydata
+        *hdrmasteringdisplaydata)
+{
+    struct v4l2_ext_control control;
+    struct v4l2_ext_controls ctrls;
+
+    ctrls.count = 1;
+    ctrls.controls = &control;
+
+    control.id = V4L2_CID_VIDEODEC_HDR_MASTERING_DISPLAY_DATA;
+    control.string = (char *)hdrmasteringdisplaydata;
+
+    CHECK_V4L2_RETURN(getExtControls(ctrls),
+            "Getting decoder output hdrdisplaydata for buffer ");
+}
+
