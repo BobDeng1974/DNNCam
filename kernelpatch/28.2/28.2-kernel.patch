@@ -1,23 +1,6 @@
-diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-index 2c60402..f4eb0a2 100644
---- a/drivers/media/i2c/imx274.c
-+++ b/drivers/media/i2c/imx274.c
-@@ -16,6 +16,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#define DEBUG 1
- #include <linux/slab.h>
- #include <linux/uaccess.h>
- #include <linux/gpio.h>
-@@ -25,7 +26,6 @@
- #include <linux/of.h>
- #include <linux/of_device.h>
- #include <linux/of_gpio.h>
--
- #include <media/tegra-v4l2-camera.h>
- #include <media/camera_common.h>
- #include <media/imx274.h>
+diff -rNu clean/kernel/kernel-4.4/drivers/media/i2c/imx274.c 28.2/kernel/kernel-4.4/drivers/media/i2c/imx274.c
+--- clean/kernel/kernel-4.4/drivers/media/i2c/imx274.c	2018-03-01 21:37:47.000000000 -0700
++++ 28.2/kernel/kernel-4.4/drivers/media/i2c/imx274.c	2018-04-27 15:24:07.554371190 -0600
 @@ -35,10 +35,18 @@
  #define IMX274_MAX_COARSE_DIFF		10
  
@@ -82,7 +65,7 @@ index 2c60402..f4eb0a2 100644
  
  struct imx274 {
  	struct camera_common_power_rail	power;
-@@ -65,7 +96,8 @@ struct imx274 {
+@@ -65,7 +96,8 @@
  	struct i2c_client		*i2c_client;
  	struct v4l2_subdev		*subdev;
  	struct media_pad		pad;
@@ -92,7 +75,7 @@ index 2c60402..f4eb0a2 100644
  	s32				group_hold_prev;
  	bool				group_hold_en;
  	struct regmap			*regmap;
-@@ -95,9 +127,9 @@ static struct v4l2_ctrl_config ctrl_config_list[] = {
+@@ -95,9 +127,9 @@
  		.name = "Gain",
  		.type = V4L2_CTRL_TYPE_INTEGER,
  		.flags = V4L2_CTRL_FLAG_SLIDER,
@@ -105,7 +88,7 @@ index 2c60402..f4eb0a2 100644
  		.step = 1,
  	},
  	{
-@@ -161,11 +193,9 @@ static inline void imx274_get_vmax_regs(imx274_reg *regs,
+@@ -161,11 +193,9 @@
  				u32 vmax)
  {
  	regs->addr = IMX274_VMAX_ADDR_MSB;
@@ -120,7 +103,58 @@ index 2c60402..f4eb0a2 100644
  }
  
  static inline void imx274_get_shr_regs(imx274_reg *regs,
-@@ -382,14 +412,14 @@ static int imx274_power_get(struct imx274 *priv)
+@@ -243,11 +273,11 @@
+ 	}
+ 
+ 	if (pw->reset_gpio)
+-		gpio_set_value(pw->reset_gpio, 0);
++		gpio_direction_output(pw->reset_gpio, 0);
+ 	if (pw->af_gpio)
+-		gpio_set_value(pw->af_gpio, 1);
++		gpio_direction_output(pw->af_gpio, 1);
+ 	if (pw->pwdn_gpio)
+-		gpio_set_value(pw->pwdn_gpio, 0);
++		gpio_direction_output(pw->pwdn_gpio, 0);
+ 	usleep_range(10, 20);
+ 
+ 
+@@ -268,9 +298,9 @@
+ 
+ 	usleep_range(1, 2);
+ 	if (pw->reset_gpio)
+-		gpio_set_value(pw->reset_gpio, 1);
++		gpio_direction_output(pw->reset_gpio, 1);
+ 	if (pw->pwdn_gpio)
+-		gpio_set_value(pw->pwdn_gpio, 1);
++		gpio_direction_output(pw->pwdn_gpio, 1);
+ 
+ 	usleep_range(300, 310);
+ 
+@@ -279,7 +309,7 @@
+ 
+ imx274_dvdd_fail:
+ 	if (pw->af_gpio)
+-		gpio_set_value(pw->af_gpio, 0);
++		gpio_direction_output(pw->af_gpio, 0);
+ 
+ imx274_iovdd_fail:
+ 	regulator_disable(pw->dvdd);
+@@ -311,11 +341,11 @@
+ 
+ 	usleep_range(1, 2);
+ 	if (pw->reset_gpio)
+-		gpio_set_value(pw->reset_gpio, 0);
++		gpio_direction_output(pw->reset_gpio, 0);
+ 	if (pw->af_gpio)
+-		gpio_set_value(pw->af_gpio, 0);
++		gpio_direction_output(pw->af_gpio, 0);
+ 	if (pw->pwdn_gpio)
+-		gpio_set_value(pw->pwdn_gpio, 0);
++		gpio_direction_output(pw->pwdn_gpio, 0);
+ 	usleep_range(1, 2);
+ 
+ 	if (pw->avdd)
+@@ -382,14 +412,14 @@
  	}
  
  	/* ananlog 2.7v */
@@ -141,25 +175,16 @@ index 2c60402..f4eb0a2 100644
  
  	if (!err) {
  		pw->reset_gpio = pdata->reset_gpio;
-@@ -427,7 +457,7 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int enable)
- 		goto exit;
+@@ -413,7 +443,7 @@
+ 	struct v4l2_control control;
+ 	int err;
  
+-	dev_dbg(&client->dev, "%s++\n", __func__);
++    dev_dbg(&client->dev, "%s++,enable:%d\n", __func__,enable);
  
--	if (s_data->override_enable) {
-+	//if (s_data->override_enable) {
- 		/* write list of override regs for the asking frame length, */
- 		/* coarse integration time, and gain.                       */
- 		control.id = TEGRA_CAMERA_CID_GAIN;
-@@ -450,7 +480,7 @@ static int imx274_s_stream(struct v4l2_subdev *sd, int enable)
- 		if (err)
- 			dev_dbg(&client->dev,
- 				"%s: error coarse time override\n", __func__);
--	}
-+	//}
+ 	imx274_write_table(priv, mode_table[IMX274_MODE_STOP_STREAM]);
  
- 	if (test_mode) {
- 		err = imx274_write_table(priv,
-@@ -565,8 +595,115 @@ fail:
+@@ -565,96 +595,151 @@
  	return err;
  }
  
@@ -213,14 +238,22 @@ index 2c60402..f4eb0a2 100644
  static int imx274_set_gain(struct imx274 *priv, s32 val)
  {
 +
-+	imx274_reg reg_list[2];
-+	int err;
+ 	imx274_reg reg_list[2];
+ 	int err;
+-	int i = 0;
+-	u16 gain;
 +	u32 gain, analog_gain, digital_gain, gain_reg;
 +	int i;
-+
+ 
+-	dev_dbg(&priv->i2c_client->dev,
+-		"%s: val: %d\n", __func__, val);
 +	gain = val / 100;
-+
-+	dev_dbg(&priv->i2c_client->dev,
+ 
+-	if (val < IMX274_MIN_GAIN)
+-		val = IMX274_MIN_GAIN;
+-	else if (val > IMX274_MAX_GAIN)
+-		val = IMX274_MAX_GAIN;
++	dev_dbg(&priv->i2c_client->dev,	
 +		 "%s : input gain = %d.%d\n", __func__,
 +		 gain >> IMX274_GAIN_SHIFT,
 +		 ((gain & IMX274_GAIN_SHIFT_MASK) * 100) >> IMX274_GAIN_SHIFT);
@@ -238,13 +271,18 @@ index 2c60402..f4eb0a2 100644
 +		digital_gain = 4;
 +	else
 +		digital_gain = IMX274_MAX_DIGITAL_GAIN;
-+
+ 
+-	gain = 2048 - (2048 * IMX274_MIN_GAIN / val);
 +	analog_gain = val / digital_gain;
-+
-+	dev_dbg(&priv->i2c_client->dev,
+ 
+-	imx274_get_gain_reg(reg_list, gain);
+-	imx274_set_group_hold(priv);
++	dev_dbg(&priv->i2c_client->dev,	
 +		 "%s : digital gain = %d, analog gain = %d\n",
 +		 __func__, digital_gain, analog_gain);
-+
+ 
+-	/* writing analog gain */
+-	for (i = 0; i < 2; i++) {
 +	err = imx274_set_digital_gain(priv, digital_gain);
 +	if (err)
 +		goto fail;
@@ -258,28 +296,20 @@ index 2c60402..f4eb0a2 100644
 +	imx274_calculate_gain_regs(reg_list, (u16)gain_reg);
 +
 +	for (i = 0; i < ARRAY_SIZE(reg_list); i++) {
-+		err = imx274_write_reg(priv->s_data, reg_list[i].addr,
+ 		err = imx274_write_reg(priv->s_data, reg_list[i].addr,
+-			 reg_list[i].val);
 +				       reg_list[i].val);
-+		if (err)
-+			goto fail;
-+	}
+ 		if (err)
+ 			goto fail;
+ 	}
+ 
 +
-+
-+	return 0;
-+
-+fail:
-+	return err;
-+
-+#if 0
-+
- 	imx274_reg reg_list[2];
- 	int err;
- 	int i = 0;
-@@ -599,62 +736,46 @@ fail:
- 	dev_dbg(&priv->i2c_client->dev,
- 		 "%s: GAIN control error\n", __func__);
+ 	return 0;
+ 
+ fail:
+-	dev_dbg(&priv->i2c_client->dev,
+-		 "%s: GAIN control error\n", __func__);
  	return err;
-+#endif
  }
  
  static int imx274_set_frame_length(struct imx274 *priv, s32 val)
@@ -353,7 +383,7 @@ index 2c60402..f4eb0a2 100644
  	return 0;
  
  fail:
-@@ -665,54 +786,37 @@ fail:
+@@ -665,54 +750,37 @@
  
  static int imx274_calculate_shr(struct imx274 *priv, u32 rep)
  {
@@ -400,10 +430,6 @@ index 2c60402..f4eb0a2 100644
 -		shr_max = priv->vmax - 4;
 -		if (shr > shr_max)
 -			shr = shr_max;
--
--		if (shr < shr_min)
--			shr = shr_min;
--	}
 +	int min;
 +	int max;
 +	u8 vmax_l;
@@ -420,7 +446,7 @@ index 2c60402..f4eb0a2 100644
 +	min = IMX274_MODE1_SHR_MIN;
 +	//max = ((svr + 1) * IMX274_VMAX) - 4;
 +	max = ((svr + 1) * priv->frame_length) - 4;
-+
++	
 +	shr = vmax * (svr + 1) -
 +			(rep * IMX274_ET_FACTOR - IMX274_MODE1_OFFSET) /
 +			IMX274_HMAX;
@@ -430,49 +456,740 @@ index 2c60402..f4eb0a2 100644
 +
 +	if (shr > max)
 +		shr = max;
-+
+ 
+-		if (shr < shr_min)
+-			shr = shr_min;
+-	}
  	dev_dbg(&priv->i2c_client->dev,
 -		 "%s: shr: %u vmax: %d\n", __func__, shr, priv->vmax);
 +		 "%s: shr: %u vmax: %d\n", __func__, shr, vmax);
  	return shr;
  }
  
-@@ -862,7 +966,6 @@ error:
+@@ -749,25 +817,6 @@
+ 	return err;
  }
  
- MODULE_DEVICE_TABLE(of, imx274_of_match);
+-static int imx274_verify_streaming(struct imx274 *priv)
+-{
+-	int err = 0;
 -
- static struct camera_common_pdata *imx274_parse_dt(struct i2c_client *client,
- 				const struct camera_common_data *s_data)
+-	err = camera_common_s_power(priv->subdev, true);
+-	if (err)
+-		return err;
+-
+-	err = imx274_s_stream(priv->subdev, true);
+-	if (err)
+-		goto error;
+-
+-error:
+-	imx274_s_stream(priv->subdev, false);
+-	camera_common_s_power(priv->subdev, false);
+-
+-	return err;
+-}
+-
+ static int imx274_s_ctrl(struct v4l2_ctrl *ctrl)
  {
-@@ -941,6 +1044,7 @@ static int imx274_probe(struct i2c_client *client,
- 	struct camera_common_data *common_data;
- 	struct device_node *node = client->dev.of_node;
- 	struct imx274 *priv;
-+	char debugfs_name[10];
- 	int err;
- 
- 	pr_info("[IMX274]: probing v4l2 sensor.\n");
-@@ -1009,6 +1113,10 @@ static int imx274_probe(struct i2c_client *client,
- 		dev_err(&client->dev, "Failed to initialize imx274.\n");
+ 	struct imx274 *priv =
+@@ -1016,9 +1065,6 @@
+ 	if (err)
  		return err;
- 	}
-+	sprintf(debugfs_name, "imx274_%c", common_data->csi_port + 'a');
-+	dev_dbg(&client->dev, "%s: name %s\n", __func__, debugfs_name);
-+
-+	camera_common_create_debugfs(common_data, "imx274");
  
- 	v4l2_i2c_subdev_init(priv->subdev, client, &imx274_subdev_ops);
+-	err = imx274_verify_streaming(priv);
+-	if (err)
+-		return err;
  
-@@ -1084,3 +1192,4 @@ module_i2c_driver(imx274_i2c_driver);
- MODULE_DESCRIPTION("Media Controller driver for Sony IMX274");
- MODULE_AUTHOR("Josh Kuo <joshk@nvidia.com>");
- MODULE_LICENSE("GPL v2");
+ 	priv->subdev->internal_ops = &imx274_subdev_internal_ops;
+ 	priv->subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
+diff -rNu clean/kernel/kernel-4.4/drivers/media/i2c/imx274_mode_tbls.h 28.2/kernel/kernel-4.4/drivers/media/i2c/imx274_mode_tbls.h
+--- clean/kernel/kernel-4.4/drivers/media/i2c/imx274_mode_tbls.h	2018-03-01 21:37:47.000000000 -0700
++++ 28.2/kernel/kernel-4.4/drivers/media/i2c/imx274_mode_tbls.h	2018-04-27 15:23:24.007565301 -0600
+@@ -103,28 +103,16 @@
+ 	{0x30F7, 0x01},
+ 	{0x30F8, 0xC6},
+ 	{0x30F9, 0x11},
+-	{0x3130, 0x78}, /*WRITE_VSIZE*/
++	{0x3130, 0x86},
+ 	{0x3131, 0x08},
+-	{0x3132, 0x70}, /*Y_OUT_SIZE*/
++	{0x3132, 0x7E},
+ 	{0x3133, 0x08},
+-
+-	/* crop */
+-	{0x30DD, 0x01}, /*VWIDCUTEN*/
+-	{0x30DE, 0x07}, /*VWIDCUT*/
+-	{0x30E0, 0x00}, /*VWINCUTPOS*/
+-	{0x3037, 0x01}, /*HTRIMMING_EN*/
+-	{0x3038, 0x0C}, /*HTRIMMING_START*/
+-	{0x3039, 0x00},
+-	{0x303A, 0x0C}, /*HTRIMMING_END*/
+-	{0x303B, 0x0F},
+-
+ 	/* mode setting */
+ 	{0x3004, 0x01},
+ 	{0x3005, 0x01},
+ 	{0x3006, 0x00},
+-	{0x3007, 0xA2},
++	{0x3007, 0x02},
+ 	{0x3A41, 0x08},
+-	{0x3A42, 0x01},
+ 	{0x3342, 0x0A},
+ 	{0x3343, 0x00},
+ 	{0x3344, 0x16},
+@@ -195,33 +183,38 @@
+ 	{0x3590, 0x32},
+ 	{0x3686, 0x32},
+ 	/* resolution */
 +
-diff --git a/include/media/imx274.h b/include/media/imx274.h
-index 499ce3d..4dbd68a 100644
---- a/include/media/imx274.h
-+++ b/include/media/imx274.h
++	{0x3037, 0x01},
++	{0x3038, 0x0c},
++	{0x3039, 0x00},
++	{0x303a, 0x0c},
++	{0x303b, 0x0f},
++
++	{0x30dd, 0x01},
++	{0x30de, 0x07},
++	{0x30df, 0x00},
++	{0x30e0, 0x07},
++	{0x30e1, 0x00},
++
++
++
+ 	{0x30E2, 0x01},
+ 	{0x30F6, 0x07},
+ 	{0x30F7, 0x01},
+ 	{0x30F8, 0xC6},
+ 	{0x30F9, 0x11},
+-	{0x3130, 0x78}, /*WRITE_VSIZE*/
++
++	{0x3130, 0x80},
+ 	{0x3131, 0x08},
+-	{0x3132, 0x70}, /*Y_OUT_SIZE*/
++	{0x3132, 0x70},
+ 	{0x3133, 0x08},
+ 
+-	/* crop */
+-	{0x30DD, 0x01}, /*VWIDCUTEN*/
+-	{0x30DE, 0x07}, /*VWIDCUT*/
+-	{0x30E0, 0x00}, /*VWINCUTPOS*/
+-	{0x3037, 0x01}, /*HTRIMMING_EN*/
+-	{0x3038, 0x0C}, /*HTRIMMING_START*/
+-	{0x3039, 0x00},
+-	{0x303A, 0x0C}, /*HTRIMMING_END*/
+-	{0x303B, 0x0F},
+-
+ 	/* mode setting */
+ 	{0x3004, 0x01},
+ 	{0x3005, 0x01},
+ 	{0x3006, 0x00},
+-	{0x3007, 0xA2},
++	{0x3007, 0x02},
+ 	{0x3A41, 0x08},
+-	{0x3A42, 0x01},
+ 	{0x3342, 0x0A},
+ 	{0x3343, 0x00},
+ 	{0x3344, 0x16},
+@@ -250,21 +243,135 @@
+ 	{IMX274_TABLE_END, 0x0000}
+ };
+ 
++static const imx274_reg imx274_mode3_1920x1080_raw10[] = {
++
++        {0x3120, 0xF0}, // clock settings
++        {0x3121, 0x00}, // clock settings
++        {0x3122, 0x02}, // clock settings
++        {0x3129, 0x9C}, // clock settings
++        {0x312A, 0x02}, // clock settings
++        {0x312D, 0x02}, // clock settings
++
++        {0x310B, 0x00},
++
++        // PLSTMG
++        {0x304C, 0x00}, // PLSTMG01
++        {0x304D, 0x03},
++        {0x331C, 0x1A},
++        {0x331D, 0x00},
++        {0x3502, 0x02},
++        {0x3529, 0x0E},
++        {0x352A, 0x0E},
++        {0x352B, 0x0E},
++        {0x3538, 0x0E},
++        {0x3539, 0x0E},
++        {0x3553, 0x00},
++        {0x357D, 0x05},
++        {0x357F, 0x05},
++        {0x3581, 0x04},
++        {0x3583, 0x76},
++        {0x3587, 0x01},
++        {0x35BB, 0x0E},
++        {0x35BC, 0x0E},
++        {0x35BD, 0x0E},
++        {0x35BE, 0x0E},
++        {0x35BF, 0x0E},
++        {0x366E, 0x00},
++        {0x366F, 0x00},
++        {0x3670, 0x00},
++        {0x3671, 0x00},
++
++        // PSMIPI
++        {0x3304, 0x32}, // PSMIPI1
++        {0x3305, 0x00},
++        {0x3306, 0x32},
++        {0x3307, 0x00},
++        {0x3590, 0x32},
++        {0x3591, 0x00},
++        {0x3686, 0x32},
++        {0x3687, 0x00},
++
++
++
++
++
++
++        {0x3004, 0x02},
++        {0x3005, 0x21},
++        {0x3006, 0x00},
++        {0x3007, 0x11},
++        {0x300C, 0xff}, // SHR
++        {0x300D, 0x00}, // SHR
++        {0x300E, 0x00},//0x01}, // SVR , 1, reduce from 120fps to 60fps
++        {0x300F, 0x00}, // SVR
++        {0x3018, 0xA2}, // output XVS, HVS
++        {0x301A, 0x00},
++        {0x306B, 0x05},
++        {0x30E2, 0x02},
++
++        {0x30F6, 0x04}, // HMAX , 260
++        {0x30F7, 0x01}, // HMAX
++        {0x30F8, 0x06}, // VMAX , 2310
++        {0x30F9, 0x09}, // VMAX
++        {0x30FA, 0x00}, // VMAX
++
++        {0x30dd, 0x01}, // to crop to 1920x1080
++        {0x30de, 0x07},
++        {0x30df, 0x00},
++        {0x30e0, 0x07},
++        {0x30e1, 0x00},
++        {0x3037, 0x01},
++        {0x3038, 0x0c},
++        {0x3039, 0x00},
++        {0x303a, 0x0c},
++        {0x303b, 0x0f},
++
++        {0x30EE, 0x01},
++        {0x3130, 0x40},
++        {0x3131, 0x04},
++        {0x3132, 0x38},
++        {0x3133, 0x04},
++        {0x3342, 0x0A},
++        {0x3343, 0x00},
++        {0x3344, 0x1A},
++        {0x3345, 0x00},
++        {0x33A6, 0x00},
++        {0x3528, 0x0E},
++        {0x3554, 0x00},
++        {0x3555, 0x01},
++        {0x3556, 0x01},
++        {0x3557, 0x01},
++        {0x3558, 0x01},
++        {0x3559, 0x00},
++        {0x355A, 0x00},
++        {0x35BA, 0x0E},
++        {0x366A, 0x1B},
++        {0x366B, 0x1A},
++        {0x366C, 0x19},
++        {0x366D, 0x17},
++        {0x3A41, 0x08},
++
++        {IMX274_TABLE_END, 0x00}
++};
++
++#if 0
+ /* Mode 3 : 1920X1080 10 bits 60fps*/
+ static imx274_reg mode_1920X1080[] = {
+ 	{IMX274_TABLE_WAIT_MS, IMX274_WAIT_MS},
+ 	{0x3000, 0x12}, /* mode select streaming on */
+-	/* input freq. 24M */
+-	{0x3120, 0xF0},
+-	{0x3122, 0x02},
+-	{0x3129, 0x9c},
+-	{0x312A, 0x02},
+-	{0x312D, 0x02},
+-
++	{0x3120, 0xF0}, // clock settings
++	{0x3121, 0x00}, // clock settings
++	{0x3122, 0x02}, // clock settings
++	{0x3129, 0x9C}, // clock settings
++	{0x312A, 0x02}, // clock settings
++	{0x312D, 0x02}, // clock settings
+ 	{0x310B, 0x00},
+-	{0x304C, 0x00},
++
++	// PLSTMG
++	{0x304C, 0x00}, // PLSTMG01
+ 	{0x304D, 0x03},
+ 	{0x331C, 0x1A},
++	{0x331D, 0x00},
+ 	{0x3502, 0x02},
+ 	{0x3529, 0x0E},
+ 	{0x352A, 0x0E},
+@@ -286,45 +393,53 @@
+ 	{0x366F, 0x00},
+ 	{0x3670, 0x00},
+ 	{0x3671, 0x00},
+-	{0x30EE, 0x01},
+-	{0x3304, 0x32},
++
++	// PSMIPI
++	{0x3304, 0x32}, // PSMIPI1
++	{0x3305, 0x00},
+ 	{0x3306, 0x32},
++	{0x3307, 0x00},
+ 	{0x3590, 0x32},
++	{0x3591, 0x00},
+ 	{0x3686, 0x32},
+-	/* resolution */
+-	{0x30E2, 0x02},
+-	{0x30F6, 0x04},
+-	{0x30F7, 0x01},
+-	{0x30F8, 0x0C},
+-	{0x30F9, 0x12},
+-	{0x3130, 0x40},
+-	{0x3131, 0x04},
+-	{0x3132, 0x38},
+-	{0x3133, 0x04},
+-
+-	/* crop */
+-	{0x30DD, 0x01},
+-	{0x30DE, 0x07},
+-	{0x30DF, 0x00},
+-	{0x30E0, 0x04},
+-	{0x30E1, 0x00},
+-	{0x3037, 0x01},
+-	{0x3038, 0x0C},
+-	{0x3039, 0x00},
+-	{0x303A, 0x0C},
+-	{0x303B, 0x0F},
+-
+-	/* mode setting */
++	{0x3687, 0x00},
+ 	{0x3004, 0x02},
+ 	{0x3005, 0x21},
+ 	{0x3006, 0x00},
+-	{0x3007, 0xB1},
+-	{0x3A41, 0x08},
+-	{0x3A42, 0x01},
++	{0x3007, 0x11},
++	{0x300C, 0xff}, // SHR
++	{0x300D, 0x00}, // SHR
++	{0x300E, 0x00},//0x01}, // SVR , 1, reduce from 120fps to 60fps
++	{0x300F, 0x00}, // SVR
++	{0x3018, 0xA2}, // output XVS, HVS
++	{0x301A, 0x00},
++	{0x306B, 0x05},
++	{0x30E2, 0x02},
++	{0x30F6, 0x04}, // HMAX , 260
++	{0x30F7, 0x01}, // HMAX
++	{0x30F8, 0x06}, // VMAX , 2310
++	{0x30F9, 0x09}, // VMAX
++	{0x30FA, 0x00}, // VMAX
++	{0x30dd, 0x01}, // to crop to 1920x1080
++	{0x30de, 0x0b},
++	{0x30df, 0x00},
++	{0x30e0, 0x06},
++	{0x30e1, 0x00},
++	{0x3037, 0x01},
++	{0x3038, 0x0c},
++	{0x3039, 0x00},
++	{0x303a, 0x0c},
++	{0x303b, 0x0f},
++	{0x30EE, 0x01},
++	{0x3130, 0x4E},
++	{0x3131, 0x04},
++	{0x3132, 0x2f},
++	{0x3133, 0x04},
+ 	{0x3342, 0x0A},
+ 	{0x3343, 0x00},
+ 	{0x3344, 0x1A},
+ 	{0x3345, 0x00},
++	{0x33A6, 0x00},
+ 	{0x3528, 0x0E},
+ 	{0x3554, 0x00},
+ 	{0x3555, 0x01},
+@@ -338,106 +453,213 @@
+ 	{0x366B, 0x1A},
+ 	{0x366C, 0x19},
+ 	{0x366D, 0x17},
+-	{0x33A6, 0x01},
+-	{0x306B, 0x05},
+-
+-	/* d gain setting */
+-	{0x3012, 0x01},
+-
++	{0x3A41, 0x08},
+ 	{IMX274_TABLE_WAIT_MS, IMX274_WAIT_MS},
+ 	{IMX274_TABLE_END, 0x0000}
+ };
++#endif
+ 
+-/* Mode 5 : 1288X546 10 bits 240fps*/
+-static const imx274_reg mode_1288x546[] = {
+-	{IMX274_TABLE_WAIT_MS, IMX274_WAIT_MS},
+-	{0x3000, 0x12}, /* mode select streaming on */
+-	/* input freq. 24M */
+-	{0x3120, 0xF0},
+-	{0x3122, 0x02},
+-	{0x3129, 0x9c},
+-	{0x312A, 0x02},
+-	{0x312D, 0x02},
++static imx274_reg mode_1280X720[] = {
++        {IMX274_TABLE_WAIT_MS, IMX274_WAIT_MS},
++        {0x3000, 0x12}, /* mode select streaming on */
++        /* input freq. 24M */
++        {0x3120, 0xF0},
++        {0x3122, 0x02},
++        {0x3129, 0x9c},
++        {0x312A, 0x02},
++        {0x312D, 0x02},
++
++        {0x310B, 0x00},
++        {0x304C, 0x00},
++        {0x304D, 0x03},
++        {0x331C, 0x1A},
++        {0x3502, 0x02},
++        {0x3529, 0x0E},
++        {0x352A, 0x0E},
++        {0x352B, 0x0E},
++        {0x3538, 0x0E},
++        {0x3539, 0x0E},
++        {0x3553, 0x00},
++        {0x357D, 0x05},
++        {0x357F, 0x05},
++        {0x3581, 0x04},
++        {0x3583, 0x76},
++        {0x3587, 0x01},
++        {0x35BB, 0x0E},
++        {0x35BC, 0x0E},
++        {0x35BD, 0x0E},
++        {0x35BE, 0x0E},
++        {0x35BF, 0x0E},
++        {0x366E, 0x00},
++        {0x366F, 0x00},
++        {0x3670, 0x00},
++        {0x3671, 0x00},
++        {0x30EE, 0x01},
++        {0x3304, 0x32},
++        {0x3306, 0x32},
++        {0x3590, 0x32},
++        {0x3686, 0x32},
++        /* resolution */
++        {0x30E2, 0x03},
++        {0x30F6, 0x04},
++        {0x30F7, 0x01},
++        {0x30F8, 0x06},
++        {0x30F9, 0x09},
++
++
++        {0x30dd, 0x01}, // to crop to 1920x1080
++        {0x30de, 0x07},
++        {0x30df, 0x00},
++        {0x30e0, 0x07},
++        {0x30e1, 0x00},
++        {0x3037, 0x01},
++        {0x3038, 0x0c},
++        {0x3039, 0x00},
++        {0x303a, 0x0c},
++        {0x303b, 0x0f},
++
++        {0x3130, 0xD4},
++        {0x3131, 0x02},
++        {0x3132, 0xD0},
++        {0x3133, 0x02},
++
++        /* mode setting */
++        {0x3004, 0x03},
++        {0x3005, 0x31},
++        {0x3006, 0x00},
++        {0x3007, 0x09},
++        {0x3A41, 0x04},
++        {0x3342, 0x0A},
++        {0x3343, 0x00},
++        {0x3344, 0x1B},
++        {0x3345, 0x00},
++        {0x3528, 0x0E},
++        {0x3554, 0x00},
++        {0x3555, 0x01},
++        {0x3556, 0x01},
++        {0x3557, 0x01},
++        {0x3558, 0x01},
++        {0x3559, 0x00},
++        {0x355A, 0x00},
++        {0x35BA, 0x0E},
++        {0x366A, 0x1B},
++        {0x366B, 0x19},
++        {0x366C, 0x17},
++        {0x366D, 0x17},
++        {0x33A6, 0x01},
++        {0x306B, 0x05},
+ 
+-	{0x310B, 0x00},
+-	{0x304C, 0x00},
+-	{0x304D, 0x03},
+-	{0x331C, 0x1A},
+-	{0x3502, 0x02},
+-	{0x3529, 0x0E},
+-	{0x352A, 0x0E},
+-	{0x352B, 0x0E},
+-	{0x3538, 0x0E},
+-	{0x3539, 0x0E},
+-	{0x3553, 0x00},
+-	{0x357D, 0x05},
+-	{0x357F, 0x05},
+-	{0x3581, 0x04},
+-	{0x3583, 0x76},
+-	{0x3587, 0x01},
+-	{0x35BB, 0x0E},
+-	{0x35BC, 0x0E},
+-	{0x35BD, 0x0E},
+-	{0x35BE, 0x0E},
+-	{0x35BF, 0x0E},
+-	{0x366E, 0x00},
+-	{0x366F, 0x00},
+-	{0x3670, 0x00},
+-	{0x3671, 0x00},
+-	{0x30EE, 0x01},
+-	{0x3304, 0x32},
+-	{0x3306, 0x32},
+-	{0x3590, 0x32},
+-	{0x3686, 0x32},
+-	/* resolution */
+-	{0x30E2, 0x04},
+-	{0x30F6, 0x04}, /* HMAX 260 */
+-	{0x30F7, 0x01}, /* HMAX */
+-	{0x30F8, 0x83}, /* VMAX 1155 */
+-	{0x30F9, 0x04}, /* VMAX */
+-	{0x30FA, 0x00}, /* VMAX */
+-	{0x3130, 0x26},
+-	{0x3131, 0x02},
+-	{0x3132, 0x22},
+-	{0x3133, 0x02},
+-	/* mode setting */
+-	{0x3004, 0x04},
+-	{0x3005, 0x31},
+-	{0x3006, 0x00},
+-	{0x3007, 0x02},
+-	{0x3A41, 0x04},
+-	{0x3A42, 0x01},
+-	{0x3342, 0x0A},
+-	{0x3343, 0x00},
+-	{0x3344, 0x1A},
+-	{0x3345, 0x00},
+-	{0x3528, 0x0E},
+-	{0x3554, 0x00},
+-	{0x3555, 0x01},
+-	{0x3556, 0x01},
+-	{0x3557, 0x01},
+-	{0x3558, 0x01},
+-	{0x3559, 0x00},
+-	{0x355A, 0x00},
+-	{0x35BA, 0x0E},
+-	{0x366A, 0x1B},
+-	{0x366B, 0x19},
+-	{0x366C, 0x17},
+-	{0x366D, 0x17},
+-	{0x33A6, 0x01},
+-	{0x306B, 0x05},
++        /* d gain setting */
++        {0x3012, 0x01},
+ 
+-	/* d gain setting */
+-	{0x3012, 0x01},
++        {IMX274_TABLE_WAIT_MS, IMX274_WAIT_MS},
++        {IMX274_TABLE_END, 0x0000}
++};
+ 
+-	{IMX274_TABLE_WAIT_MS, IMX274_WAIT_MS},
+-	{IMX274_TABLE_END, 0x0000}
++/* Mode 6 : 1280X540 10 bits */
++static imx274_reg mode_1280X540[] = {
++        {IMX274_TABLE_WAIT_MS, IMX274_WAIT_MS},
++        {0x3000, 0x12}, /* mode select streaming on */
++        /* input freq. 24M */
++        {0x3120, 0xF0},
++        {0x3122, 0x02},
++        {0x3129, 0x9c},
++        {0x312A, 0x02},
++        {0x312D, 0x02},
++
++        {0x310B, 0x00},
++        {0x304C, 0x00},
++        {0x304D, 0x03},
++        {0x331C, 0x1A},
++        {0x3502, 0x02},
++        {0x3529, 0x0E},
++        {0x352A, 0x0E},
++        {0x352B, 0x0E},
++        {0x3538, 0x0E},
++        {0x3539, 0x0E},
++        {0x3553, 0x00},
++        {0x357D, 0x05},
++        {0x357F, 0x05},
++        {0x3581, 0x04},
++        {0x3583, 0x76},
++        {0x3587, 0x01},
++        {0x35BB, 0x0E},
++        {0x35BC, 0x0E},
++        {0x35BD, 0x0E},
++        {0x35BE, 0x0E},
++        {0x35BF, 0x0E},
++        {0x366E, 0x00},
++        {0x366F, 0x00},
++        {0x3670, 0x00},
++        {0x3671, 0x00},
++        {0x30EE, 0x01},
++        {0x3304, 0x32},
++        {0x3306, 0x32},
++        {0x3590, 0x32},
++        {0x3686, 0x32},
++        /* resolution */
++        {0x30E2, 0x04},
++        {0x30F6, 0x04},   // HMAX 260
++        {0x30F7, 0x01},   // HMAX
++        {0x30F8, 0x83},   // VMAX 1155
++        {0x30F9, 0x04},   // VMAX
++        {0x30FA, 0x00},   // VMAX
++
++
++        {0x30dd, 0x01}, // to crop to 1920x1080
++        {0x30de, 0x03},
++        {0x30df, 0x00},
++        {0x30e0, 0x03},
++        {0x30e1, 0x00},
++        {0x3037, 0x01},
++        {0x3038, 0x0c},
++        {0x3039, 0x00},
++        {0x303a, 0x0c},
++        {0x303b, 0x0f},
++
++
++        {0x3130, 0x20},
++        {0x3131, 0x02},
++        {0x3132, 0x1c},
++        {0x3133, 0x02},
++        /* mode setting */
++        {0x3004, 0x04},
++        {0x3005, 0x31},
++        {0x3006, 0x00},
++        {0x3007, 0x02},
++        {0x3A41, 0x04},
++        {0x3342, 0x0A},
++        {0x3343, 0x00},
++        {0x3344, 0x1A},
++        {0x3345, 0x00},
++        {0x3528, 0x0E},
++        {0x3554, 0x00},
++        {0x3555, 0x01},
++        {0x3556, 0x01},
++        {0x3557, 0x01},
++        {0x3558, 0x01},
++        {0x3559, 0x00},
++        {0x355A, 0x00},
++        {0x35BA, 0x0E},
++        {0x366A, 0x1B},
++        {0x366B, 0x19},
++        {0x366C, 0x17},
++        {0x366D, 0x17},
++        {0x33A6, 0x01},
++        {0x306B, 0x05},
++
++        /* d gain setting */
++        {0x3012, 0x01},
++
++        {IMX274_TABLE_WAIT_MS, IMX274_WAIT_MS},
++        {IMX274_TABLE_END, 0x0000}
+ };
+ 
+ enum {
+ 	IMX274_MODE_3840X2160,
+ 	IMX274_MODE_1920X1080,
+-	IMX274_MODE_1288X546,
++	IMX274_MODE_1280X720,
++	IMX274_MODE_1280X540,
+ 	IMX274_MODE_START_STREAM,
+ 	IMX274_MODE_STOP_STREAM,
+ 	IMX274_MODE_TEST_PATTERN,
+@@ -445,8 +667,10 @@
+ 
+ static const imx274_reg *mode_table[] = {
+ 	[IMX274_MODE_3840X2160] = mode_3840X2160_60fps,
+-	[IMX274_MODE_1920X1080] = mode_1920X1080,
+-	[IMX274_MODE_1288X546] = mode_1288x546,
++	[IMX274_MODE_1920X1080] = imx274_mode3_1920x1080_raw10,
++	[IMX274_MODE_1280X720] = mode_1280X720,
++	[IMX274_MODE_1280X540] = mode_1280X540,
++
+ 	[IMX274_MODE_START_STREAM]		= imx274_start,
+ 	[IMX274_MODE_STOP_STREAM]		= imx274_stop,
+ 	[IMX274_MODE_TEST_PATTERN]		= tp_colorbars,
+@@ -461,12 +685,13 @@
+ };
+ 
+ static const int imx274_240_fr[] = {
+-	240,
++        240,
+ };
+ 
+ static const struct camera_common_frmfmt imx274_frmfmt[] = {
+ 	{{3840, 2160}, imx274_60_fr, 1, 0, IMX274_MODE_3840X2160},
+ 	{{1920, 1080}, imx274_60_fr, 1, 0, IMX274_MODE_1920X1080},
+-	{{1288, 546}, imx274_240_fr, 1, 0, IMX274_MODE_1288X546},
++	{{1280, 720},  imx274_60_fr, 1, 0, IMX274_MODE_1280X720},
++	{{1280, 540},  imx274_240_fr, 1, 0, IMX274_MODE_1280X540},
+ };
+ #endif  /* __IMX274_I2C_TABLES__ */
+diff -rNu clean/kernel/kernel-4.4/drivers/thermal/pwm_fan.c 28.2/kernel/kernel-4.4/drivers/thermal/pwm_fan.c
+--- clean/kernel/kernel-4.4/drivers/thermal/pwm_fan.c	2018-03-01 21:37:49.000000000 -0700
++++ 28.2/kernel/kernel-4.4/drivers/thermal/pwm_fan.c	2018-04-27 15:23:24.007565301 -0600
+@@ -371,7 +371,7 @@
+ 	else
+ 		target_pwm = fan_data->fan_pwm[cur_state];
+ 
+-	target_pwm = min(fan_data->fan_cap_pwm, target_pwm);
++	target_pwm = max(fan_data->fan_cap_pwm, target_pwm);
+ 	fan_update_target_pwm(fan_data, target_pwm);
+ 
+ 	mutex_unlock(&fan_data->fan_state_lock);
+@@ -468,6 +468,11 @@
+ 	struct fan_dev_data *fan_data = container_of(dwork, struct
+ 						fan_dev_data, fan_ramp_work);
+ 
++	if (!fan_data) {
++		dev_err(fan_data->dev, "Fan data is null\n");
++		return;
++	}
++
+ 	mutex_lock(&fan_data->fan_state_lock);
+ 	if (!fan_data->fan_temp_control_flag) {
+ 		mutex_unlock(&fan_data->fan_state_lock);
+@@ -1051,6 +1056,14 @@
+ 
+ 	spin_lock_init(&fan_data->irq_lock);
+ 	atomic_set(&fan_data->tach_enabled, 0);
++
++	fan_data->fan_cur_pwm = 255;
++	fan_data->next_target_pwm = 255;
++	set_pwm_duty_cycle(0, fan_data);
++	fan_data->fan_temp_control_flag = 1;
++	queue_delayed_work(fan_data->workqueue, &fan_data->fan_ramp_work,
++			   msecs_to_jiffies(fan_data->step_time));
++
+ 	if (fan_data->tach_gpio != -1) {
+ 		/* init fan tach */
+ 		fan_data->tach_irq = gpio_to_irq(fan_data->tach_gpio);
+diff -rNu clean/kernel/kernel-4.4/include/media/imx274.h 28.2/kernel/kernel-4.4/include/media/imx274.h
+--- clean/kernel/kernel-4.4/include/media/imx274.h	2018-03-01 21:37:51.000000000 -0700
++++ 28.2/kernel/kernel-4.4/include/media/imx274.h	2018-04-27 15:23:24.007565301 -0600
 @@ -38,8 +38,7 @@
  #define IMX274_SHR_ADDR_MSB				0x300D
  
@@ -483,7 +1200,7 @@ index 499ce3d..4dbd68a 100644
  
  #define IMX274_GAIN_ADDR_LSB			0x300A
  #define IMX274_GAIN_ADDR_MSB			0x300B
-@@ -49,10 +48,12 @@
+@@ -49,10 +48,11 @@
  #define IMX274_PIXEL_CLK_HZ				756000000
  #define IMX274_LINE_LENGTH				4200
  
@@ -496,7 +1213,6 @@ index 499ce3d..4dbd68a 100644
 +#define IMX274_MODE1_OFFSET				112
 +#define IMX274_MODE1_SHR_MIN			12
 +#define IMX274_ET_FACTOR				400
-+
  
  struct imx274_mode {
  	__u32 xres;
