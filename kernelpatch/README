@@ -53,3 +53,17 @@ Copy the supplied dtb over the host's /Jetpack/Linux_for_Tegra/kernel/dtb
 Place the camera back in recovery mode and flash just the dtb with:
 sudo ./flash.sh -r -k kernel-dtb jetson-tx2 mmcblk0p1
 Reboot when finished, now you should see a /dev/video0 device.
+
+
+----------------------
+BUILDING FROM SOURCE
+
+./source_sync.sh -k tegra-l4t-r28.2 -u tegra-l4t-r28.2
+
+copy the build script to $TEGRA_BASE/sources
+Edit the build script to point to the correct paths. 
+
+Setup environment vars. 
+sudo ./build.sh
+
+sudo ./flash.sh -t jetson-tx2 mmcblk0p1
