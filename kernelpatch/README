@@ -35,15 +35,12 @@ For 28.2:
 
 Simply apply the patches on top of the jetpack 3.2 source:
 
-cd Linux_for_Tegra/sources/kernel/kernel-4.4
-git apply 28.2-kernel.patch
-cd Linux_for_Tegra/sources/hardware/nvidia/platform/t18x/common
-git apply 28.2-dts-common.patch
-cd Linux_for_Tegra/sources/hardware/nvidia/platform/t18x/quill
-git apply 28.2-dts-quill.patch
+cd Linux_for_Tegra/sources
+patch -p1 < 28.2-kernel.patch
+patch -p1 < 28.2-dtbs.patch
 
 Precompiled binaries: (if you don't want to build from source):
-https://drive.google.com/open?id=1wiyDGyseYU5QUdEbaBmrHuPAzaRX_eCI
+https://drive.google.com/drive/folders/13gKAo7ra5qdM2kknoKKAnOOwlLj4zs9P
 Download Jetpack 3.2: https://developer.nvidia.com/embedded/jetpack
 Apply Jetpack 3.2 to the camera, flashing through the gui provided. Install all/any packages you may need via Jetpack 3.2.
 
