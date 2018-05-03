@@ -57,6 +57,10 @@ BUILDING FROM SOURCE
 
 ./source_sync.sh -k tegra-l4t-r28.2 -u tegra-l4t-r28.2
 
+Install the compiler:
+https://developer.nvidia.com/embedded/linux-tegra
+extract to $TEGRA_BASE/compiler
+
 copy the build script to $TEGRA_BASE/sources
 Edit the build script to point to the correct paths. 
 
