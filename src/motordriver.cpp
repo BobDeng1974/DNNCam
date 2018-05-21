@@ -229,7 +229,7 @@ bool MotorDriver::printFocus()
 
 bool MotorDriver::printIris()
 {
-    return printReg(addr2, REG_GPIOA);
+    return printReg(addr0, REG_GPIOA);
 }
 
 bool MotorDriver::printPower()
@@ -269,8 +269,8 @@ bool MotorDriver::initExpanders()
     DO_WRITE(addr1, REG_GPIOB, REG_GPIOB_EXP1);
     exp1_gpiob = REG_GPIOB_EXP1;
 
-    DO_WRITE(addr2, REG_IODIRA, REG_IODIRA_EXP2);
-    DO_WRITE(addr2, REG_IODIRB, REG_IODIRB_EXP2);
+//    DO_WRITE(addr2, REG_IODIRA, REG_IODIRA_EXP2);
+//    DO_WRITE(addr2, REG_IODIRB, REG_IODIRB_EXP2);
     //DO_WRITE(addr2, REG_GPPUA, REG_GPPUA_VAL);
     //DO_WRITE(addr2, REG_GPPUB, REG_GPPUB_VAL);
 
