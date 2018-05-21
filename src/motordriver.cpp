@@ -67,12 +67,18 @@ int MotorDriver::addr0 = 0x22;  //U7 (Iris/Ircut)
 #define IRIS_EN1        IRIS_MS2
 
 
-#define POWER_5V_EN        0x80 //pin U6.B.7
-#define POWER_4V_EN        0x40 //pin U6.B.6
-#define POWER_2_8V_EN      0x20 //pion U6.B.5
-#define POWER_1_8V_EN      0x10 //pin U6.B.4
-#define POWER_1_2V_EN      0x08 //pin U6.B.3
-#define PG_4V		   0x04 //pin U6.B.2
+#define POWER_5V_EN_LDO    0x02 //pin U5.A.1
+#define PGOOD		   0x01 //pin U5.A.0
+#define POWER_4V_EN        0x80 //pin U5.B.7
+#define POWER_2_8V_EN      0x40 //pion U5.B.6
+#define POWER_1_8V_EN      0x20 //pin U5.B.5
+#define POWER_1_2V_EN      0x10 //pin U5.B.4
+#define POWER_5V_EN        0x08 //pin U5.B.3
+#define PG_4V		   0x04 //pin U5.B.2
+#define POWER_3_3V_EN      0x02 //pin U5.B.1
+#define PG_3_3V	           0x01 //pin U5.B.0
+
+
 #define IRCUT_A		   0x02 //pin U6.B.1
 #define IRCUT_B		   0x01 //pin U6.B.0
 
@@ -90,14 +96,14 @@ int MotorDriver::addr0 = 0x22;  //U7 (Iris/Ircut)
 #define REG_IODIRB_EXP1 0x11 //Fault, Pgood
 #define REG_IODIRA_EXP0 0x00  
 #define REG_IODIRB_EXP0 0xE0 //Board ID
-#define REG_IODIRA_EXP2 0x11 //Fault, Pgood input, all others output
-#define REG_IODIRB_EXP2 0x04 // U6.B.2 is input, all others output
+#define REG_IODIRA_EXP2 0x01 //PGood, all others output
+#define REG_IODIRB_EXP2 (0x01 + 0x04) // U5.B.0,3 are input, all others output
 #define REG_GPPUA_VAL 0x00 // disable all pull-ups
 #define REG_GPPUB_VAL 0x00
 #define REG_GPIOA_EXP1 (ZOOM_SLEEP ) // wake up on init
 #define REG_GPIOB_EXP1 (FOCUS_SLEEP)
 #define REG_GPIOA_EXP2 0x00
-#define REG_GPIOB_EXP2 0x00
+#define REG_GPIOB_EXP2 (POWER_1_8V_EN) //keep 1.8V on so level translator will work.
 #define REG_GPIOA_EXP0 (IRIS_SLEEP ) // wake up on init
 #define REG_GPIOB_EXP0 0x00
 
@@ -265,14 +271,14 @@ bool MotorDriver::initExpanders()
 
     DO_WRITE(addr2, REG_IODIRA, REG_IODIRA_EXP2);
     DO_WRITE(addr2, REG_IODIRB, REG_IODIRB_EXP2);
-    DO_WRITE(addr2, REG_GPPUA, REG_GPPUA_VAL);
-    DO_WRITE(addr2, REG_GPPUB, REG_GPPUB_VAL);
+    //DO_WRITE(addr2, REG_GPPUA, REG_GPPUA_VAL);
+    //DO_WRITE(addr2, REG_GPPUB, REG_GPPUB_VAL);
 
-    DO_WRITE(addr2, REG_GPIOA, REG_GPIOA_EXP2);
-    exp2_gpioa = REG_GPIOA_EXP2;
+    //DO_WRITE(addr2, REG_GPIOA, REG_GPIOA_EXP2);
+    //exp2_gpioa = REG_GPIOA_EXP2;
 
-    DO_WRITE(addr2, REG_GPIOB, REG_GPIOB_EXP2);
-    exp2_gpiob = REG_GPIOB_EXP2;
+    //DO_WRITE(addr2, REG_GPIOB, REG_GPIOB_EXP2);
+    //exp2_gpiob = REG_GPIOB_EXP2;
 
     if (false == enablePowerLines()) {
         _log_callback("Unable to enable power lines");
@@ -284,8 +290,8 @@ bool MotorDriver::initExpanders()
 bool MotorDriver::enablePowerLines()
 {
     // enable all power lines
-    exp2_gpiob |= (POWER_5V_EN | POWER_4V_EN | POWER_2_8V_EN | POWER_1_8V_EN | POWER_1_2V_EN);
-    DO_WRITE(addr2, REG_GPIOB, exp2_gpiob);
+    //exp2_gpiob |= (POWER_5V_EN | POWER_4V_EN | POWER_2_8V_EN | POWER_1_8V_EN | POWER_1_2V_EN);
+    //DO_WRITE(addr2, REG_GPIOB, exp2_gpiob);
     return true;
 }
 
