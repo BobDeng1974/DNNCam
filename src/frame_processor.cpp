@@ -237,6 +237,11 @@ void FrameProcessor::do_stream(FrameCollection frame_col, const int frame_num, c
     //     }
     // }
 
+    float points[] = { 0, 0, 1.0, 1.0 };
+    unsigned int pairs[] = { 0, 1, 2, 3 };
+    
+    DrawLines(frame_col.frame_y_copy->to_mat(), points, pairs, 2, 0, 2);
+
     if (!SequentialSection::too_late("stream", frame_num, n_dropped_before))
     {
         SequentialSection ss("stream", frame_num, n_dropped_before);

@@ -116,6 +116,9 @@ int run(int argc, char** argv)
         FrameCollection col;
         bool was_frame_dropped;
         col.frame_rgb = camera->grab(was_frame_dropped);  // This is a blocking call. Grab must be called before any grab_*
+        col.frame_y_copy = camera->grab_y_copy();
+        col.frame_u_copy = camera->grab_u_copy();
+        col.frame_v_copy = camera->grab_v_copy();
         col.frame_y = camera->grab_y();
         col.frame_u = camera->grab_u();
         col.frame_v = camera->grab_v();
